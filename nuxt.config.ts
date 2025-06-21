@@ -41,6 +41,7 @@ export default defineNuxtConfig({
                 preset: AmberAuraPreset,
                 options: {
                     darkModeSelector: 'system',
+                    darkModeClass: 'dark',
                 }
             }
         }

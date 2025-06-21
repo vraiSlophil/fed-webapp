@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import { login } from '~/services/auth'
-
 const email = ref<string>('')
 const password = ref<string>('')
 
-// Initialiser le toast
 const toast = useToast()
+const { login } = useAuth()
 
 const handleLogin = async () => {
   try {
