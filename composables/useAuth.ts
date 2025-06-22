@@ -6,7 +6,7 @@ const isAuthenticated = ref(false)
 export function useAuth() {
   const login = async (email: string, password: string) => {
     const response = await useApiFetch('/api/login', {
-      method: 'POST',
+      method: HttpMethod.POST,
       body: JSON.stringify({ email, password })
     })
     if (response && response.user) {

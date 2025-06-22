@@ -1,3 +1,5 @@
+<script setup lang="ts">
+</script>
 <template>
   <div class="flex min-h-screen items-center justify-center flex-col bg-gray-100">
     <div
@@ -48,5 +50,3 @@
     </form>
   </div>
 </template>
-<script setup lang="ts">
-</script>
