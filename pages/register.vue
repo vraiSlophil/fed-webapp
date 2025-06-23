@@ -67,6 +67,7 @@
                 placeholder="Mot de passe"
                 class="w-full"
                 :inputClass="'w-full'"
+				toggleMask
               />
             </div>
             <div>
@@ -75,6 +76,7 @@
                 placeholder="Confirmer le mot de passe"
                 class="w-full"
                 :inputClass="'w-full'"
+				toggleMask
               />
             </div>
             <Button

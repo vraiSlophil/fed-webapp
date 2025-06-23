@@ -7,7 +7,7 @@ const { login } = useAuth()
 
 const handleLogin = async () => {
   try {
-    const response = await login(email.value, password.value)
+    await login(email.value, password.value)
     toast.add({
       severity: 'success',
       summary: 'Connexion réussie',
@@ -65,6 +65,7 @@ const handleLogin = async () => {
             placeholder="Mot de passe"
             class="w-full"
             :inputClass="'w-full'"
+			:feedback="false"
         />
       </div>
       <!--      <button-->
