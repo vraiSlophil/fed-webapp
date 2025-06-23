@@ -4,6 +4,18 @@ const user = ref<User | null>(null)
 const isAuthenticated = ref(false)
 
 export function useAuth() {
+  const register = async (username: string, email: string, password: string, password_confirmation: string) => {
+    const response = await useApiFetch('/api/register', {
+      method: HttpMethod.POST,
+      body: JSON.stringify({ username, email, password, password_confirmation })
+    })
+    if (response && response.user) {
+      user.value = response.user
+      isAuthenticated.value = true
+    }
+    return response
+  }
+
   const login = async (email: string, password: string) => {
     const response = await useApiFetch('/api/login', {
       method: HttpMethod.POST,
@@ -25,6 +37,7 @@ export function useAuth() {
   return {
     user,
     isAuthenticated,
+    register,
     login,
     logout
   }

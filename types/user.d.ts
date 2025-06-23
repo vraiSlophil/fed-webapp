@@ -17,7 +17,7 @@
 
 
 export type User = {
-    id: string; // varbinary(16)
+    user_id: string; // uuid
     username: string; // varchar(50)
     email: string; // varchar(255)
     avatar_path?: string | null; // varchar(255) DEFAULT NULL
