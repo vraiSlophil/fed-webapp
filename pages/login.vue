@@ -29,62 +29,50 @@ const handleLogin = async () => {
 </script>
 
 <template>
-	<ClientOnly>
 
-		<div class="flex min-h-screen items-center justify-center flex-col ">
-			<div
-				class="flex items-center justify-center mb-4 w-full"
+	<div class="flex min-h-screen items-center justify-center flex-col ">
+		<div class="flex items-center justify-center mb-4 w-full">
+			<span class="material-symbols-rounded text-blue-500 mr-2">
+				arrow_back
+			</span>
+			<NuxtLink
+				class="text-blue-500 hover:underline flex justify-center items-center"
+				to="/"
 			>
-
-      <span
-		  class="material-symbols-rounded text-blue-500 mr-2"
-	  >
-        arrow_back
-      </span>
-				<NuxtLink
-					class="text-blue-500 hover:underline flex justify-center items-center"
-					to="/"
-				>
-					Retour à l'accueil
-				</NuxtLink>
-			</div>
-			<form
-				class=" p-8 rounded shadow-md w-full max-w-sm space-y-6"
-				@submit.prevent="handleLogin"
-			>
-				<h1 class="text-2xl font-bold text-center mb-4">Login</h1>
-				<div>
-					<InputText
-						v-model="email"
-						type="email"
-						placeholder="Nom d'utilisateur"
-						class="w-full"
-					/>
-				</div>
-				<div>
-					<Password
-						v-model="password"
-						placeholder="Mot de passe"
-						class="w-full"
-						:inputClass="'w-full'"
-						:feedback="false"
-						toggleMask
-
-					/>
-				</div>
-				<!--      <button-->
-				<!--        type="submit"-->
-				<!--        class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"-->
-				<!--      >-->
-				<!--        Se connecter-->
-				<!--      </button>-->
-				<Button
-					type="submit"
-					class="w-full"
-				>
-					Se connecter
-				</Button>
-			</form>
+				Retour à l'accueil
+			</NuxtLink>
 		</div>
-	</ClientOnly>
+
+		<form
+			class=" p-8 rounded shadow-md w-full max-w-sm space-y-6"
+			@submit.prevent="handleLogin"
+		>
+			<h1 class="text-2xl font-bold text-center mb-4">Login</h1>
+			<div>
+				<InputText
+					v-model="email"
+					type="email"
+					placeholder="Nom d'utilisateur"
+					class="w-full"
+				/>
+			</div>
+			<div>
+				<Password
+					v-model="password"
+					placeholder="Mot de passe"
+					class="w-full"
+					:inputClass="'w-full'"
+					:feedback="false"
+					toggleMask
+
+				/>
+			</div>
+			<Button
+				type="submit"
+				class="w-full"
+			>
+				Se connecter
+			</Button>
+		</form>
+	</div>
 </template>
