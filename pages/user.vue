@@ -1,22 +1,5 @@
 <script setup lang="ts">
-import type {User} from '~/types/user';
-
-const user = ref<User | null>(null)
-const toast = useToast()
-
-onMounted(async () => {
-	try {
-		const {user: userRef} = await useUser()
-		user.value = userRef.value
-	} catch (e) {
-		toast.add({
-			severity: 'error',
-			summary: 'Erreur',
-			detail: 'Impossible de récupérer les informations de l\'utilisateur.',
-			life: 3000
-		})
-	}
-})
+const {user} = useAuth();
 </script>
 
 <template>
@@ -24,12 +7,15 @@ onMounted(async () => {
 		class="flex min-h-screen items-center justify-center flex-col"
 	>
 		<div class="flex items-center justify-center mb-4 w-full">
-          <span class="material-symbols-rounded text-blue-500 mr-2">
-            arrow_back
-          </span>
-			<a class="text-blue-500 hover:underline flex justify-center items-center" href="/">
+			<span class="material-symbols-rounded text-blue-500 mr-2">
+				arrow_back
+			</span>
+			<NuxtLink
+				class="text-blue-500 hover:underline flex justify-center items-center"
+				to="/"
+			>
 				Retour à l'accueil
-			</a>
+			</NuxtLink>
 		</div>
 		<div
 			v-if="user"

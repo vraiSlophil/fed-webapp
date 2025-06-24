@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-const {isAuthenticated} = useAuth();
+const {isAuthenticated, logout} = useAuth();
 
 </script>
 <template>
@@ -32,6 +32,7 @@ const {isAuthenticated} = useAuth();
 				register
 			</NuxtLink>
 			<NuxtLink
+				v-if="isAuthenticated"
 				class="text-blue-500 hover:underline"
 				to="/user"
 			>
@@ -41,12 +42,10 @@ const {isAuthenticated} = useAuth();
 				v-if="isAuthenticated"
 				class="text-blue-500 hover:underline cursor-pointer"
 				@click.prevent
+				@click="logout"
 			>
 				déconnexion
 			</a>
-
 		</div>
-
-
 	</div>
 </template>

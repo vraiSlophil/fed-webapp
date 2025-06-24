@@ -13,14 +13,20 @@ export const useApiFetch = async (
 ) => {
     const config = useRuntimeConfig()
     const method = ((options.method || HttpMethod.GET) as HttpMethod).toUpperCase()
+    const authToken = useCookie('auth-token').value
 
     /* 1.  En-têtes communs */
-    const baseHeaders = {
+    const baseHeaders: any = {
         Accept: 'application/json',
         ...(options.headers || {})
     }
 
-    /* 2.  Pour les verbes modifiant l’état, on récupère le cookie CSRF        */
+    /* 2. Ajouter le token d'authentification s'il existe */
+    if (authToken) {
+        baseHeaders['Authorization'] = `Bearer ${authToken}`
+    }
+
+    /* 3.  Pour les verbes modifiant l'état, on récupère le cookie CSRF */
     if ([HttpMethod.POST, HttpMethod.PUT, HttpMethod.PATCH, HttpMethod.DELETE].includes(method as HttpMethod)) {
         await ensureCsrf(config);
 
@@ -33,7 +39,7 @@ export const useApiFetch = async (
         options.headers = baseHeaders
     }
 
-    /* 3.  On transmet TOUJOURS les cookies (session + XSRF)                   */
+    /* 4.  On transmet TOUJOURS les cookies (session + XSRF) */
     options.credentials = 'include'
 
     const response = await fetch(`${config.public.BACKEND_URL}${url}`, options)
