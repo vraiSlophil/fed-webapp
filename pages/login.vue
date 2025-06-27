@@ -23,7 +23,6 @@ const handleLogin = async () => {
 			detail: backendMessage,
 			life: 3000
 		})
-		navigateTo('/login')
 	}
 }
 </script>

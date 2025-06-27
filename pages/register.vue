@@ -16,7 +16,7 @@ const handleRegister = async () => {
 			detail: 'Bienvenue !',
 			life: 3000
 		})
-		// Redirection possible ici
+		navigateTo('/')
 	} catch (error: any) {
 		const backendMessage = error?.data?.message || error.message || 'Erreur inconnue'
 		toast.add({
