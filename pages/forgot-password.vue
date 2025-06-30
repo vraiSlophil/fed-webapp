@@ -36,7 +36,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { HttpMethod } from '~/utils/httpMethods'
+import { HttpMethods } from '~/utils/httpMethods'
 const email = ref('')
 const loading = ref(false)
 const toast = useToast()
@@ -45,7 +45,7 @@ const submit = async () => {
   loading.value = true
   try {
     await useApiFetch('/api/forgot-password', {
-      method: HttpMethod.POST,
+      method: HttpMethods.POST,
       body: JSON.stringify({ email: email.value })
     })
     toast.add({

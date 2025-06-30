@@ -7,11 +7,11 @@ const handleLogout = async () => {
 	try {
 		await logout();
 		toast.add({
-				severity: 'success',
-				summary: 'Déconnexion réussie',
-				detail: 'Vous avez été déconnecté avec succès.',
-				life: 3000
-			})
+			severity: 'success',
+			summary: 'Déconnexion réussie',
+			detail: 'Vous avez été déconnecté avec succès.',
+			life: 3000
+		})
 	} catch (error) {
 		console.error('Erreur lors de la déconnexion:', error);
 	}
@@ -61,6 +61,16 @@ const handleLogout = async () => {
 			>
 				déconnexion
 			</a>
+		</div>
+		<div>
+			<h1>Tests</h1>
+			<NuxtLink
+				class="text-blue-500 hover:underline"
+				to="tests/themes"
+			>
+				Themes
+			</NuxtLink>
+
 		</div>
 	</div>
 </template>

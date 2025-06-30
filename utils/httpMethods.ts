@@ -1,5 +1,5 @@
-// utils/httpMethods.ts
-export enum HttpMethod {
+
+export enum HttpMethods {
   GET = 'GET',
   POST = 'POST',
   PUT = 'PUT',

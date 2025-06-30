@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {ref, computed, watch} from 'vue'
 import {useAuth} from '~/composables/useAuth'
-import {HttpMethod} from '~/utils/httpMethods'
+import {HttpMethods} from '~/utils/httpMethods'
 
 const {user, fetchUser} = useAuth()
 const toast = useToast()
@@ -46,7 +46,7 @@ const handleProfileUpdate = async () => {
 	loading.value = true
 	try {
 		await useApiFetch('/api/profile/update', {
-			method: HttpMethod.POST,
+			method: HttpMethods.POST,
 			body: JSON.stringify(profileForm.value)
 		})
 		toast.add({
@@ -73,7 +73,7 @@ const handlePasswordUpdate = async () => {
 	loading.value = true
 	try {
 		await useApiFetch('/api/profile/password', {
-			method: HttpMethod.POST,
+			method: HttpMethods.POST,
 			body: JSON.stringify(passwordForm.value)
 		})
 		toast.add({
@@ -103,7 +103,7 @@ const handleAvatarUpload = async (event: any) => {
 		const formData = new FormData()
 		formData.append('avatar', file)
 		await useApiFetch('/api/profile/avatar', {
-			method: HttpMethod.POST,
+			method: HttpMethods.POST,
 			body: formData
 		})
 		toast.add({
@@ -124,6 +124,11 @@ const handleAvatarUpload = async (event: any) => {
 		avatarUploading.value = false
 	}
 }
+
+const formatLastLogin = computed(() => {
+	if (!user.value?.last_login_at) return ''
+	return user.value.last_login_at.toLocaleString('fr-FR');
+})
 </script>
 
 <template>
@@ -136,7 +141,7 @@ const handleAvatarUpload = async (event: any) => {
 		</div>
 		<div v-if="user" class="p-8 rounded shadow-md w-full max-w-lg space-y-8">
 			<h1 class="text-2xl font-bold text-center mb-4">Profil utilisateur</h1>
-			<div class="flex flex-col items-center space-y-2">
+			<div class="flex flex-col items-center space-y-2 mb-8">
 				<img v-if="avatarUrl" :src="getAvatarUrl" class="w-24 h-24 rounded-full object-cover border"
 					 alt="Avatar"/>
 				<div v-else
@@ -193,6 +198,14 @@ const handleAvatarUpload = async (event: any) => {
 				</div>
 				<Button type="submit" class="w-full" :loading="loading" label="Changer le mot de passe"/>
 			</form>
+			<div class="mt-8 text-sm text-gray-600 space-y-1">
+				<div v-if="user.last_login_at">
+					Dernière connexion : <span class="font-medium">{{ formatLastLogin }}</span>
+				</div>
+				<div v-if="user.last_login_ip">
+					IP de dernière connexion : <span class="font-mono">{{ user.last_login_ip }}</span>
+				</div>
+			</div>
 		</div>
 		<div v-else>Chargement...</div>
 	</div>

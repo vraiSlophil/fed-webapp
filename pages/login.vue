@@ -46,12 +46,12 @@ const handleLogin = async () => {
 			class=" p-8 rounded shadow-md w-full max-w-sm space-y-6"
 			@submit.prevent="handleLogin"
 		>
-			<h1 class="text-2xl font-bold text-center mb-4">Login</h1>
+			<h1 class="text-2xl font-bold text-center mb-4">Connexion</h1>
 			<div>
 				<InputText
 					v-model="email"
 					type="email"
-					placeholder="Nom d'utilisateur"
+					placeholder="Email"
 					class="w-full"
 				/>
 			</div>

@@ -1,4 +1,3 @@
-//@ts-ignore
 import type {User} from "~/types/user";
 
 export function useAuth() {
@@ -15,7 +14,7 @@ export function useAuth() {
     const fetchUser = async () => {
         try {
             // Si le token existe, la requête utilisera automatiquement le header Authorization
-            const response = await useApiFetch('/api/user', {method: HttpMethod.GET})
+            const response = await useApiFetch('/api/user', {method: HttpMethods.GET})
             if (response && response.data) {
                 user.value = response.data
                 isAuthenticated.value = true
@@ -36,7 +35,7 @@ export function useAuth() {
 
     const register = async (username: string, email: string, password: string, password_confirmation: string) => {
         const response = await useApiFetch('/api/register', {
-            method: HttpMethod.POST,
+            method: HttpMethods.POST,
             body: JSON.stringify({username, email, password, password_confirmation})
         })
         await handleResponse(response)
@@ -45,7 +44,7 @@ export function useAuth() {
 
     const login = async (email: string, password: string) => {
         const response = await useApiFetch('/api/login', {
-            method: HttpMethod.POST,
+            method: HttpMethods.POST,
             body: JSON.stringify({email, password})
         })
         await handleResponse(response)
@@ -56,7 +55,7 @@ export function useAuth() {
         try {
             // Appeler l'API de déconnexion si disponible
             if (authToken.value) {
-                await useApiFetch('/api/logout', { method: HttpMethod.POST })
+                await useApiFetch('/api/logout', { method: HttpMethods.POST })
             }
         } catch (error) {
             console.error('Erreur lors de la déconnexion:', error)

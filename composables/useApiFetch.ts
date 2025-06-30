@@ -12,7 +12,7 @@ export const useApiFetch = async (
     options: RequestInit = {}
 ) => {
     const config = useRuntimeConfig()
-    const method = ((options.method || HttpMethod.GET) as HttpMethod).toUpperCase()
+    const method = ((options.method || HttpMethods.GET) as HttpMethods).toUpperCase()
     const authToken = useCookie('auth-token').value
 
     /* 1.  En-têtes communs */
@@ -27,7 +27,7 @@ export const useApiFetch = async (
     }
 
     /* 3.  Pour les verbes modifiant l'état, on récupère le cookie CSRF */
-    if ([HttpMethod.POST, HttpMethod.PUT, HttpMethod.PATCH, HttpMethod.DELETE].includes(method as HttpMethod)) {
+    if ([HttpMethods.POST, HttpMethods.PUT, HttpMethods.PATCH, HttpMethods.DELETE].includes(method as HttpMethods)) {
         await ensureCsrf(config);
         const isFormData = options.body instanceof FormData
 

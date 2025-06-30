@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { HttpMethod } from '~/utils/httpMethods'
+import { HttpMethods } from '~/utils/httpMethods'
 const route = useRoute()
 const password = ref('')
 const password_confirmation = ref('')
@@ -12,7 +12,7 @@ const submit = async () => {
 	loading.value = true
 	try {
 		await useApiFetch('/api/reset-password', {
-			method: HttpMethod.POST,
+			method: HttpMethods.POST,
 			body: JSON.stringify({
 				email: route.query.email,
 				token: route.params.token || route.query.token,
