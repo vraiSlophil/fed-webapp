@@ -1,45 +1,203 @@
 <script setup lang="ts">
-const {user} = useAuth();
+import {ref, computed, watch} from 'vue'
+import {useAuth} from '~/composables/useAuth'
+import {HttpMethod} from '~/utils/httpMethods'
+
+const {user, fetchUser} = useAuth()
+const toast = useToast()
+
+const loading = ref(false)
+const editMode = ref(false)
+const profileForm = ref({
+	username: '',
+	email: '',
+	first_name: '',
+	last_name: ''
+})
+
+const passwordForm = ref({
+	current_password: '',
+	password: '',
+	password_confirmation: ''
+})
+
+const avatarUploading = ref(false)
+const avatarUrl = ref('')
+
+watch(user, (u) => {
+	if (u) {
+		profileForm.value = {
+			username: u.username || '',
+			email: u.email || '',
+			first_name: u.first_name || '',
+			last_name: u.last_name || ''
+		}
+		avatarUrl.value = u.avatar_path || ''
+	}
+}, {immediate: true})
+
+const getAvatarUrl = computed(() => {
+	if (!avatarUrl.value) return ''
+	const config = useRuntimeConfig()
+	return `${config.public.BACKEND_URL}/api/media/${avatarUrl.value}`
+})
+
+const handleProfileUpdate = async () => {
+	loading.value = true
+	try {
+		await useApiFetch('/api/profile/update', {
+			method: HttpMethod.POST,
+			body: JSON.stringify(profileForm.value)
+		})
+		toast.add({
+			severity: 'success',
+			summary: 'Profil mis à jour',
+			detail: 'Vos informations ont été enregistrées.',
+			life: 3000
+		})
+		await fetchUser()
+		editMode.value = false
+	} catch (e: any) {
+		toast.add({
+			severity: 'error',
+			summary: 'Erreur',
+			detail: e?.data?.message || 'Erreur lors de la mise à jour.',
+			life: 4000
+		})
+	} finally {
+		loading.value = false
+	}
+}
+
+const handlePasswordUpdate = async () => {
+	loading.value = true
+	try {
+		await useApiFetch('/api/profile/password', {
+			method: HttpMethod.POST,
+			body: JSON.stringify(passwordForm.value)
+		})
+		toast.add({
+			severity: 'success',
+			summary: 'Mot de passe modifié',
+			detail: 'Votre mot de passe a été changé.',
+			life: 3000
+		})
+		passwordForm.value = {current_password: '', password: '', password_confirmation: ''}
+	} catch (e: any) {
+		toast.add({
+			severity: 'error',
+			summary: 'Erreur',
+			detail: e?.data?.message || 'Erreur lors du changement de mot de passe.',
+			life: 4000
+		})
+	} finally {
+		loading.value = false
+	}
+}
+
+const handleAvatarUpload = async (event: any) => {
+	const file = event.files[0]
+	if (!file) return
+	avatarUploading.value = true
+	try {
+		const formData = new FormData()
+		formData.append('avatar', file)
+		await useApiFetch('/api/profile/avatar', {
+			method: HttpMethod.POST,
+			body: formData
+		})
+		toast.add({
+			severity: 'success',
+			summary: 'Avatar mis à jour',
+			detail: 'Votre avatar a été changé.',
+			life: 3000
+		})
+		await fetchUser()
+	} catch (e: any) {
+		toast.add({
+			severity: 'error',
+			summary: 'Erreur',
+			detail: e?.data?.message || 'Erreur lors du changement d’avatar.',
+			life: 4000
+		})
+	} finally {
+		avatarUploading.value = false
+	}
+}
 </script>
 
 <template>
-	<div
-		class="flex min-h-screen items-center justify-center flex-col"
-	>
+	<div class="flex min-h-screen items-center justify-center flex-col">
 		<div class="flex items-center justify-center mb-4 w-full">
-			<span class="material-symbols-rounded text-blue-500 mr-2">
-				arrow_back
-			</span>
-			<NuxtLink
-				class="text-blue-500 hover:underline flex justify-center items-center"
-				to="/"
-			>
+			<span class="material-symbols-rounded text-blue-500 mr-2">arrow_back</span>
+			<NuxtLink class="text-blue-500 hover:underline flex justify-center items-center" to="/">
 				Retour à l'accueil
 			</NuxtLink>
 		</div>
-		<div
-			v-if="user"
-			class="p-8 rounded shadow-md w-full max-w-sm space-y-4"
-		>
+		<div v-if="user" class="p-8 rounded shadow-md w-full max-w-lg space-y-8">
 			<h1 class="text-2xl font-bold text-center mb-4">Profil utilisateur</h1>
-			<div v-if="user" class="flex flex-col items-center space-y-2">
-				<div
-					class="w-20 h-20 rounded-full bg-blue-200 flex items-center justify-center text-3xl font-bold text-blue-700">
+			<div class="flex flex-col items-center space-y-2">
+				<img v-if="avatarUrl" :src="getAvatarUrl" class="w-24 h-24 rounded-full object-cover border"
+					 alt="Avatar"/>
+				<div v-else
+					 class="w-24 h-24 rounded-full bg-blue-200 flex items-center justify-center text-3xl font-bold text-blue-700">
 					{{ (user.first_name || user.username || user.email).charAt(0).toUpperCase() }}
 				</div>
-				<div class="text-lg font-semibold">
-					{{ user.first_name || user.username || 'Utilisateur' }}
-				</div>
-				<div class="text-gray-600">{{ user.email }}</div>
-				<div class="text-gray-400 text-sm">ID: {{ user.user_id }}</div>
+				<FileUpload
+					mode="basic"
+					name="avatar"
+					accept="image/jpeg,image/png,image/jpg,image/gif"
+					:auto="true"
+					:customUpload="true"
+					:chooseLabel="avatarUploading ? 'Chargement...' : 'Changer d\'avatar'"
+					:disabled="avatarUploading"
+					@uploader="handleAvatarUpload"
+					class="mt-2"
+				/>
 			</div>
-			<div v-else class="text-center text-red-500">Aucun utilisateur trouvé.</div>
+			<form class="space-y-4" @submit.prevent="handleProfileUpdate">
+				<div class="grid grid-cols-2 gap-4">
+					<div>
+						<label class="block mb-1">Nom d'utilisateur</label>
+						<InputText v-model="profileForm.username" class="w-full"/>
+					</div>
+					<div>
+						<label class="block mb-1">Email</label>
+						<InputText v-model="profileForm.email" class="w-full"/>
+					</div>
+					<div>
+						<label class="block mb-1">Prénom</label>
+						<InputText v-model="profileForm.first_name" class="w-full"/>
+					</div>
+					<div>
+						<label class="block mb-1">Nom</label>
+						<InputText v-model="profileForm.last_name" class="w-full"/>
+					</div>
+				</div>
+				<Button type="submit" class="w-full" :loading="loading" label="Enregistrer les modifications"/>
+			</form>
+			<form class="space-y-4 mt-4 pt-4 border-t" @submit.prevent="handlePasswordUpdate">
+				<h2 class="text-lg font-semibold">Changer le mot de passe</h2>
+				<div>
+					<label class="block mb-1">Mot de passe actuel</label>
+					<Password v-model="passwordForm.current_password" class="w-full" :inputClass="'w-full'" toggleMask/>
+				</div>
+				<div>
+					<label class="block mb-1">Nouveau mot de passe</label>
+					<Password v-model="passwordForm.password" class="w-full" :inputClass="'w-full'" toggleMask/>
+				</div>
+				<div>
+					<label class="block mb-1">Confirmer le nouveau mot de passe</label>
+					<Password v-model="passwordForm.password_confirmation" class="w-full" :inputClass="'w-full'"
+							  toggleMask/>
+				</div>
+				<Button type="submit" class="w-full" :loading="loading" label="Changer le mot de passe"/>
+			</form>
 		</div>
-		<div
-			v-else
-		>
-			Chargement...
-		</div>
+		<div v-else>Chargement...</div>
 	</div>
-
 </template>
+
+<style scoped>
+/* PrimeVue + Tailwind intégration */
+</style>

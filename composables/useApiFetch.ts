@@ -29,11 +29,12 @@ export const useApiFetch = async (
     /* 3.  Pour les verbes modifiant l'état, on récupère le cookie CSRF */
     if ([HttpMethod.POST, HttpMethod.PUT, HttpMethod.PATCH, HttpMethod.DELETE].includes(method as HttpMethod)) {
         await ensureCsrf(config);
+        const isFormData = options.body instanceof FormData
 
         options.headers = {
             ...baseHeaders,
             'X-XSRF-TOKEN': getXsrfHeader(),
-            'Content-Type': 'application/json',
+            ...(isFormData ? {} : {'Content-Type': 'application/json'}),
         }
     } else {
         options.headers = baseHeaders
