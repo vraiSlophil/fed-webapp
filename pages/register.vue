@@ -81,6 +81,14 @@ const handleRegister = async () => {
 					toggleMask
 				/>
 			</div>
+			<div class="flex justify-between items-center">
+				<NuxtLink
+					class="text-blue-500 hover:underline"
+					to="/login"
+				>
+					Déjà inscrit ? Connectez-vous
+				</NuxtLink>
+			</div>
 			<Button
 				type="submit"
 				class="w-full"

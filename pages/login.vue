@@ -66,6 +66,20 @@ const handleLogin = async () => {
 
 				/>
 			</div>
+			<div class="flex justify-between items-center">
+				<NuxtLink
+					class="text-blue-500 hover:underline"
+					to="/forgot-password"
+				>
+					Mot de passe oublié ?
+				</NuxtLink>
+				<NuxtLink
+					class="text-blue-500 hover:underline"
+					to="/register"
+				>
+					S'inscrire
+				</NuxtLink>
+			</div>
 			<Button
 				type="submit"
 				class="w-full"

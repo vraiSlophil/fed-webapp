@@ -3,10 +3,10 @@ export default defineNuxtRouteMiddleware(async (to) => {
     const toast = useToast()
 
     // Routes publiques accessibles à tous
-    const publicRoutes = ['/login', '/register', '/']
+    const publicRoutes = ['/login', '/register', '/', '/forgot-password', '/reset-password']
 
-    if (publicRoutes.includes(to.path)) {
-        return // Permet l'accès aux routes publiques
+    if (publicRoutes.some(route => to.path.startsWith(route))) {
+        return // Permet l'accès aux routes publiques (y compris les sous-niveaux)
     }
 
     // Vérifier l'authentification pour les routes protégées
