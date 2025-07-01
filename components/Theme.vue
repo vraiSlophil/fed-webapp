@@ -24,7 +24,7 @@ const startEdit = () => {
 }
 
 const updateColor = () => {
-	emit('update', props.theme.theme_id, { color: editedColor.value })
+	// emit('update', props.theme.theme_id, { color: editedColor.value })
 }
 
 // Confirmer l'édition
@@ -45,6 +45,35 @@ const cancelEdit = () => {
 	isEditing.value = false
 }
 
+function getLuminance(hex: string): number {
+	// Convertir le hex en RGB
+	const r = parseInt(hex.slice(1, 3), 16) / 255
+	const g = parseInt(hex.slice(3, 5), 16) / 255
+	const b = parseInt(hex.slice(5, 7), 16) / 255
+
+	// Calcul de la luminosité selon la formule W3C
+	const a = [r, g, b].map((v) => {
+		return v <= 0.03928
+			? v / 12.92
+			: Math.pow((v + 0.055) / 1.055, 2.4)
+	})
+
+	return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722
+}
+
+// Fonction pour déterminer la couleur du texte
+function getTextColor(backgroundColor: string): string {
+	const luminance = getLuminance(backgroundColor)
+
+	// Seuil de luminosité (ajustable)
+	return luminance > 0.5 ? '#000000' : '#ffffff'
+}
+
+// Exemple d'utilisation dans votre composant
+const textColor = computed(() => {
+	return getTextColor(editedColor.value)
+})
+
 watch(
 	() => editedColor.value,
 	(newVal) => {
@@ -57,15 +86,18 @@ watch(
 
 <template>
 	<div
-		class="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm transition-all duration-200 mb-3"
-		:style="{ borderLeft: `4px solid ${theme.color}` }"
+		class="flex items-center justify-between p-4 rounded-lg shadow-sm transition-all duration-200 mb-3"
+		:style="{
+			backgroundColor: `${editedColor}`,
+			color: getTextColor(editedColor)
+		}"
 	>
 		<!-- Mode normal -->
 		<div v-if="!isEditing" class="flex items-center gap-3 flex-grow">
-			<div
-				class="w-6 h-6 rounded-full"
-				:style="{ backgroundColor: theme.color }"
-			></div>
+<!--			<div-->
+<!--				class="w-6 h-6 rounded-full"-->
+<!--				:style="{ backgroundColor: editedColor }"-->
+<!--			></div>-->
 			<span class="font-medium">{{ theme.title }}</span>
 		</div>
 
@@ -73,7 +105,11 @@ watch(
 		<div v-else class="flex items-center gap-3 flex-grow">
 			<input
 				v-model="editedTitle"
-				class="flex-grow px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+				class="font-medium flex-grow px-3 py-1 mr-8 rounded-md focus:outline-none"
+				:style="{
+					color: getTextColor(editedColor),
+					backgroundColor: getTextColor(editedColor) + '1A'
+				}"
 				placeholder="Nom du thème"
 				@keyup.enter="confirmEdit"
 				@keyup.esc="cancelEdit"
@@ -86,20 +122,20 @@ watch(
 			<template v-if="!isEditing">
 				<button
 					@click="startEdit"
-					class="cursor-pointer flex justify-center items-center align p-2 rounded-full text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300 transition-colors"
+					class="cursor-pointer flex justify-center items-center align p-2 rounded-full"
 					title="Modifier"
 				>
 					<span class="material-symbols-rounded">edit</span>
 				</button>
 				<button
 					@click="$emit('delete', theme)"
-					class="cursor-pointer flex justify-center items-center p-2 rounded-full text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+					class="cursor-pointer flex justify-center items-center p-2 rounded-full"
 					title="Supprimer"
 				>
 					<span class="material-symbols-rounded">delete</span>
 				</button>
 				<button
-					class="cursor-pointer flex justify-center items-center p-2 rounded-full text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+					class="cursor-pointer flex justify-center items-center p-2 rounded-full"
 					title="Partager (à venir)"
 				>
 					<span class="material-symbols-rounded">person_add</span>
@@ -113,7 +149,7 @@ watch(
 					<button
 						type="button"
 						@click="colorPopoverVisible.show($event)"
-						class="cursor-pointer flex justify-center items-center p-2 rounded-full text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
+						class="cursor-pointer flex justify-center items-center p-2 rounded-full"
 						title="Changer la couleur"
 						aria-haspopup="true"
 						aria-controls="color-picker-popover"
@@ -125,15 +161,19 @@ watch(
 						ref="colorPopoverVisible"
 						target="prev"
 					>
-						<div class="p-3 w-72">
+						<div class="p-3 flex items-center justify-center gap-2 flex-col">
 							<div class="mb-3">
-								<ColorPicker v-model="editedColor" inline @change="updateColor" />
+								<ColorPicker
+									v-model="editedColor"
+									inline
+									@change="updateColor"
+								/>
 							</div>
-							<div class="flex items-center mt-2">
-								<span class="mr-2 text-sm text-gray-600 dark:text-gray-300">Code hex:</span>
+							<div class="flex items-center justify-center flex-row gap-3">
+								<span class="text-sm  dark:text-gray-300">Code hex:</span>
 								<InputText
 									v-model="editedColor"
-									class="flex-1 font-mono text-sm"
+									class="flex-1 font-mono text-sm w-30"
 									@change="updateColor"
 								/>
 							</div>
@@ -143,14 +183,14 @@ watch(
 
 				<button
 					@click="confirmEdit"
-					class="cursor-pointer flex justify-center items-center p-2 rounded-full text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
+					class="cursor-pointer flex justify-center items-center p-2 rounded-full"
 					title="Confirmer"
 				>
 					<span class="material-symbols-rounded">check</span>
 				</button>
 				<button
 					@click="cancelEdit"
-					class="cursor-pointer flex justify-center items-center p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+					class="cursor-pointer flex justify-center items-center p-2 rounded-full"
 					title="Annuler"
 				>
 					<span class="material-symbols-rounded">close</span>

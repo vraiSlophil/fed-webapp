@@ -160,12 +160,20 @@ const deleteTheme = async () => {
 				<div class="flex justify-between items-center">
 					<h2 class="text-lg font-semibold">Mes thèmes</h2>
 					<Button
-						icon="pi pi-refresh"
-						text
-						severity="secondary"
 						@click="fetchThemes"
 						:loading="loading"
-					/>
+					>
+						<span
+							v-if="loading"
+							class="material-symbols-rounded rotating">
+							progress_activity
+						</span>
+						<span
+							v-else
+							class="material-symbols-rounded">
+							refresh
+						</span>
+					</Button>
 				</div>
 
 				<div v-if="loading && !themes.length" class="p-4 text-center">
@@ -205,20 +213,18 @@ const deleteTheme = async () => {
 			:style="{ width: '30rem' }"
 			:modal="true"
 		>
-			<div class="confirmation-content flex items-center gap-3 my-4">
+			<div class="confirmation-content flex items-center gap-3 m-4">
 				<span class="material-symbols-rounded text-yellow-500 text-2xl">warning</span>
 				<span>Êtes-vous sûr de vouloir supprimer le thème <strong>{{ selectedTheme?.title }}</strong> ?</span>
 			</div>
 			<template #footer>
 				<Button
 					label="Non"
-					icon="pi pi-times"
 					outlined
 					@click="deleteDialogVisible = false"
 				/>
 				<Button
 					label="Oui"
-					icon="pi pi-check"
 					severity="danger"
 					@click="deleteTheme"
 					:loading="loading"
