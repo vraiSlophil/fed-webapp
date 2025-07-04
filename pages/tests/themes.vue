@@ -165,7 +165,7 @@ const deleteTheme = async () => {
 					>
 						<span
 							v-if="loading"
-							class="material-symbols-rounded rotating">
+							class="material-symbols-rounded animate-spin">
 							progress_activity
 						</span>
 						<span

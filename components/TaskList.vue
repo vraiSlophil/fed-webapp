@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
 import type { Theme } from '~/types/themes'
+import type { Task } from '~/types/task'
 import { useTasks } from '~/composables/useTasks'
 
 const props = defineProps<{
@@ -25,13 +25,6 @@ const {
 	archiveOptions,
 	fetchTasks,
 	createTask,
-	updateTask,
-	archiveTask,
-	restoreTask,
-	completeTask,
-	uncompleteTask,
-	deleteTask,
-	changeTaskStatus,
 	setSortOrder,
 	setStatusFilter,
 	setArchivedFilter,
@@ -143,13 +136,28 @@ const handleCreateTask = async () => {
 	}
 }
 
-// Gérer le changement de statut en cliquant sur le tag
-const handleStatusChange = async (taskId: string, currentStatus: 'todo' | 'doing' | 'done') => {
-	try {
-		await changeTaskStatus(taskId, currentStatus)
-		// Pas besoin de recharger, le composable met à jour automatiquement
-	} catch (error) {
-		console.error('Erreur lors du changement de statut:', error)
+// Gestionnaires d'événements du composant Task
+const handleTaskUpdated = (updatedTask: Task) => {
+	// Le composant Task gère déjà la mise à jour locale
+	// On peut ajouter ici de la logique supplémentaire si nécessaire
+}
+
+const handleTaskDeleted = (taskId: string) => {
+	// Recharger la liste après suppression
+	loadTasks()
+}
+
+const handleTaskArchived = (task: Task) => {
+	// Si on n'affiche pas les tâches archivées, recharger la liste
+	if (!currentArchivedFilter.value) {
+		loadTasks()
+	}
+}
+
+const handleTaskRestored = (task: Task) => {
+	// Si on affiche les tâches archivées, recharger la liste
+	if (currentArchivedFilter.value) {
+		loadTasks()
 	}
 }
 
@@ -177,7 +185,7 @@ const textColor = computed(() => getTextColor(props.theme.color))
 <template>
 	<div class="h-full flex flex-col rounded-b-lg">
 		<!-- Barre d'outils -->
-		<div class="flex items-center justify-between p-4 gap-3">
+		<div class="flex items-center justify-center flex-col p-4 gap-3 ">
 			<!-- Barre de recherche -->
 			<IconField class="flex-1 relative">
 				<InputIcon>
@@ -192,105 +200,109 @@ const textColor = computed(() => getTextColor(props.theme.color))
 					class="w-full pl-10 pr-4 py-2 text-sm"
 				/>
 			</IconField>
+			<div
+				class="flex items-center justify-between w-full max-w-3xl gap-2"
+			>
+				<!-- Bouton de tri -->
+				<div class="relative">
+					<Button
+						@click="sortMenuVisible = !sortMenuVisible"
+						:severity="currentSort === 'desc' ? 'secondary' : 'secondary'"
+						outlined
+						size="small"
+						class="flex items-center gap-2"
+					>
+						<span class="material-symbols-rounded text-sm">{{ getCurrentSortOption().icon }}</span>
+						<span class="hidden sm:inline">{{ getCurrentSortOption().label }}</span>
+					</Button>
 
-			<!-- Bouton de tri -->
-			<div class="relative">
-				<Button
-					@click="sortMenuVisible = !sortMenuVisible"
-					:severity="currentSort === 'desc' ? 'secondary' : 'secondary'"
-					outlined
-					size="small"
-					class="flex items-center gap-2"
-				>
-					<span class="material-symbols-rounded text-sm">{{ getCurrentSortOption().icon }}</span>
-					<span class="hidden sm:inline">{{ getCurrentSortOption().label }}</span>
-				</Button>
+					<!-- Menu de tri -->
+					<div
+						v-if="sortMenuVisible"
+						class="absolute right-0 top-full mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 z-10 min-w-40"
+					>
+						<div class="py-2">
+							<button
+								v-for="option in sortOptions"
+								:key="option.value"
+								@click="handleSortChange(option.value)"
+								class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+								:class="{ 'bg-gray-100 dark:bg-gray-700': currentSort === option.value }"
+							>
+								<span class="material-symbols-rounded text-sm">{{ option.icon }}</span>
+								{{ option.label }}
+							</button>
+						</div>
+					</div>
+				</div>
 
-				<!-- Menu de tri -->
-				<div
-					v-if="sortMenuVisible"
-					class="absolute right-0 top-full mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 z-10 min-w-40"
-				>
-					<div class="py-2">
-						<button
-							v-for="option in sortOptions"
-							:key="option.value"
-							@click="handleSortChange(option.value)"
-							class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-							:class="{ 'bg-gray-100 dark:bg-gray-700': currentSort === option.value }"
-						>
-							<span class="material-symbols-rounded text-sm">{{ option.icon }}</span>
-							{{ option.label }}
-						</button>
+				<!-- Bouton de filtre par statut -->
+				<div class="relative">
+					<Button
+						@click="filterMenuVisible = !filterMenuVisible"
+						:severity="currentStatusFilter ? 'primary' : 'secondary'"
+						outlined
+						size="small"
+						class="flex items-center gap-2"
+					>
+						<span class="material-symbols-rounded text-sm">{{ getCurrentStatusOption().icon }}</span>
+						<span class="hidden sm:inline">{{ getCurrentStatusOption().label }}</span>
+					</Button>
+
+					<!-- Menu de filtrage par statut -->
+					<div
+						v-if="filterMenuVisible"
+						class="absolute right-0 top-full mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 z-10 min-w-40"
+					>
+						<div class="py-2">
+							<button
+								v-for="option in statusOptions"
+								:key="option.value || 'all'"
+								@click="handleStatusFilter(option.value)"
+								class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+								:class="{ 'bg-gray-100 dark:bg-gray-700': currentStatusFilter === option.value }"
+							>
+								<span class="material-symbols-rounded text-sm">{{ option.icon }}</span>
+								{{ option.label }}
+							</button>
+						</div>
+					</div>
+				</div>
+
+				<!-- Bouton de filtre d'archivage -->
+				<div class="relative">
+					<Button
+						@click="archiveMenuVisible = !archiveMenuVisible"
+						:severity="currentArchivedFilter ? 'contrast' : 'secondary'"
+						outlined
+						size="small"
+						class="flex items-center gap-2"
+					>
+						<span class="material-symbols-rounded text-sm">{{ getCurrentArchiveOption().icon }}</span>
+						<span class="hidden sm:inline">{{ getCurrentArchiveOption().label }}</span>
+					</Button>
+
+					<!-- Menu de filtrage d'archivage -->
+					<div
+						v-if="archiveMenuVisible"
+						class="absolute right-0 top-full mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 z-10 min-w-40"
+					>
+						<div class="py-2">
+							<button
+								v-for="option in archiveOptions"
+								:key="option.value.toString()"
+								@click="handleArchivedFilter(option.value)"
+								class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+								:class="{ 'bg-gray-100 dark:bg-gray-700': currentArchivedFilter === option.value }"
+							>
+								<span class="material-symbols-rounded text-sm">{{ option.icon }}</span>
+								{{ option.label }}
+							</button>
+						</div>
 					</div>
 				</div>
 			</div>
 
-			<!-- Bouton de filtre par statut -->
-			<div class="relative">
-				<Button
-					@click="filterMenuVisible = !filterMenuVisible"
-					:severity="currentStatusFilter ? 'primary' : 'secondary'"
-					outlined
-					size="small"
-					class="flex items-center gap-2"
-				>
-					<span class="material-symbols-rounded text-sm">{{ getCurrentStatusOption().icon }}</span>
-					<span class="hidden sm:inline">{{ getCurrentStatusOption().label }}</span>
-				</Button>
-
-				<!-- Menu de filtrage par statut -->
-				<div
-					v-if="filterMenuVisible"
-					class="absolute right-0 top-full mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 z-10 min-w-40"
-				>
-					<div class="py-2">
-						<button
-							v-for="option in statusOptions"
-							:key="option.value || 'all'"
-							@click="handleStatusFilter(option.value)"
-							class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-							:class="{ 'bg-gray-100 dark:bg-gray-700': currentStatusFilter === option.value }"
-						>
-							<span class="material-symbols-rounded text-sm">{{ option.icon }}</span>
-							{{ option.label }}
-						</button>
-					</div>
-				</div>
-			</div>
-
-			<!-- Bouton de filtre d'archivage -->
-			<div class="relative">
-				<Button
-					@click="archiveMenuVisible = !archiveMenuVisible"
-					:severity="currentArchivedFilter ? 'contrast' : 'secondary'"
-					outlined
-					size="small"
-					class="flex items-center gap-2"
-				>
-					<span class="material-symbols-rounded text-sm">{{ getCurrentArchiveOption().icon }}</span>
-					<span class="hidden sm:inline">{{ getCurrentArchiveOption().label }}</span>
-				</Button>
-
-				<!-- Menu de filtrage d'archivage -->
-				<div
-					v-if="archiveMenuVisible"
-					class="absolute right-0 top-full mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 z-10 min-w-40"
-				>
-					<div class="py-2">
-						<button
-							v-for="option in archiveOptions"
-							:key="option.value.toString()"
-							@click="handleArchivedFilter(option.value)"
-							class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-							:class="{ 'bg-gray-100 dark:bg-gray-700': currentArchivedFilter === option.value }"
-						>
-							<span class="material-symbols-rounded text-sm">{{ option.icon }}</span>
-							{{ option.label }}
-						</button>
-					</div>
-				</div>
-			</div>
 		</div>
 
 		<!-- Formulaire de création de tâche (seulement pour les tâches actives) -->
@@ -350,86 +362,17 @@ const textColor = computed(() => getTextColor(props.theme.color))
 				<p v-if="!currentArchivedFilter" class="text-sm mt-1">Créez votre première tâche ci-dessus</p>
 			</div>
 
-			<div v-else class="divide-y dark:divide-gray-700">
-				<div
+			<div v-else class="divide-y-0">
+				<!-- Utilisation du composant Task -->
+				<Task
 					v-for="task in tasks"
 					:key="task.task_id"
-					class="p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-					:class="{ 'opacity-60': task.archived_at }"
-				>
-					<div class="flex items-center justify-between">
-						<div class="flex items-center gap-3">
-							<button
-								@click="task.validated_at ? uncompleteTask(task.task_id) : completeTask(task.task_id)"
-								class="flex items-center justify-center w-6 h-6 rounded-full border-2 transition-colors"
-								:class="task.validated_at
-									? 'bg-green-500 border-green-500 text-white'
-									: 'border-gray-300 dark:border-gray-600 hover:border-gray-400'"
-								:disabled="!!task.archived_at"
-							>
-								<span v-if="task.validated_at" class="material-symbols-rounded text-sm">check</span>
-							</button>
-
-							<div class="flex-1">
-								<h3
-									class="font-medium"
-									:class="task.validated_at ? 'line-through text-gray-500' : ''"
-								>
-									{{ task.title }}
-								</h3>
-								<div class="flex items-center gap-2 mt-1">
-									<!-- Tag de statut cliquable -->
-									<button
-										@click="!task.archived_at && handleStatusChange(task.task_id, task.status)"
-										class="px-2 py-1 rounded-full text-xs font-medium transition-all duration-200"
-										:class="{
-											'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 hover:bg-blue-200 dark:hover:bg-blue-800': task.status === 'todo',
-											'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 hover:bg-yellow-200 dark:hover:bg-yellow-800': task.status === 'doing',
-											'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 hover:bg-green-200 dark:hover:bg-green-800': task.status === 'done',
-											'cursor-pointer': !task.archived_at,
-											'cursor-default': task.archived_at
-										}"
-										:disabled="!!task.archived_at"
-										:title="!task.archived_at ? 'Cliquez pour changer le statut' : ''"
-									>
-										{{ task.status === 'todo' ? 'À faire' : task.status === 'doing' ? 'En cours' : 'Terminé' }}
-									</button>
-									<span v-if="task.validated_at" class="text-xs text-green-600 dark:text-green-400">
-										Validé
-									</span>
-									<span v-if="task.archived_at" class="text-xs text-gray-500 dark:text-gray-400">
-										Archivé
-									</span>
-								</div>
-							</div>
-						</div>
-
-						<div class="flex items-center gap-1">
-							<!-- Bouton restaurer/archiver -->
-							<Button
-								@click="task.archived_at ? restoreTask(task.task_id) : archiveTask(task.task_id)"
-								text
-								size="small"
-								class="p-2"
-								:title="task.archived_at ? 'Restaurer' : 'Archiver'"
-							>
-								<span class="material-symbols-rounded text-sm">
-									{{ task.archived_at ? 'unarchive' : 'archive' }}
-								</span>
-							</Button>
-							<!-- Bouton supprimer -->
-							<Button
-								@click="deleteTask(task.task_id)"
-								text
-								size="small"
-								class="p-2 text-red-500"
-								title="Supprimer"
-							>
-								<span class="material-symbols-rounded text-sm">delete</span>
-							</Button>
-						</div>
-					</div>
-				</div>
+					:task="task"
+					@updated="handleTaskUpdated"
+					@deleted="handleTaskDeleted"
+					@archived="handleTaskArchived"
+					@restored="handleTaskRestored"
+				/>
 			</div>
 		</div>
 
