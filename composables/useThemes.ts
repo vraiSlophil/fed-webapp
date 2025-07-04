@@ -1,5 +1,3 @@
-// composables/useThemes.ts
-import { ref, reactive } from 'vue'
 import { useApiFetch } from './useApiFetch'
 import type { Theme } from '~/types/themes'
 

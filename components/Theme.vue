@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import type { Theme } from '~/types/themes'
+import TaskList from "~/components/TaskList.vue";
 
 const props = defineProps<{
 	theme: Theme
@@ -15,6 +15,11 @@ const isEditing = ref(false)
 const editedTitle = ref(props.theme.title)
 const editedColor = ref(props.theme.color)
 const colorPopoverVisible = ref(false)
+const isThemeOpen = ref(false)
+
+const openTheme = () => {
+	isThemeOpen.value = !isThemeOpen.value
+}
 
 // Démarrer l'édition
 const startEdit = () => {
@@ -86,125 +91,160 @@ watch(
 
 <template>
 	<div
-		class="flex items-center justify-between p-4 rounded-lg shadow-sm transition-all duration-200 mb-3"
-		:style="{
-			backgroundColor: `${editedColor}`,
-			color: getTextColor(editedColor)
-		}"
+		class="flex items-center justify-center flex-col shadow-sm transition-all duration-200 mb-3 "
 	>
-		<!-- Mode normal -->
-		<div v-if="!isEditing" class="flex items-center gap-3 flex-grow">
-<!--			<div-->
-<!--				class="w-6 h-6 rounded-full"-->
-<!--				:style="{ backgroundColor: editedColor }"-->
-<!--			></div>-->
-			<span class="font-medium">{{ theme.title }}</span>
-		</div>
+		<div
+			class="flex items-center justify-between w-full p-4 rounded-t-lg"
+			:class="{
+				'rounded-b-lg': !isThemeOpen,
+				'rounded-b-none': isThemeOpen
+			}"
+			:style="{
+				backgroundColor: `${editedColor}`,
+				color: textColor
+			}"
+		>
+			<div>
+				<button
+					@click="openTheme"
+					class="cursor-pointer flex justify-center items-center align p-2 rounded-full"
+					title="Ouvrir"
+				>
+					<span
+						v-if="isThemeOpen"
+						class="material-symbols-rounded">
+						keyboard_arrow_up
+					</span>
+					<span
+						v-else
+						class="material-symbols-rounded">
+						keyboard_arrow_down
+					</span>
+				</button>
 
-		<!-- Mode édition -->
-		<div v-else class="flex items-center gap-3 flex-grow">
+			</div>
+			<!-- Mode normal -->
+			<div v-if="!isEditing" class="flex items-center gap-3 flex-grow ml-3">
+				<span class="font-medium">{{ theme.title }}</span>
+			</div>
+
+			<!-- Mode édition -->
+			<div v-else class="flex items-center gap-3 flex-grow">
+				<input
+					v-model="editedTitle"
+					class="font-medium flex-grow px-3 py-1 mr-8 rounded-md focus:outline-none"
+					:style="{
+						color: textColor,
+						backgroundColor: textColor + '1A'
+					}"
+					placeholder="Nom du thème"
+					@keyup.enter="confirmEdit"
+					@keyup.esc="cancelEdit"
+				/>
+			</div>
+
+			<!-- Actions -->
+			<div class="flex gap-2">
+				<!-- Boutons en mode normal -->
+				<template v-if="!isEditing">
+					<button
+						@click="startEdit"
+						class="cursor-pointer flex justify-center items-center align p-2 rounded-full"
+						title="Modifier"
+					>
+						<span class="material-symbols-rounded">edit</span>
+					</button>
+					<button
+						@click="$emit('delete', theme)"
+						class="cursor-pointer flex justify-center items-center p-2 rounded-full"
+						title="Supprimer"
+					>
+						<span class="material-symbols-rounded">delete</span>
+					</button>
+					<button
+						class="cursor-pointer flex justify-center items-center p-2 rounded-full"
+						title="Partager (à venir)"
+					>
+						<span class="material-symbols-rounded">person_add</span>
+					</button>
+				</template>
+
+				<!-- Boutons en mode édition -->
+				<template v-else>
+					<!-- Bouton pour le sélecteur de couleur avec Popover -->
+					<div>
+						<button
+							type="button"
+							@click="colorPopoverVisible.show($event)"
+							class="cursor-pointer flex justify-center items-center p-2 rounded-full"
+							title="Changer la couleur"
+							aria-haspopup="true"
+							aria-controls="color-picker-popover"
+						>
+							<span class="material-symbols-rounded">palette</span>
+						</button>
+
+						<Popover
+							ref="colorPopoverVisible"
+							target="prev"
+						>
+							<div class="p-3 flex items-center justify-center gap-2 flex-col">
+								<div class="mb-3">
+									<ColorPicker
+										v-model="editedColor"
+										inline
+										@change="updateColor"
+									/>
+								</div>
+								<div class="flex items-center justify-center flex-row gap-3">
+									<span class="text-sm  dark:text-gray-300">Code hex:</span>
+									<InputText
+										v-model="editedColor"
+										class="flex-1 font-mono text-sm w-30"
+										@change="updateColor"
+									/>
+								</div>
+							</div>
+						</Popover>
+					</div>
+
+					<button
+						@click="confirmEdit"
+						class="cursor-pointer flex justify-center items-center p-2 rounded-full"
+						title="Confirmer"
+					>
+						<span class="material-symbols-rounded">check</span>
+					</button>
+					<button
+						@click="cancelEdit"
+						class="cursor-pointer flex justify-center items-center p-2 rounded-full"
+						title="Annuler"
+					>
+						<span class="material-symbols-rounded">close</span>
+					</button>
+				</template>
+			</div>
+
+			<!-- Sélecteur de couleur (caché par défaut) -->
 			<input
-				v-model="editedTitle"
-				class="font-medium flex-grow px-3 py-1 mr-8 rounded-md focus:outline-none"
-				:style="{
-					color: getTextColor(editedColor),
-					backgroundColor: getTextColor(editedColor) + '1A'
-				}"
-				placeholder="Nom du thème"
-				@keyup.enter="confirmEdit"
-				@keyup.esc="cancelEdit"
+				ref="colorPickerRef"
+				type="color"
+				v-model="editedColor"
+				class="hidden"
+				@input="updateColor"
 			/>
 		</div>
+		<div
+			v-if="isThemeOpen"
+			class="bg-white/10 dark:bg-gray/10 backdrop-blur-xs min-h-42 w-full rounded-b-lg"
 
-		<!-- Actions -->
-		<div class="flex gap-2">
-			<!-- Boutons en mode normal -->
-			<template v-if="!isEditing">
-				<button
-					@click="startEdit"
-					class="cursor-pointer flex justify-center items-center align p-2 rounded-full"
-					title="Modifier"
-				>
-					<span class="material-symbols-rounded">edit</span>
-				</button>
-				<button
-					@click="$emit('delete', theme)"
-					class="cursor-pointer flex justify-center items-center p-2 rounded-full"
-					title="Supprimer"
-				>
-					<span class="material-symbols-rounded">delete</span>
-				</button>
-				<button
-					class="cursor-pointer flex justify-center items-center p-2 rounded-full"
-					title="Partager (à venir)"
-				>
-					<span class="material-symbols-rounded">person_add</span>
-				</button>
-			</template>
-
-			<!-- Boutons en mode édition -->
-			<template v-else>
-				<!-- Bouton pour le sélecteur de couleur avec Popover -->
-				<div>
-					<button
-						type="button"
-						@click="colorPopoverVisible.show($event)"
-						class="cursor-pointer flex justify-center items-center p-2 rounded-full"
-						title="Changer la couleur"
-						aria-haspopup="true"
-						aria-controls="color-picker-popover"
-					>
-						<span class="material-symbols-rounded">palette</span>
-					</button>
-
-					<Popover
-						ref="colorPopoverVisible"
-						target="prev"
-					>
-						<div class="p-3 flex items-center justify-center gap-2 flex-col">
-							<div class="mb-3">
-								<ColorPicker
-									v-model="editedColor"
-									inline
-									@change="updateColor"
-								/>
-							</div>
-							<div class="flex items-center justify-center flex-row gap-3">
-								<span class="text-sm  dark:text-gray-300">Code hex:</span>
-								<InputText
-									v-model="editedColor"
-									class="flex-1 font-mono text-sm w-30"
-									@change="updateColor"
-								/>
-							</div>
-						</div>
-					</Popover>
-				</div>
-
-				<button
-					@click="confirmEdit"
-					class="cursor-pointer flex justify-center items-center p-2 rounded-full"
-					title="Confirmer"
-				>
-					<span class="material-symbols-rounded">check</span>
-				</button>
-				<button
-					@click="cancelEdit"
-					class="cursor-pointer flex justify-center items-center p-2 rounded-full"
-					title="Annuler"
-				>
-					<span class="material-symbols-rounded">close</span>
-				</button>
-			</template>
+		>
+			<TaskList
+				:theme="theme"
+				:isThemeOpen="isThemeOpen"
+				@update="emit('update', theme.theme_id, $event)"
+				@delete="emit('delete', theme)"
+			/>
 		</div>
-
-		<!-- Sélecteur de couleur (caché par défaut) -->
-		<input
-			ref="colorPickerRef"
-			type="color"
-			v-model="editedColor"
-			class="hidden"
-			@input="updateColor"
-		/>
 	</div>
 </template>

@@ -1,4 +1,4 @@
-export interface Theme {
+export type Theme = {
     theme_id: string
     owner_id: string
     title: string
