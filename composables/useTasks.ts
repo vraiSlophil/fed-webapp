@@ -113,157 +113,6 @@ export const useTasks = () => {
         }
     }
 
-    // Mettre à jour une tâche
-    const updateTask = async (taskId: string, taskData: { title?: string; status?: 'todo' | 'doing' | 'done' }) => {
-        loading.value = true
-        error.value = null
-
-        try {
-            const response = await useApiFetch(`/api/tasks/${taskId}`, {
-                method: HttpMethods.PUT,
-                body: JSON.stringify(taskData)
-            }) as { data: { task: Task } }
-
-            // Mettre à jour la tâche dans la liste
-            const index = tasks.value.findIndex(t => t.task_id === taskId)
-            if (index !== -1) {
-                tasks.value[index] = response.data.task
-            }
-
-            return response.data.task
-        } catch (err: any) {
-            error.value = err.message || 'Erreur lors de la mise à jour de la tâche'
-            console.error('Erreur updateTask:', err)
-            throw err
-        } finally {
-            loading.value = false
-        }
-    }
-
-    // Archiver une tâche
-    const archiveTask = async (taskId: string) => {
-        try {
-            const response = await useApiFetch(`/api/tasks/${taskId}/archive`, {
-                method: HttpMethods.POST
-            }) as { data: { task: Task } }
-
-            // Retirer la tâche de la liste si on n'affiche pas les archivées
-            if (!filters.archived) {
-                tasks.value = tasks.value.filter(t => t.task_id !== taskId)
-            } else {
-                // Sinon mettre à jour la tâche
-                const index = tasks.value.findIndex(t => t.task_id === taskId)
-                if (index !== -1) {
-                    tasks.value[index] = response.data.task
-                }
-            }
-
-            return response.data.task
-        } catch (err: any) {
-            error.value = err.message || 'Erreur lors de l\'archivage de la tâche'
-            console.error('Erreur archiveTask:', err)
-            throw err
-        }
-    }
-
-    // Restaurer une tâche
-    const restoreTask = async (taskId: string) => {
-        try {
-            const response = await useApiFetch(`/api/tasks/${taskId}/restore`, {
-                method: HttpMethods.POST
-            }) as { data: { task: Task } }
-
-            const index = tasks.value.findIndex(t => t.task_id === taskId)
-            if (index !== -1) {
-                tasks.value[index] = response.data.task
-            }
-
-            return response.data.task
-        } catch (err: any) {
-            error.value = err.message || 'Erreur lors de la restauration de la tâche'
-            console.error('Erreur restoreTask:', err)
-            throw err
-        }
-    }
-
-    // Marquer comme terminé
-    const completeTask = async (taskId: string) => {
-        try {
-            const response = await useApiFetch(`/api/tasks/${taskId}/complete`, {
-                method: HttpMethods.POST
-            }) as { data: { task: Task } }
-
-            const index = tasks.value.findIndex(t => t.task_id === taskId)
-            if (index !== -1) {
-                tasks.value[index] = response.data.task
-            }
-
-            return response.data.task
-        } catch (err: any) {
-            error.value = err.message || 'Erreur lors de la validation de la tâche'
-            console.error('Erreur completeTask:', err)
-            throw err
-        }
-    }
-
-    // Marquer comme non terminé
-    const uncompleteTask = async (taskId: string) => {
-        try {
-            const response = await useApiFetch(`/api/tasks/${taskId}/uncomplete`, {
-                method: HttpMethods.POST
-            }) as { data: { task: Task } }
-
-            const index = tasks.value.findIndex(t => t.task_id === taskId)
-            if (index !== -1) {
-                tasks.value[index] = response.data.task
-            }
-
-            return response.data.task
-        } catch (err: any) {
-            error.value = err.message || 'Erreur lors de la dévalidation de la tâche'
-            console.error('Erreur uncompleteTask:', err)
-            throw err
-        }
-    }
-
-    // Supprimer une tâche
-    const deleteTask = async (taskId: string) => {
-        try {
-            await useApiFetch(`/api/tasks/${taskId}`, {
-                method: HttpMethods.DELETE
-            })
-
-            // Retirer la tâche de la liste
-            tasks.value = tasks.value.filter(t => t.task_id !== taskId)
-        } catch (err: any) {
-            error.value = err.message || 'Erreur lors de la suppression de la tâche'
-            console.error('Erreur deleteTask:', err)
-            throw err
-        }
-    }
-
-    // Fonction pour changer le statut d'une tâche de manière cyclique
-    const changeTaskStatus = async (taskId: string, currentStatus: 'todo' | 'doing' | 'done') => {
-        let newStatus: 'todo' | 'doing' | 'done'
-
-        // Cycle: todo -> doing -> done -> todo
-        switch (currentStatus) {
-            case 'todo':
-                newStatus = 'doing'
-                break
-            case 'doing':
-                newStatus = 'done'
-                break
-            case 'done':
-                newStatus = 'todo'
-                break
-            default:
-                newStatus = 'todo'
-        }
-
-        return await updateTask(taskId, { status: newStatus })
-    }
-
     // Réinitialiser les filtres
     const resetFilters = () => {
         Object.assign(filters, {
@@ -338,7 +187,6 @@ export const useTasks = () => {
         pagination: readonly(pagination),
         loading: readonly(loading),
         error: readonly(error),
-        filters,
 
         // Options
         sortOptions,
@@ -348,13 +196,6 @@ export const useTasks = () => {
         // Actions
         fetchTasks,
         createTask,
-        updateTask,
-        archiveTask,
-        restoreTask,
-        completeTask,
-        uncompleteTask,
-        deleteTask,
-        changeTaskStatus,
 
         // Filtres
         resetFilters,

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { Theme } from '~/types/themes'
-import type { Task } from '~/types/task'
-import { useTasks } from '~/composables/useTasks'
+import type {Theme} from '~/types/themes'
+import type {Task} from '~/types/task'
+import {useTasks} from '~/composables/useTasks'
 
 const props = defineProps<{
 	theme: Theme
@@ -19,7 +19,6 @@ const {
 	pagination,
 	loading,
 	error,
-	filters,
 	sortOptions,
 	statusOptions,
 	archiveOptions,
@@ -35,7 +34,7 @@ const {
 
 // État local pour les composants UI
 const sortMenuVisible = ref(false)
-const filterMenuVisible = ref(false)
+// const filterMenuVisible = ref(false)
 const archiveMenuVisible = ref(false)
 const searchQuery = ref('')
 const currentSort = ref('desc')
@@ -64,27 +63,24 @@ const loadTasks = async () => {
 	})
 }
 
-// Gérer le changement de tri
-const handleSortChange = async (sortValue: 'asc' | 'desc') => {
-	currentSort.value = sortValue
-	setSortOrder(sortValue)
-	sortMenuVisible.value = false
+// Fonction pour basculer entre les options de tri
+const toggleSortOrder = async () => {
+	const newSortOrder = currentSort.value === 'desc' ? 'asc' : 'desc'
+	currentSort.value = newSortOrder
+	setSortOrder(newSortOrder)
 	await loadTasks()
 }
 
 // Gérer le changement de filtre de statut
 const handleStatusFilter = async (status: 'todo' | 'doing' | 'done' | undefined) => {
-	currentStatusFilter.value = status
 	setStatusFilter(status)
-	filterMenuVisible.value = false
 	await loadTasks()
 }
 
-// Gérer le changement de filtre d'archivage
-const handleArchivedFilter = async (archived: boolean) => {
-	currentArchivedFilter.value = archived
-	setArchivedFilter(archived)
-	archiveMenuVisible.value = false
+// Fonction pour basculer entre les options d'archivage
+const toggleArchivedFilter = async () => {
+	currentArchivedFilter.value = !currentArchivedFilter.value
+	setArchivedFilter(currentArchivedFilter.value)
 	await loadTasks()
 }
 
@@ -112,6 +108,12 @@ const getCurrentStatusOption = () => {
 const getCurrentArchiveOption = () => {
 	return archiveOptions.find(option => option.value === currentArchivedFilter.value) || archiveOptions[0]
 }
+
+// Watcher pour réagir aux changements du filtre de statut
+watch(currentStatusFilter, async (newStatus: any) => {
+	await handleStatusFilter(newStatus.value)
+})
+
 
 // Gérer la création d'une nouvelle tâche
 const newTaskTitle = ref('')
@@ -186,127 +188,80 @@ const textColor = computed(() => getTextColor(props.theme.color))
 	<div class="h-full flex flex-col rounded-b-lg">
 		<!-- Barre d'outils -->
 		<div class="flex items-center justify-center flex-col p-4 gap-3 ">
-			<!-- Barre de recherche -->
-			<IconField class="flex-1 relative">
-				<InputIcon>
+			<div
+				class="flex items-center justify-between w-full gap-2"
+			>
+				<!-- Bouton de filtre par statut -->
+				<div class="relative">
+					<Select
+						v-model="currentStatusFilter"
+						:options="statusOptions"
+						optionLabel="label"
+						class="w-36"
+					>
+						<template #option="slotProps">
+							<div class="flex items-center gap-2">
+								<span class="material-symbols-rounded text-sm">{{ slotProps.option.icon }}</span>
+								{{ slotProps.option.label }}
+							</div>
+						</template>
+						<template #value="slotProps">
+							<div class="flex items-center gap-2">
+								<span class="material-symbols-rounded text-sm">
+								  {{ currentStatusFilter?.icon || statusOptions[0].icon}}
+								</span>
+								<span>
+									{{ currentStatusFilter?.label || statusOptions[0].label }}
+								</span>
+							</div>
+						</template>
+					</Select>
+				</div>
+				<!-- Barre de recherche -->
+				<IconField class="flex-1 relative">
+					<InputIcon>
 					<span class="material-symbols-rounded flex justify-center text-gray-400 text-sm">
 						search
 					</span>
-				</InputIcon>
-				<InputText
-					v-model="searchQuery"
-					@input="handleSearch"
-					placeholder="Rechercher une tâche..."
-					class="w-full pl-10 pr-4 py-2 text-sm"
-				/>
-			</IconField>
-			<div
-				class="flex items-center justify-between w-full max-w-3xl gap-2"
-			>
-				<!-- Bouton de tri -->
-				<div class="relative">
-					<Button
-						@click="sortMenuVisible = !sortMenuVisible"
-						:severity="currentSort === 'desc' ? 'secondary' : 'secondary'"
-						outlined
-						size="small"
-						class="flex items-center gap-2"
-					>
-						<span class="material-symbols-rounded text-sm">{{ getCurrentSortOption().icon }}</span>
-						<span class="hidden sm:inline">{{ getCurrentSortOption().label }}</span>
-					</Button>
-
-					<!-- Menu de tri -->
-					<div
-						v-if="sortMenuVisible"
-						class="absolute right-0 top-full mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 z-10 min-w-40"
-					>
-						<div class="py-2">
-							<button
-								v-for="option in sortOptions"
-								:key="option.value"
-								@click="handleSortChange(option.value)"
-								class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-								:class="{ 'bg-gray-100 dark:bg-gray-700': currentSort === option.value }"
-							>
-								<span class="material-symbols-rounded text-sm">{{ option.icon }}</span>
-								{{ option.label }}
-							</button>
-						</div>
-					</div>
-				</div>
-
-				<!-- Bouton de filtre par statut -->
-				<div class="relative">
-					<Button
-						@click="filterMenuVisible = !filterMenuVisible"
-						:severity="currentStatusFilter ? 'primary' : 'secondary'"
-						outlined
-						size="small"
-						class="flex items-center gap-2"
-					>
-						<span class="material-symbols-rounded text-sm">{{ getCurrentStatusOption().icon }}</span>
-						<span class="hidden sm:inline">{{ getCurrentStatusOption().label }}</span>
-					</Button>
-
-					<!-- Menu de filtrage par statut -->
-					<div
-						v-if="filterMenuVisible"
-						class="absolute right-0 top-full mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 z-10 min-w-40"
-					>
-						<div class="py-2">
-							<button
-								v-for="option in statusOptions"
-								:key="option.value || 'all'"
-								@click="handleStatusFilter(option.value)"
-								class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-								:class="{ 'bg-gray-100 dark:bg-gray-700': currentStatusFilter === option.value }"
-							>
-								<span class="material-symbols-rounded text-sm">{{ option.icon }}</span>
-								{{ option.label }}
-							</button>
-						</div>
-					</div>
-				</div>
-
-				<!-- Bouton de filtre d'archivage -->
-				<div class="relative">
-					<Button
-						@click="archiveMenuVisible = !archiveMenuVisible"
-						:severity="currentArchivedFilter ? 'contrast' : 'secondary'"
-						outlined
-						size="small"
-						class="flex items-center gap-2"
-					>
-						<span class="material-symbols-rounded text-sm">{{ getCurrentArchiveOption().icon }}</span>
-						<span class="hidden sm:inline">{{ getCurrentArchiveOption().label }}</span>
-					</Button>
-
-					<!-- Menu de filtrage d'archivage -->
-					<div
-						v-if="archiveMenuVisible"
-						class="absolute right-0 top-full mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 z-10 min-w-40"
-					>
-						<div class="py-2">
-							<button
-								v-for="option in archiveOptions"
-								:key="option.value.toString()"
-								@click="handleArchivedFilter(option.value)"
-								class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-								:class="{ 'bg-gray-100 dark:bg-gray-700': currentArchivedFilter === option.value }"
-							>
-								<span class="material-symbols-rounded text-sm">{{ option.icon }}</span>
-								{{ option.label }}
-							</button>
-						</div>
-					</div>
-				</div>
+					</InputIcon>
+					<InputText
+						v-model="searchQuery"
+						@input="handleSearch"
+						placeholder="Rechercher une tâche..."
+						class="w-full pl-10 pr-4 py-2 text-sm"
+					/>
+				</IconField>
 			</div>
 
+			<div
+				class="flex items-center justify-start w-full gap-2"
+			>
+				<!-- Bouton de tri (version toggle) -->
+				<Button
+					@click="toggleSortOrder"
+					:severity="currentSort === 'desc' ? 'secondary' : 'info'"
+					outlined
+					class="flex items-center gap-2"
+				>
+					<span class="material-symbols-rounded text-sm">{{ getCurrentSortOption().icon }}</span>
+					<span class="hidden sm:inline text-nowrap">{{ getCurrentSortOption().label }}</span>
+				</Button>
+
+				<!-- Bouton de filtre d'archivage (version toggle) -->
+				<Button
+					@click="toggleArchivedFilter"
+					:severity="currentArchivedFilter ? 'default' : 'secondary'"
+					outlined
+					class="flex items-center gap-2"
+				>
+					<span class="material-symbols-rounded text-sm">{{ getCurrentArchiveOption().icon }}</span>
+					<span class="hidden sm:inline text-nowrap">{{ getCurrentArchiveOption().label }}</span>
+				</Button>
+			</div>
 		</div>
 
 		<!-- Formulaire de création de tâche (seulement pour les tâches actives) -->
-		<div v-if="!currentArchivedFilter" class="p-4">
+		<div v-if="!currentArchivedFilter" class="px-4">
 			<div class="flex gap-2">
 				<InputText
 					v-model="newTaskTitle"
@@ -347,7 +302,7 @@ const textColor = computed(() => getTextColor(props.theme.color))
 		<!-- Liste des tâches -->
 		<div class="flex-1 overflow-y-auto">
 			<div v-if="loading" class="flex items-center justify-center p-8">
-				<ProgressSpinner size="small" />
+				<ProgressSpinner size="small"/>
 			</div>
 
 			<div v-else-if="error" class="p-4 text-center text-red-500">

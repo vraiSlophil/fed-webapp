@@ -18,26 +18,12 @@ export const useTask = (initialTask: Task) => {
             case 'todo':
                 return 'doing'
             case 'doing':
-                return 'done'
+                return 'todo'
             case 'done':
                 return 'todo'
             default:
                 return 'todo'
         }
-    }
-
-    // Styles pour les tags de statut
-    const getStatusStyle = (status: 'todo' | 'doing' | 'done') => {
-        const baseClasses = 'px-2 py-1 rounded-full text-xs font-medium transition-all duration-200'
-        const clickableClasses = canEdit.value ? 'cursor-pointer' : 'cursor-default'
-
-        const statusClasses = {
-            'todo': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 hover:bg-blue-200 dark:hover:bg-blue-800',
-            'doing': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 hover:bg-yellow-200 dark:hover:bg-yellow-800',
-            'done': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 hover:bg-green-200 dark:hover:bg-green-800'
-        }
-
-        return `${baseClasses} ${statusClasses[status]} ${clickableClasses}`
     }
 
     // Obtenir le label du statut
@@ -191,7 +177,6 @@ export const useTask = (initialTask: Task) => {
 
         // Méthodes utilitaires
         getNextStatus,
-        getStatusStyle,
         getStatusLabel,
         getStatusSeverity,
 

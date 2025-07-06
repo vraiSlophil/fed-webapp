@@ -22,7 +22,6 @@ const {
 	isCompleted,
 	isArchived,
 	canEdit,
-	getStatusStyle,
 	getStatusLabel,
 	getStatusSeverity,
 	updateTitle,
@@ -46,7 +45,7 @@ const startTitleEdit = async () => {
 
 	await nextTick()
 	// titleInputRef.value?.focus()
-	titleInputRef.value?.select()
+	// titleInputRef.value?.select()
 }
 
 // Confirmer l'édition du titre
@@ -170,7 +169,7 @@ const cancelDelete = () => {
 					<!-- Mode édition -->
 					<div v-else class="flex-1">
 						<InputText
-							ref="titleInputRef"
+
 							v-model="editedTitle"
 							@keyup.enter="confirmTitleEdit"
 							@keyup.esc="cancelTitleEdit"
