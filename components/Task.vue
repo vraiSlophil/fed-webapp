@@ -73,9 +73,9 @@ const handleStatusChange = async () => {
 	if (!canEdit.value) return
 
 	const success = await changeStatus()
-	if (success) {
-		emit('updated', task.value)
-	}
+	// if (success) {
+	// 	emit('updated', task.value)
+	// }
 }
 
 // Gérer la completion
@@ -83,9 +83,9 @@ const handleToggleCompletion = async () => {
 	if (!canEdit.value) return
 
 	const success = await toggleCompletion()
-	if (success) {
-		emit('updated', task.value)
-	}
+	// if (success) {
+	// 	emit('updated', task.value)
+	// }
 }
 
 // Gérer l'archivage/restauration
@@ -169,7 +169,6 @@ const cancelDelete = () => {
 					<!-- Mode édition -->
 					<div v-else class="flex-1">
 						<InputText
-
 							v-model="editedTitle"
 							@keyup.enter="confirmTitleEdit"
 							@keyup.esc="cancelTitleEdit"
@@ -206,7 +205,6 @@ const cancelDelete = () => {
 							v-if="isArchived"
 							:severity="'secondary'"
 						>
-<!--							<span class="material-symbols-rounded text-[8px] mr-1">archive</span>-->
 							Archivé
 						</Tag>
 
@@ -249,7 +247,7 @@ const cancelDelete = () => {
 				<div>
 					<!-- Bouton archiver/restaurer -->
 					<Button
-						v-if="canEdit && !isEditingTitle"
+						v-if="!isEditingTitle"
 						@click="handleToggleArchive"
 						text
 						size="small"
@@ -257,9 +255,9 @@ const cancelDelete = () => {
 						:title="isArchived ? 'Restaurer' : 'Archiver'"
 						:disabled="loading"
 					>
-					<span class="material-symbols-rounded text-sm">
-						{{ isArchived ? 'unarchive' : 'archive' }}
-					</span>
+						<span class="material-symbols-rounded text-sm">
+							{{ isArchived ? 'unarchive' : 'archive' }}
+						</span>
 					</Button>
 					<!-- Bouton annuler la modification -->
 					<Button

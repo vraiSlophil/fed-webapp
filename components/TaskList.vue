@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import type {Theme} from '~/types/themes'
+import type {Theme, ThemeStats} from '~/types/themes'
 import type {Task} from '~/types/task'
 import {useTasks} from '~/composables/useTasks'
+import { useThemeStats } from '~/composables/useThemeStats'
+
 
 const props = defineProps<{
 	theme: Theme
@@ -32,28 +34,45 @@ const {
 	taskStats
 } = useTasks()
 
+// Composable pour les statistiques du thème
+const {
+	stats: themeStats,
+	loading: statsLoading,
+	error: statsError,
+	fetchThemeStats
+} = useThemeStats()
+
 // État local pour les composants UI
-const sortMenuVisible = ref(false)
-// const filterMenuVisible = ref(false)
-const archiveMenuVisible = ref(false)
 const searchQuery = ref('')
 const currentSort = ref('desc')
 const currentStatusFilter = ref<'todo' | 'doing' | 'done' | undefined>(undefined)
 const currentArchivedFilter = ref(false)
 
+// Affichage détaillé des statistiques
+const showDetailedStats = ref(false)
+
 // Charger les tâches au montage et quand le thème change
 onMounted(() => {
 	if (props.isThemeOpen) {
-		loadTasks()
+		loadTasksAndStats()
 	}
 })
 
 // Watcher pour charger les tâches quand le thème s'ouvre/ferme
 watch(() => props.isThemeOpen, (isOpen) => {
 	if (isOpen) {
-		loadTasks()
+		loadTasksAndStats()
+
 	}
 })
+
+// Charger les tâches et statistiques pour ce thème
+const loadTasksAndStats = async () => {
+	await Promise.all([
+		loadTasks(),
+		fetchThemeStats(props.theme.theme_id)
+	])
+}
 
 // Charger les tâches pour ce thème
 const loadTasks = async () => {
@@ -130,7 +149,7 @@ const handleCreateTask = async () => {
 			status: 'todo'
 		})
 		newTaskTitle.value = ''
-		await loadTasks() // Recharger la liste
+		await loadTasksAndStats() // Recharger la liste
 	} catch (error) {
 		console.error('Erreur lors de la création de la tâche:', error)
 	} finally {
@@ -139,27 +158,28 @@ const handleCreateTask = async () => {
 }
 
 // Gestionnaires d'événements du composant Task
-const handleTaskUpdated = (updatedTask: Task) => {
+const handleTaskUpdated = async (updatedTask: Task) => {
 	// Le composant Task gère déjà la mise à jour locale
 	// On peut ajouter ici de la logique supplémentaire si nécessaire
+	await loadTasksAndStats()
 }
 
-const handleTaskDeleted = (taskId: string) => {
+const handleTaskDeleted = async (taskId: string) => {
 	// Recharger la liste après suppression
-	loadTasks()
+	await loadTasksAndStats()
 }
 
-const handleTaskArchived = (task: Task) => {
+const handleTaskArchived = async (task: Task) => {
 	// Si on n'affiche pas les tâches archivées, recharger la liste
 	if (!currentArchivedFilter.value) {
-		loadTasks()
+		await loadTasksAndStats()
 	}
 }
 
-const handleTaskRestored = (task: Task) => {
+const handleTaskRestored = async (task: Task) => {
 	// Si on affiche les tâches archivées, recharger la liste
 	if (currentArchivedFilter.value) {
-		loadTasks()
+		await loadTasksAndStats()
 	}
 }
 
@@ -182,12 +202,20 @@ function getTextColor(backgroundColor: string): string {
 }
 
 const textColor = computed(() => getTextColor(props.theme.color))
+
+// Fonction pour basculer l'affichage détaillé des statistiques
+const toggleDetailedStats = () => {
+	showDetailedStats.value = !showDetailedStats.value
+}
+
 </script>
 
 <template>
 	<div class="h-full flex flex-col rounded-b-lg">
 		<!-- Barre d'outils -->
-		<div class="flex items-center justify-center flex-col p-4 gap-3 ">
+		<div
+			class="flex items-center justify-center flex-col p-4 gap-3"
+		>
 			<div
 				class="flex items-center justify-between w-full gap-2"
 			>
@@ -283,26 +311,137 @@ const textColor = computed(() => getTextColor(props.theme.color))
 		</div>
 
 		<!-- Statistiques -->
-		<div v-if="taskStats.total > 0" class="p-4 border-b dark:border-gray-700">
-			<div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
-				<span>{{ taskStats.total }} tâche{{ taskStats.total > 1 ? 's' : '' }}</span>
-				<span v-if="!currentArchivedFilter">{{ taskStats.progress }}% terminé</span>
+		<div v-if="(themeStats || (taskStats && taskStats.total > 0)) && !currentArchivedFilter" class="p-4 border-b dark:border-gray-700">
+			<!-- Affichage de l'erreur -->
+			<div v-if="statsError" class="text-sm text-red-500">
+				{{ statsError }}
 			</div>
-			<div v-if="!currentArchivedFilter" class="mt-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-				<div
-					class="h-2 rounded-full transition-all duration-300"
-					:style="{
-						width: taskStats.progress + '%',
-						backgroundColor: props.theme.color
-					}"
-				></div>
+
+			<!-- Affichage des statistiques de base -->
+			<div v-else-if="themeStats" class="space-y-3">
+				<!-- Statistiques de base et bouton pour afficher plus -->
+				<div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+					<div class="flex items-center gap-2">
+						<span>{{ themeStats.total }} tâche{{ themeStats.total > 1 ? 's' : '' }}</span>
+						<span class="font-semibold">{{ themeStats.completion_rate }}% terminé</span>
+					</div>
+					<Button
+						@click="toggleDetailedStats"
+						:severity="'secondary'"
+						text
+						:aria-label="showDetailedStats ? 'Masquer les détails' : 'Afficher les détails'"
+					>
+						<span class="material-symbols-rounded text-sm">
+							{{ showDetailedStats ? 'expand_less' : 'expand_more' }}
+						</span>
+					</Button>
+				</div>
+
+				<!-- Barre de progression -->
+				<div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+					<div
+						class="h-2 rounded-full transition-all duration-300"
+						:style="{
+							width: themeStats.completion_rate + '%',
+							backgroundColor: props.theme.color
+						}"
+					></div>
+				</div>
+
+				<!-- Statistiques détaillées (conditionnelles) -->
+				<div v-if="showDetailedStats" class="pt-3 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+					<!-- Statistiques par statut -->
+					<div class="bg-white/10 dark:bg-gray/10 rounded-lg p-3 space-y-2">
+						<h4 class="font-semibold text-gray-700 dark:text-gray-300">Par statut</h4>
+						<div class="flex items-center justify-between">
+							<span class="flex items-center gap-1">
+								<span class="material-symbols-rounded text-blue-500 text-sm">radio_button_unchecked</span>
+								À faire
+							</span>
+							<span class="font-medium">{{ themeStats.todo }}</span>
+						</div>
+						<div class="flex items-center justify-between">
+							<span class="flex items-center gap-1">
+								<span class="material-symbols-rounded text-yellow-500 text-sm">schedule</span>
+								En cours
+							</span>
+							<span class="font-medium">{{ themeStats.doing }}</span>
+						</div>
+						<div class="flex items-center justify-between">
+							<span class="flex items-center gap-1">
+								<span class="material-symbols-rounded text-green-500 text-sm">check_circle</span>
+								Terminé
+							</span>
+							<span class="font-medium">{{ themeStats.done }}</span>
+						</div>
+					</div>
+
+					<!-- Statistiques d'archivage -->
+					<div class="bg-white/10 dark:bg-gray/10 rounded-lg p-3 space-y-2">
+						<h4 class="font-semibold text-gray-700 dark:text-gray-300">Archivage</h4>
+						<div class="flex items-center justify-between">
+							<span class="flex items-center gap-1">
+								<span class="material-symbols-rounded text-green-500 text-sm">visibility</span>
+								Actives
+							</span>
+							<span class="font-medium">{{ themeStats.active }}</span>
+						</div>
+						<div class="flex items-center justify-between">
+							<span class="flex items-center gap-1">
+								<span class="material-symbols-rounded text-gray-500 text-sm">archive</span>
+								Archivées
+							</span>
+							<span class="font-medium">{{ themeStats.archived }}</span>
+						</div>
+					</div>
+
+					<!-- Statistiques récentes -->
+					<div class="bg-white/10 dark:bg-gray/10 rounded-lg p-3 space-y-2 col-span-2 md:col-span-1">
+						<h4 class="font-semibold text-gray-700 dark:text-gray-300">Derniers 7 jours</h4>
+						<div class="flex items-center justify-between">
+							<span class="flex items-center gap-1">
+								<span class="material-symbols-rounded text-blue-500 text-sm">add_circle</span>
+								Créées
+							</span>
+							<span class="font-medium">{{ themeStats.recently_created }}</span>
+						</div>
+						<div class="flex items-center justify-between">
+							<span class="flex items-center gap-1">
+								<span class="material-symbols-rounded text-green-500 text-sm">task_alt</span>
+								Terminées
+							</span>
+							<span class="font-medium">{{ themeStats.recently_completed }}</span>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Fallback sur les statistiques locales si les statistiques du thème ne sont pas disponibles -->
+			<div v-else-if="taskStats && taskStats.total > 0" class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+				<span>{{ taskStats.total }} tâche{{ taskStats.total > 1 ? 's' : '' }}</span>
+				<span>{{ taskStats.progress }}% terminé</span>
+
+				<div class="mt-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+					<div
+						class="h-2 rounded-full transition-all duration-300"
+						:style="{
+							width: taskStats.progress + '%',
+							backgroundColor: props.theme.color
+						}"
+					></div>
+				</div>
 			</div>
 		</div>
 
 		<!-- Liste des tâches -->
 		<div class="flex-1 overflow-y-auto">
-			<div v-if="loading" class="flex items-center justify-center p-8">
-				<ProgressSpinner size="small"/>
+			<div
+				v-if="loading"
+				class="flex items-center justify-center w-full h-42"
+			>
+				<span class="material-symbols-rounded text-gray-400 !text-4xl animate-spin">
+					progress_activity
+				</span>
 			</div>
 
 			<div v-else-if="error" class="p-4 text-center text-red-500">
