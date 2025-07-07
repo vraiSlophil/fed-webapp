@@ -4,7 +4,6 @@ import type {Task} from '~/types/task'
 import {useTasks} from '~/composables/useTasks'
 import { useThemeStats } from '~/composables/useThemeStats'
 
-
 const props = defineProps<{
 	theme: Theme
 	isThemeOpen: boolean
@@ -72,6 +71,11 @@ const loadTasksAndStats = async () => {
 		loadTasks(),
 		fetchThemeStats(props.theme.theme_id)
 	])
+}
+
+// Charger les statistiques du thème
+const loadThemeStats = async () => {
+  await fetchThemeStats(props.theme.theme_id)
 }
 
 // Charger les tâches pour ce thème
@@ -161,7 +165,7 @@ const handleCreateTask = async () => {
 const handleTaskUpdated = async (updatedTask: Task) => {
 	// Le composant Task gère déjà la mise à jour locale
 	// On peut ajouter ici de la logique supplémentaire si nécessaire
-	await loadTasksAndStats()
+	await loadThemeStats()
 }
 
 const handleTaskDeleted = async (taskId: string) => {

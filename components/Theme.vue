@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Theme } from '~/types/themes'
+import type {Theme} from '~/types/themes'
 import TaskList from "~/components/TaskList.vue";
 
 const props = defineProps<{
@@ -14,11 +14,20 @@ const emit = defineEmits<{
 const isEditing = ref(false)
 const editedTitle = ref(props.theme.title)
 const editedColor = ref(props.theme.color)
-const colorPopoverVisible = ref(false)
 const isThemeOpen = ref(false)
 
+const colorPopoverRef = ref()
+
+const membersPopoverVisible = ref(false)
+const membersPopoverRef = ref()
+
+const toggleMembersPopover = (event: any) => {
+  membersPopoverRef.value.toggle(event);
+}
+
+
 const openTheme = () => {
-	isThemeOpen.value = !isThemeOpen.value
+  isThemeOpen.value = !isThemeOpen.value
 }
 
 // Démarrer l'édition
@@ -162,11 +171,19 @@ watch(
 						<span class="material-symbols-rounded">delete</span>
 					</button>
 					<button
+						@click="membersPopoverRef.show($event); membersPopoverVisible = !membersPopoverVisible"
 						class="cursor-pointer flex justify-center items-center p-2 rounded-full"
-						title="Partager (à venir)"
+						title="Partager"
 					>
 						<span class="material-symbols-rounded">person_add</span>
 					</button>
+					<LazyThemeMembersMenu
+						ref="membersPopoverRef"
+            :visible="membersPopoverVisible"
+						:theme="theme"
+            @update:visible="membersPopoverVisible = $event"
+          />
+
 				</template>
 
 				<!-- Boutons en mode édition -->
@@ -174,18 +191,14 @@ watch(
 					<!-- Bouton pour le sélecteur de couleur avec Popover -->
 					<div>
 						<button
-							type="button"
-							@click="colorPopoverVisible.show($event)"
+							@click="colorPopoverRef.show($event)"
 							class="cursor-pointer flex justify-center items-center p-2 rounded-full"
 							title="Changer la couleur"
-							aria-haspopup="true"
-							aria-controls="color-picker-popover"
 						>
 							<span class="material-symbols-rounded">palette</span>
 						</button>
-
 						<Popover
-							ref="colorPopoverVisible"
+							ref="colorPopoverRef"
 							target="prev"
 						>
 							<div class="p-3 flex items-center justify-center gap-2 flex-col">

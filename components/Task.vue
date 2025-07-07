@@ -73,9 +73,9 @@ const handleStatusChange = async () => {
 	if (!canEdit.value) return
 
 	const success = await changeStatus()
-	// if (success) {
-	// 	emit('updated', task.value)
-	// }
+	if (success) {
+		emit('updated', task.value)
+	}
 }
 
 // Gérer la completion
@@ -83,9 +83,9 @@ const handleToggleCompletion = async () => {
 	if (!canEdit.value) return
 
 	const success = await toggleCompletion()
-	// if (success) {
-	// 	emit('updated', task.value)
-	// }
+	if (success) {
+		emit('updated', task.value)
+	}
 }
 
 // Gérer l'archivage/restauration
