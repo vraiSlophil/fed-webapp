@@ -152,6 +152,15 @@ export const useThemeMembers = () => {
             }) as { data: { members: ThemeMember[] } }
 
             members.value = response.data.members
+                .map(member => {
+                //vérifier que avatar_url est défini, si oui ajouter back/api/media/ devant
+                const config = useRuntimeConfig()
+                return ({
+                    ...member,
+                    avatar_url: member.avatar_url ? `${config.public.BACKEND_URL}/api/media/${member.avatar_url}` : null
+                } as ThemeMember)
+
+            })
         } catch (err: any) {
             error.value = err.message || 'Erreur lors du chargement des membres'
             console.error('Erreur fetchMembers:', err)

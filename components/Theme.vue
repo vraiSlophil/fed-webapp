@@ -171,7 +171,7 @@ watch(
 						<span class="material-symbols-rounded">delete</span>
 					</button>
 					<button
-						@click="membersPopoverRef.show($event); membersPopoverVisible = !membersPopoverVisible"
+						@click="membersPopoverRef.show($event); membersPopoverVisible = true"
 						class="cursor-pointer flex justify-center items-center p-2 rounded-full"
 						title="Partager"
 					>

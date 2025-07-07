@@ -250,12 +250,10 @@ const toggleDetailedStats = () => {
 					</Select>
 				</div>
 				<!-- Barre de recherche -->
-				<IconField class="flex-1 relative">
-					<InputIcon>
-					<span class="material-symbols-rounded flex justify-center text-gray-400 text-sm">
-						search
-					</span>
-					</InputIcon>
+				<IconField class="flex-1 relative flex items-center justify-start">
+            <span class="material-symbols-rounded text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2">
+              search
+            </span>
 					<InputText
 						v-model="searchQuery"
 						@input="handleSearch"

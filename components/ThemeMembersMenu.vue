@@ -229,29 +229,21 @@ const getReadablePermissions = (permissions: ThemeMemberPermissions) => {
     <div class="p-4">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold">Membres du thème</h3>
-        <Button
-            @click="emit('update:visible', false)"
-            text
-            size="small"
-            class="p-2"
-        >
-          <span class="material-symbols-rounded text-sm">close</span>
-        </Button>
       </div>
 
       <!-- Barre de recherche -->
-      <div class="mb-4">
-        <div class="relative">
-          <InputText
-              v-model="searchQuery"
-              placeholder="Rechercher un utilisateur..."
-              class="w-full pl-10"
-              :loading="searchLoading"
+      <div>
+      <IconField class="mb-4 relative flex items-center justify-start">
+        <span class="material-symbols-rounded text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2">
+          search
+        </span>
+        <InputText
+            v-model="searchQuery"
+            placeholder="Rechercher un utilisateur..."
+            class="w-full pl-10"
+            :loading="searchLoading"
           />
-          <span class="material-symbols-rounded absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                        search
-                    </span>
-        </div>
+      </IconField>
 
         <!-- Résultats de recherche -->
         <div v-if="searchResults.length > 0" class="mt-2 border rounded-lg max-h-32 overflow-y-auto">
