@@ -124,6 +124,15 @@ export const useThemeMembers = () => {
             }) as { data: { users: ThemeMemberUser[] } }
 
             searchResults.value = response.data.users
+                .map(member => {
+                    //vérifier que avatar_url est défini, si oui ajouter back/api/media/ devant
+                    const config = useRuntimeConfig()
+                    return ({
+                        ...member,
+                        avatar_url: member.avatar_url ? `${config.public.BACKEND_URL}/api/media/${member.avatar_url}` : null
+                    } as ThemeMember)
+
+                })
         } catch (err: any) {
             searchError.value = err.message || 'Erreur lors de la recherche d\'utilisateurs'
             console.error('Erreur searchUsers:', err)
@@ -190,6 +199,7 @@ export const useThemeMembers = () => {
             searchResults.value = []
 
             return response.data.invitation
+
         } catch (err: any) {
             error.value = err.message || 'Erreur lors de l\'invitation'
             console.error('Erreur inviteUser:', err)

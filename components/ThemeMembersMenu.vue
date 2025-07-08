@@ -33,7 +33,6 @@ const {
 } = useThemeMembers()
 
 // État local
-const popoverRef = ref(null)
 const searchQuery = ref('')
 const showInviteForm = ref(false)
 const selectedUser = ref<any>(null)
@@ -56,13 +55,6 @@ const showDeactivateConfirm = ref(false)
 // États pour l'édition des permissions
 const editingMember = ref<ThemeMember | null>(null)
 const showPermissionsEdit = ref(false)
-
-// Exposer les méthodes du popover
-defineExpose({
-  show: (event: any) => popoverRef.value?.show(event),
-  hide: () => popoverRef.value?.hide(),
-  toggle: (event: any) => popoverRef.value?.toggle(event)
-})
 
 
 // Charger les membres quand le menu devient visible
@@ -219,247 +211,270 @@ const getReadablePermissions = (permissions: ThemeMemberPermissions) => {
 </script>
 
 <template>
-  <Popover
-      ref="popoverRef"
+  <Dialog
       :visible="visible"
       @update:visible="emit('update:visible', $event)"
-      target="prev"
-      class="w-96"
+      class="w-3/4 md:w-2/3 lg:w-1/2 xl:w-1/3"
+      modal
   >
-    <div class="p-4">
+    <template #header>
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold">Membres du thème</h3>
       </div>
+    </template>
 
-      <!-- Barre de recherche -->
-      <div>
-      <IconField class="mb-4 relative flex items-center justify-start">
-        <span class="material-symbols-rounded text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2">
-          search
-        </span>
-        <InputText
-            v-model="searchQuery"
-            placeholder="Rechercher un utilisateur..."
-            class="w-full pl-10"
-            :loading="searchLoading"
-          />
-      </IconField>
+    <Tabs value="0">
+      <TabList>
+        <Tab value="0">Membres</Tab>
+        <Tab value="1">Inviter un membre</Tab>
+      </TabList>
+      <TabPanels>
+        <TabPanel value="0">
+          <!-- Liste des membres -->
+          <div v-if="loading" class="text-center py-4">
+            <span class="material-symbols-rounded text-gray-400 !text-4xl animate-spin">
+                progress_activity
+            </span>
+            <p class="text-sm text-gray-500 mt-2">Chargement des membres...</p>
+          </div>
 
-        <!-- Résultats de recherche -->
-        <div v-if="searchResults.length > 0" class="mt-2 border rounded-lg max-h-32 overflow-y-auto">
-          <div
-              v-for="user in searchResults"
-              :key="user.user_id"
-              @click="selectUserForInvite(user)"
-              class="p-2 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer flex items-center gap-3"
-          >
+          <div v-else-if="error" class="text-center py-4">
+            <p class="text-sm text-red-500">{{ error }}</p>
+          </div>
+
+          <div v-else>
             <div
-                class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center overflow-hidden">
-              <img
-                  v-if="user.avatar_url"
-                  :src="user.avatar_url"
-                  :alt="user.username"
-                  class="w-full h-full object-cover"
-              />
-              <span v-else class="material-symbols-rounded text-sm">person</span>
-            </div>
-            <div>
-              <div class="font-medium">{{ user.username }}</div>
-              <div class="text-sm text-gray-500">{{ user.email }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Formulaire d'invitation -->
-      <div v-if="showInviteForm" class="mb-4 border rounded-lg p-3 bg-blue-50 dark:bg-blue-900/20">
-        <div class="flex items-center gap-3 mb-3">
-          <div
-              class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center overflow-hidden">
-            <img
-                v-if="selectedUser?.avatar_url"
-                :src="selectedUser.avatar_url"
-                :alt="selectedUser.username"
-                class="w-full h-full object-cover"
-            />
-            <span v-else class="material-symbols-rounded text-sm">person</span>
-          </div>
-          <div>
-            <div class="font-medium">{{ selectedUser?.username }}</div>
-            <div class="text-sm text-gray-500">{{ selectedUser?.email }}</div>
-          </div>
-        </div>
-
-        <!-- Sélection du preset de permissions -->
-        <div class="mb-3">
-          <label class="block text-sm font-medium mb-2">Niveau d'accès</label>
-          <div class="grid grid-cols-2 gap-2">
-            <Button
-                v-for="(preset, key) in permissionPresets"
-                :key="key"
-                @click="changePreset(key as PermissionPreset)"
-                :outlined="selectedPreset !== key"
-                :severity="selectedPreset === key ? 'primary' : 'secondary'"
-                size="small"
-                class="justify-start"
+                v-for="member in members"
+                :key="member.user_id"
             >
-              <span class="material-symbols-rounded text-sm mr-2">{{ preset.icon }}</span>
-              {{ preset.label }}
-            </Button>
-          </div>
-        </div>
-
-        <!-- Permissions personnalisées -->
-        <div v-if="selectedPreset === 'custom'" class="mb-3">
-          <label class="block text-sm font-medium mb-2">Permissions détaillées</label>
-          <div class="space-y-2">
-            <div class="flex items-center gap-2">
-              <Checkbox v-model="customPermissions.can_view" inputId="perm-view"/>
-              <label for="perm-view" class="text-sm">Voir le thème</label>
-            </div>
-            <div class="flex items-center gap-2">
-              <Checkbox v-model="customPermissions.can_update_theme" inputId="perm-update"/>
-              <label for="perm-update" class="text-sm">Modifier le thème</label>
-            </div>
-            <div class="flex items-center gap-2">
-              <Checkbox v-model="customPermissions.can_add_task" inputId="perm-add"/>
-              <label for="perm-add" class="text-sm">Ajouter des tâches</label>
-            </div>
-            <div class="flex items-center gap-2">
-              <Checkbox v-model="customPermissions.can_edit_task" inputId="perm-edit"/>
-              <label for="perm-edit" class="text-sm">Modifier les tâches</label>
-            </div>
-            <div class="flex items-center gap-2">
-              <Checkbox v-model="customPermissions.can_delete_task" inputId="perm-delete"/>
-              <label for="perm-delete" class="text-sm">Supprimer les tâches</label>
-            </div>
-            <div class="flex items-center gap-2">
-              <Checkbox v-model="customPermissions.can_validate_task" inputId="perm-validate"/>
-              <label for="perm-validate" class="text-sm">Valider les tâches</label>
-            </div>
-          </div>
-        </div>
-
-        <div class="flex gap-2">
-          <Button
-              @click="confirmInvite"
-              size="small"
-              :loading="loading"
-          >
-            Inviter
-          </Button>
-          <Button
-              @click="resetInviteForm"
-              size="small"
-              outlined
-              :disabled="loading"
-          >
-            Annuler
-          </Button>
-        </div>
-      </div>
-
-      <!-- Liste des membres -->
-      <div v-if="loading" class="text-center py-4">
-        <i class="pi pi-spinner pi-spin"></i>
-        <p class="text-sm text-gray-500 mt-2">Chargement des membres...</p>
-      </div>
-
-      <div v-else-if="error" class="text-center py-4">
-        <p class="text-sm text-red-500">{{ error }}</p>
-      </div>
-
-      <div v-else class="space-y-3">
-        <div
-            v-for="member in members"
-            :key="member.user_id"
-            class="border rounded-lg p-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-        >
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <div
-                  class="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center overflow-hidden">
-                <img
-                    v-if="member.avatar_url"
-                    :src="member.avatar_url"
-                    :alt="member.username"
-                    class="w-full h-full object-cover"
-                />
-                <span v-else class="material-symbols-rounded">person</span>
-              </div>
-              <div>
-                <div class="font-medium">{{ getDisplayName(member) }}</div>
-                <div class="text-sm text-gray-500">{{ member.email }}</div>
-                <div class="flex items-center gap-2 mt-1">
-                  <Tag
-                      :severity="getStatusSeverity(member.status)"
-                      size="small"
+              <Divider
+                  v-if="members.indexOf(member) > 0"
+              />
+              <div class="flex items-center justify-between py-3">
+                <div class="flex items-center gap-3">
+                  <div
+                      class="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center overflow-hidden"
                   >
-                    {{ getStatusLabel(member.status) }}
-                  </Tag>
+                    <img
+                        v-if="member.avatar_url"
+                        :src="member.avatar_url"
+                        :alt="member.username"
+                        class="w-full h-full object-cover"
+                    />
+                    <span v-else class="material-symbols-rounded">person</span>
+                  </div>
+                  <div
+                    class="flex-1 flex items-center justify-between gap-3"
+                  >
+                    <div
+                      class="flex flex-col gap-1 max-w-42 overflow-hidden text-ellipsis flex-nowrap"
+                    >
+                      <div
+                          class="font-medium overflow-hidden text-ellipsis whitespace-nowrap"
+                          :title="getDisplayName(member)"
+                      >
+                        {{ getDisplayName(member) }}
+                      </div>
+                      <div
+                          class="text-sm text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap"
+                            :title="member.email"
+                      >
+                        {{ member.email }}
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-2 mt-1">
+                      <Tag
+                          :severity="getStatusSeverity(member.status)"
+                          size="small"
+                      >
+                        {{ getStatusLabel(member.status) }}
+                      </Tag>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Actions -->
+                <div v-if="member.status !== 'owner'" class="flex items-center gap-1">
                   <Button
-                      v-if="member.status !== 'owner'"
                       @click="startEditPermissions(member)"
                       text
                       size="small"
-                      class="p-1"
-                      title="Voir les permissions"
+                      class="p-2"
+                      title="Modifier les permissions"
                   >
-                    <span class="material-symbols-rounded text-sm">help_outline</span>
+                    <span class="material-symbols-rounded text-sm">edit</span>
+                  </Button>
+
+                  <Button
+                      v-if="member.status === 'active'"
+                      @click="confirmDeactivation(member)"
+                      text
+                      size="small"
+                      class="p-2"
+                      title="Désactiver"
+                  >
+                    <span class="material-symbols-rounded text-sm">block</span>
+                  </Button>
+
+                  <Button
+                      v-if="member.status === 'revoked'"
+                      @click="handleReactivate(member)"
+                      text
+                      size="small"
+                      class="p-2"
+                      title="Réactiver"
+                      :loading="loading"
+                  >
+                    <span class="material-symbols-rounded text-sm">check_circle</span>
+                  </Button>
+
+                  <Button
+                      @click="confirmDeletion(member)"
+                      text
+                      size="small"
+                      class="p-2 text-red-500 hover:text-red-600"
+                      title="Supprimer"
+                  >
+                    <span class="material-symbols-rounded text-sm">delete</span>
                   </Button>
                 </div>
               </div>
             </div>
-
-            <!-- Actions -->
-            <div v-if="member.status !== 'owner'" class="flex items-center gap-1">
-              <Button
-                  @click="startEditPermissions(member)"
-                  text
-                  size="small"
-                  class="p-2"
-                  title="Modifier les permissions"
+          </div>
+        </TabPanel>
+        <TabPanel value="1">
+          <!-- Barre de recherche -->
+          <div>
+            <IconField class="mb-4 relative flex items-center justify-start">
+              <span
+                  class="material-symbols-rounded text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2"
               >
-                <span class="material-symbols-rounded text-sm">edit</span>
-              </Button>
+                search
+              </span>
+              <InputText
+                  v-model="searchQuery"
+                  placeholder="Rechercher un utilisateur..."
+                  class="w-full pl-10"
+                  :loading="searchLoading"
+              />
+            </IconField>
 
-              <Button
-                  v-if="member.status === 'active'"
-                  @click="confirmDeactivation(member)"
-                  text
-                  size="small"
-                  class="p-2"
-                  title="Désactiver"
+            <!-- Résultats de recherche -->
+            <div v-if="searchResults.length > 0" class="mt-2 border rounded-lg max-h-32 overflow-y-auto">
+              <div
+                  v-for="user in searchResults"
+                  :key="user.user_id"
+                  @click="selectUserForInvite(user)"
+                  class="p-2 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer flex items-center gap-3"
               >
-                <span class="material-symbols-rounded text-sm">block</span>
-              </Button>
+                <div
+                    class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center overflow-hidden">
+                  <img
+                      v-if="user.avatar_url"
+                      :src="user.avatar_url"
+                      :alt="user.username"
+                      class="w-full h-full object-cover"
+                  />
+                  <span v-else class="material-symbols-rounded text-sm">person</span>
+                </div>
+                <div>
+                  <div class="font-medium">{{ user.username }}</div>
+                  <div class="text-sm text-gray-500">{{ user.email }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
 
+          <!-- Formulaire d'invitation -->
+          <div v-if="showInviteForm" class="mb-4 border rounded-lg p-3 bg-blue-50 dark:bg-blue-900/20">
+            <div class="flex items-center gap-3 mb-3">
+              <div
+                  class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center overflow-hidden">
+                <img
+                    v-if="selectedUser?.avatar_url"
+                    :src="selectedUser.avatar_url"
+                    :alt="selectedUser.username"
+                    class="w-full h-full object-cover"
+                />
+                <span v-else class="material-symbols-rounded text-sm">person</span>
+              </div>
+              <div>
+                <div class="font-medium">{{ selectedUser?.username }}</div>
+                <div class="text-sm text-gray-500">{{ selectedUser?.email }}</div>
+              </div>
+            </div>
+
+            <!-- Sélection du preset de permissions -->
+            <div class="mb-3">
+              <label class="block text-sm font-medium mb-2">Niveau d'accès</label>
+              <div class="grid grid-cols-2 gap-2">
+                <Button
+                    v-for="(preset, key) in permissionPresets"
+                    :key="key"
+                    @click="changePreset(key as PermissionPreset)"
+                    :outlined="selectedPreset !== key"
+                    :severity="selectedPreset === key ? 'primary' : 'secondary'"
+                    size="small"
+                    class="justify-start"
+                >
+                  <span class="material-symbols-rounded text-sm mr-2">{{ preset.icon }}</span>
+                  {{ preset.label }}
+                </Button>
+              </div>
+            </div>
+
+            <!-- Permissions personnalisées -->
+            <div v-if="selectedPreset === 'custom'" class="mb-3">
+              <label class="block text-sm font-medium mb-2">Permissions détaillées</label>
+              <div class="space-y-2">
+                <div class="flex items-center gap-2">
+                  <Checkbox v-model="customPermissions.can_view" inputId="perm-view"/>
+                  <label for="perm-view" class="text-sm">Voir le thème</label>
+                </div>
+                <div class="flex items-center gap-2">
+                  <Checkbox v-model="customPermissions.can_update_theme" inputId="perm-update"/>
+                  <label for="perm-update" class="text-sm">Modifier le thème</label>
+                </div>
+                <div class="flex items-center gap-2">
+                  <Checkbox v-model="customPermissions.can_add_task" inputId="perm-add"/>
+                  <label for="perm-add" class="text-sm">Ajouter des tâches</label>
+                </div>
+                <div class="flex items-center gap-2">
+                  <Checkbox v-model="customPermissions.can_edit_task" inputId="perm-edit"/>
+                  <label for="perm-edit" class="text-sm">Modifier les tâches</label>
+                </div>
+                <div class="flex items-center gap-2">
+                  <Checkbox v-model="customPermissions.can_delete_task" inputId="perm-delete"/>
+                  <label for="perm-delete" class="text-sm">Supprimer les tâches</label>
+                </div>
+                <div class="flex items-center gap-2">
+                  <Checkbox v-model="customPermissions.can_validate_task" inputId="perm-validate"/>
+                  <label for="perm-validate" class="text-sm">Valider les tâches</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex gap-2">
               <Button
-                  v-if="member.status === 'revoked'"
-                  @click="handleReactivate(member)"
-                  text
+                  @click="confirmInvite"
                   size="small"
-                  class="p-2"
-                  title="Réactiver"
                   :loading="loading"
               >
-                <span class="material-symbols-rounded text-sm">check_circle</span>
+                Inviter
               </Button>
-
               <Button
-                  @click="confirmDeletion(member)"
-                  text
+                  @click="resetInviteForm"
                   size="small"
-                  class="p-2 text-red-500 hover:text-red-600"
-                  title="Supprimer"
+                  outlined
+                  :disabled="loading"
               >
-                <span class="material-symbols-rounded text-sm">delete</span>
+                Annuler
               </Button>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+        </TabPanel>
+      </TabPanels>
+    </Tabs>
 
     <!-- Dialog d'édition des permissions -->
     <Dialog
@@ -604,5 +619,5 @@ const getReadablePermissions = (permissions: ThemeMemberPermissions) => {
         </div>
       </div>
     </Dialog>
-  </Popover>
+  </Dialog>
 </template>

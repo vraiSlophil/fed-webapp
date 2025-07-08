@@ -171,14 +171,13 @@ watch(
 						<span class="material-symbols-rounded">delete</span>
 					</button>
 					<button
-						@click="membersPopoverRef.show($event); membersPopoverVisible = true"
+						@click="membersPopoverVisible = true"
 						class="cursor-pointer flex justify-center items-center p-2 rounded-full"
 						title="Partager"
 					>
 						<span class="material-symbols-rounded">person_add</span>
 					</button>
 					<LazyThemeMembersMenu
-						ref="membersPopoverRef"
             :visible="membersPopoverVisible"
 						:theme="theme"
             @update:visible="membersPopoverVisible = $event"
