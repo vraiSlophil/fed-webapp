@@ -32,6 +32,11 @@ const permissions = ref({
   can_validate_task: false
 })
 
+// Composables
+const {
+	getCurrentPreset
+} = useThemeMembers();
+
 // Initialiser quand le dialog s'ouvre
 watch(() => props.visible, (isVisible) => {
   if (isVisible) {
@@ -67,27 +72,7 @@ const changePreset = (preset: PermissionPreset) => {
 
 // Watcher pour détecter les changements manuels des checkboxes
 watch(permissions, (newPermissions: any) => {
-  // Chercher d'abord si les permissions correspondent à un preset existant
-  let matchingPreset = null
-  for (const [presetKey, presetData] of Object.entries(props.permissionPresets)) {
-    if (presetData && presetData.permissions) {
-      const match = Object.keys(presetData.permissions).every(key =>
-          presetData.permissions[key] === newPermissions[key]
-      )
-      if (match) {
-        matchingPreset = presetKey
-        break
-      }
-    }
-  }
-
-  // Si on a trouvé un preset correspondant, le sélectionner
-  if (matchingPreset) {
-    selectedPreset.value = matchingPreset as PermissionPreset
-  } else {
-    // Sinon, passer en mode custom
-    selectedPreset.value = 'custom'
-  }
+	selectedPreset.value = getCurrentPreset(newPermissions);
 }, { deep: true })
 
 // Confirmer

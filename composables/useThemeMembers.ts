@@ -13,8 +13,6 @@ export const useThemeMembers = () => {
     const searchResults = ref<ThemeMemberUser[]>([])
     const loading = ref(false)
     const searchLoading = ref(false)
-    const error = ref<string | null>(null)
-    const searchError = ref<string | null>(null)
 
     // Presets de permissions
     const permissionPresets: Record<PermissionPreset, PermissionPresetConfig> = {
@@ -106,17 +104,16 @@ export const useThemeMembers = () => {
     }
 
     // Rechercher des utilisateurs
-    const searchUsers = async (query: string) => {
+    const searchUsers = async (query: string, themeId: string) => {
         if (query.length < 3) {
             searchResults.value = []
             return
         }
 
         searchLoading.value = true
-        searchError.value = null
 
         try {
-            const response = await useApiFetch(`/api/users/search?search=${query}`, {
+            const response = await useApiFetch(`/api/users/search?search=${query}&theme_id=${themeId}`, {
                 method: HttpMethods.GET,
                 headers: {
                     'Content-Type': 'application/json'
@@ -134,7 +131,6 @@ export const useThemeMembers = () => {
 
                 })
         } catch (err: any) {
-            searchError.value = err.message || 'Erreur lors de la recherche d\'utilisateurs'
             console.error('Erreur searchUsers:', err)
         } finally {
             searchLoading.value = false
@@ -143,17 +139,16 @@ export const useThemeMembers = () => {
 
     // Recherche avec debounce
     const searchTimeout = ref<NodeJS.Timeout>()
-    const debouncedSearchUsers = (query: string) => {
+    const debouncedSearchUsers = (query: string, themeId: string) => {
         clearTimeout(searchTimeout.value)
-        searchTimeout.value = setTimeout(() => {
-            searchUsers(query)
+        searchTimeout.value = setTimeout(async () => {
+            await searchUsers(query, themeId)
         }, 300)
     }
 
     // Lister les membres d'un thème
     const fetchMembers = async (themeId: string) => {
         loading.value = true
-        error.value = null
 
         try {
             const response = await useApiFetch(`/api/themes/${themeId}/members`, {
@@ -171,7 +166,6 @@ export const useThemeMembers = () => {
 
             })
         } catch (err: any) {
-            error.value = err.message || 'Erreur lors du chargement des membres'
             console.error('Erreur fetchMembers:', err)
         } finally {
             loading.value = false
@@ -181,7 +175,6 @@ export const useThemeMembers = () => {
     // Inviter un utilisateur
     const inviteUser = async (themeId: string, userId: string, permissions: ThemeMemberPermissions) => {
         loading.value = true
-        error.value = null
 
         try {
             const response = await useApiFetch(`/api/themes/${themeId}/members`, {
@@ -201,7 +194,6 @@ export const useThemeMembers = () => {
             return response.data.invitation
 
         } catch (err: any) {
-            error.value = err.message || 'Erreur lors de l\'invitation'
             console.error('Erreur inviteUser:', err)
             throw err
         } finally {
@@ -212,7 +204,6 @@ export const useThemeMembers = () => {
     // Mettre à jour les permissions d'un membre
     const updateMemberPermissions = async (themeId: string, userId: string, permissions: ThemeMemberPermissions) => {
         loading.value = true
-        error.value = null
 
         try {
             const response = await useApiFetch(`/api/themes/${themeId}/members/${userId}`, {
@@ -228,7 +219,6 @@ export const useThemeMembers = () => {
 
             return response.data.permissions
         } catch (err: any) {
-            error.value = err.message || 'Erreur lors de la mise à jour des permissions'
             console.error('Erreur updateMemberPermissions:', err)
             throw err
         } finally {
@@ -239,7 +229,6 @@ export const useThemeMembers = () => {
     // Désactiver un membre
     const deactivateMember = async (themeId: string, userId: string) => {
         loading.value = true
-        error.value = null
 
         try {
             await useApiFetch(`/api/themes/${themeId}/members/${userId}/deactivate`, {
@@ -254,7 +243,6 @@ export const useThemeMembers = () => {
 
             return true
         } catch (err: any) {
-            error.value = err.message || 'Erreur lors de la désactivation'
             console.error('Erreur deactivateMember:', err)
             return false
         } finally {
@@ -265,7 +253,6 @@ export const useThemeMembers = () => {
     // Réactiver un membre
     const reactivateMember = async (themeId: string, userId: string) => {
         loading.value = true
-        error.value = null
 
         try {
             await useApiFetch(`/api/themes/${themeId}/members/${userId}/reactivate`, {
@@ -280,7 +267,6 @@ export const useThemeMembers = () => {
 
             return true
         } catch (err: any) {
-            error.value = err.message || 'Erreur lors de la réactivation'
             console.error('Erreur reactivateMember:', err)
             return false
         } finally {
@@ -291,7 +277,6 @@ export const useThemeMembers = () => {
     // Supprimer un membre
     const removeMember = async (themeId: string, userId: string) => {
         loading.value = true
-        error.value = null
 
         try {
             await useApiFetch(`/api/themes/${themeId}/members/${userId}`, {
@@ -303,7 +288,6 @@ export const useThemeMembers = () => {
 
             return true
         } catch (err: any) {
-            error.value = err.message || 'Erreur lors de la suppression'
             console.error('Erreur removeMember:', err)
             return false
         } finally {
@@ -314,7 +298,6 @@ export const useThemeMembers = () => {
     // Quitter un thème
     const leaveTheme = async (themeId: string) => {
         loading.value = true
-        error.value = null
 
         try {
             await useApiFetch(`/api/themes/${themeId}/leave`, {
@@ -323,7 +306,6 @@ export const useThemeMembers = () => {
 
             return true
         } catch (err: any) {
-            error.value = err.message || 'Erreur lors de la sortie du thème'
             console.error('Erreur leaveTheme:', err)
             return false
         } finally {
@@ -336,8 +318,6 @@ export const useThemeMembers = () => {
         searchResults,
         loading,
         searchLoading,
-        error,
-        searchError,
         permissionPresets,
         getCurrentPreset,
         getStatusLabel,
