@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type {Theme} from '~/types/themes'
-import type {PermissionPreset, ThemeMember, ThemeMemberPermissions} from '~/types/themeMembers'
+import type {ThemeMember, ThemeMemberPermissions} from '~/types/themeMembers'
 import {useThemeMembers} from '~/composables/useThemeMembers'
 
 const props = defineProps<{
@@ -34,17 +34,7 @@ const {
 
 // État local
 const searchQuery = ref('')
-const showInviteForm = ref(false)
 const selectedUser = ref<any>(null)
-const selectedPreset = ref<PermissionPreset>('read')
-const customPermissions = ref<ThemeMemberPermissions>({
-  can_view: true,
-  can_update_theme: false,
-  can_add_task: false,
-  can_edit_task: false,
-  can_delete_task: false,
-  can_validate_task: false
-})
 
 // États pour les confirmations
 const memberToDelete = ref<ThemeMember | null>(null)
@@ -52,10 +42,10 @@ const memberToDeactivate = ref<ThemeMember | null>(null)
 const showDeleteConfirm = ref(false)
 const showDeactivateConfirm = ref(false)
 
-// États pour l'édition des permissions
+// États pour les composants de permissions
+const showInvitePermissions = ref(false)
+const showEditPermissions = ref(false)
 const editingMember = ref<ThemeMember | null>(null)
-const showPermissionsEdit = ref(false)
-
 
 // Charger les membres quand le menu devient visible
 watch(() => props.visible, (isVisible) => {
@@ -71,75 +61,49 @@ watch(searchQuery, (newQuery) => {
   }
 })
 
-// Permissions actuelles pour l'invitation
-const currentInvitePermissions = computed(() => {
-  if (selectedPreset.value === 'custom') {
-    return customPermissions.value
-  }
-  return permissionPresets[selectedPreset.value]?.permissions
-})
-
 // Sélectionner un utilisateur pour l'invitation
 const selectUserForInvite = (user: any) => {
   selectedUser.value = user
-  showInviteForm.value = true
+  showInvitePermissions.value = true
   searchQuery.value = ''
 }
 
 // Confirmer l'invitation
-const confirmInvite = async () => {
+const confirmInvite = async (permissions: ThemeMemberPermissions) => {
   if (!selectedUser.value) return
 
   try {
-    await inviteUser(props.theme.theme_id, selectedUser.value.user_id, currentInvitePermissions.value)
-    resetInviteForm()
+    await inviteUser(props.theme.theme_id, selectedUser.value.user_id, permissions)
+    showInvitePermissions.value = false
+    selectedUser.value = null
   } catch (error) {
     console.error('Erreur lors de l\'invitation:', error)
   }
 }
 
-// Réinitialiser le formulaire d'invitation
-const resetInviteForm = () => {
+// Annuler l'invitation
+const cancelInvite = () => {
+  showInvitePermissions.value = false
   selectedUser.value = null
-  showInviteForm.value = false
-  selectedPreset.value = 'read'
-  customPermissions.value = {
-    can_view: true,
-    can_update_theme: false,
-    can_add_task: false,
-    can_edit_task: false,
-    can_delete_task: false,
-    can_validate_task: false
-  }
-}
-
-// Changer le preset de permissions
-const changePreset = (preset: PermissionPreset) => {
-  selectedPreset.value = preset
-  if (preset !== 'custom') {
-    customPermissions.value = {...permissionPresets[preset].permissions}
-  }
 }
 
 // Commencer l'édition des permissions
 const startEditPermissions = (member: ThemeMember) => {
   editingMember.value = member
-  selectedPreset.value = getCurrentPreset(member.permissions)
-  customPermissions.value = {...member.permissions}
-  showPermissionsEdit.value = true
+  showEditPermissions.value = true
 }
 
 // Confirmer l'édition des permissions
-const confirmEditPermissions = async () => {
+const confirmEditPermissions = async (permissions: ThemeMemberPermissions) => {
   if (!editingMember.value) return
 
   try {
     await updateMemberPermissions(
         props.theme.theme_id,
         editingMember.value.user_id,
-        currentInvitePermissions.value
+        permissions
     )
-    showPermissionsEdit.value = false
+    showEditPermissions.value = false
     editingMember.value = null
   } catch (error) {
     console.error('Erreur lors de la mise à jour des permissions:', error)
@@ -148,7 +112,7 @@ const confirmEditPermissions = async () => {
 
 // Annuler l'édition des permissions
 const cancelEditPermissions = () => {
-  showPermissionsEdit.value = false
+  showEditPermissions.value = false
   editingMember.value = null
 }
 
@@ -196,18 +160,6 @@ const getDisplayName = (member: ThemeMember) => {
   }
   return member.username
 }
-
-// Obtenir les permissions lisibles
-const getReadablePermissions = (permissions: ThemeMemberPermissions) => {
-  const readable = []
-  if (permissions.can_view) readable.push('Lecture')
-  if (permissions.can_update_theme) readable.push('Modifier le thème')
-  if (permissions.can_add_task) readable.push('Ajouter des tâches')
-  if (permissions.can_edit_task) readable.push('Modifier les tâches')
-  if (permissions.can_delete_task) readable.push('Supprimer les tâches')
-  if (permissions.can_validate_task) readable.push('Valider les tâches')
-  return readable.join(', ')
-}
 </script>
 
 <template>
@@ -233,7 +185,7 @@ const getReadablePermissions = (permissions: ThemeMemberPermissions) => {
           <!-- Liste des membres -->
           <div v-if="loading" class="text-center py-4">
             <span class="material-symbols-rounded text-gray-400 !text-4xl animate-spin">
-                progress_activity
+              progress_activity
             </span>
             <p class="text-sm text-gray-500 mt-2">Chargement des membres...</p>
           </div>
@@ -247,14 +199,10 @@ const getReadablePermissions = (permissions: ThemeMemberPermissions) => {
                 v-for="member in members"
                 :key="member.user_id"
             >
-              <Divider
-                  v-if="members.indexOf(member) > 0"
-              />
+              <Divider v-if="members.indexOf(member) > 0" />
               <div class="flex items-center justify-between py-3">
                 <div class="flex items-center gap-3">
-                  <div
-                      class="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center overflow-hidden"
-                  >
+                  <div class="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center overflow-hidden">
                     <img
                         v-if="member.avatar_url"
                         :src="member.avatar_url"
@@ -263,12 +211,8 @@ const getReadablePermissions = (permissions: ThemeMemberPermissions) => {
                     />
                     <span v-else class="material-symbols-rounded">person</span>
                   </div>
-                  <div
-                    class="flex-1 flex items-center justify-between gap-3"
-                  >
-                    <div
-                      class="flex flex-col gap-1 max-w-42 overflow-hidden text-ellipsis flex-nowrap"
-                    >
+                  <div class="flex-1 flex items-center justify-between gap-3">
+                    <div class="flex flex-col gap-1 max-w-42 overflow-hidden text-ellipsis flex-nowrap">
                       <div
                           class="font-medium overflow-hidden text-ellipsis whitespace-nowrap"
                           :title="getDisplayName(member)"
@@ -277,7 +221,7 @@ const getReadablePermissions = (permissions: ThemeMemberPermissions) => {
                       </div>
                       <div
                           class="text-sm text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap"
-                            :title="member.email"
+                          :title="member.email"
                       >
                         {{ member.email }}
                       </div>
@@ -346,9 +290,7 @@ const getReadablePermissions = (permissions: ThemeMemberPermissions) => {
           <!-- Barre de recherche -->
           <div>
             <IconField class="mb-4 relative flex items-center justify-start">
-              <span
-                  class="material-symbols-rounded text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2"
-              >
+              <span class="material-symbols-rounded text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2">
                 search
               </span>
               <InputText
@@ -360,199 +302,69 @@ const getReadablePermissions = (permissions: ThemeMemberPermissions) => {
             </IconField>
 
             <!-- Résultats de recherche -->
-            <div v-if="searchResults.length > 0" class="mt-2 border rounded-lg max-h-32 overflow-y-auto">
+            <div v-if="searchResults.length > 0" class="overflow-y-auto">
               <div
                   v-for="user in searchResults"
                   :key="user.user_id"
-                  @click="selectUserForInvite(user)"
-                  class="p-2 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer flex items-center gap-3"
               >
-                <div
-                    class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center overflow-hidden">
-                  <img
-                      v-if="user.avatar_url"
-                      :src="user.avatar_url"
-                      :alt="user.username"
-                      class="w-full h-full object-cover"
-                  />
-                  <span v-else class="material-symbols-rounded text-sm">person</span>
-                </div>
-                <div>
-                  <div class="font-medium">{{ user.username }}</div>
-                  <div class="text-sm text-gray-500">{{ user.email }}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Formulaire d'invitation -->
-          <div v-if="showInviteForm" class="mb-4 border rounded-lg p-3 bg-blue-50 dark:bg-blue-900/20">
-            <div class="flex items-center gap-3 mb-3">
-              <div
-                  class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center overflow-hidden">
-                <img
-                    v-if="selectedUser?.avatar_url"
-                    :src="selectedUser.avatar_url"
-                    :alt="selectedUser.username"
-                    class="w-full h-full object-cover"
-                />
-                <span v-else class="material-symbols-rounded text-sm">person</span>
-              </div>
-              <div>
-                <div class="font-medium">{{ selectedUser?.username }}</div>
-                <div class="text-sm text-gray-500">{{ selectedUser?.email }}</div>
-              </div>
-            </div>
-
-            <!-- Sélection du preset de permissions -->
-            <div class="mb-3">
-              <label class="block text-sm font-medium mb-2">Niveau d'accès</label>
-              <div class="grid grid-cols-2 gap-2">
-                <Button
-                    v-for="(preset, key) in permissionPresets"
-                    :key="key"
-                    @click="changePreset(key as PermissionPreset)"
-                    :outlined="selectedPreset !== key"
-                    :severity="selectedPreset === key ? 'primary' : 'secondary'"
-                    size="small"
-                    class="justify-start"
-                >
-                  <span class="material-symbols-rounded text-sm mr-2">{{ preset.icon }}</span>
-                  {{ preset.label }}
-                </Button>
-              </div>
-            </div>
-
-            <!-- Permissions personnalisées -->
-            <div v-if="selectedPreset === 'custom'" class="mb-3">
-              <label class="block text-sm font-medium mb-2">Permissions détaillées</label>
-              <div class="space-y-2">
-                <div class="flex items-center gap-2">
-                  <Checkbox v-model="customPermissions.can_view" inputId="perm-view"/>
-                  <label for="perm-view" class="text-sm">Voir le thème</label>
-                </div>
-                <div class="flex items-center gap-2">
-                  <Checkbox v-model="customPermissions.can_update_theme" inputId="perm-update"/>
-                  <label for="perm-update" class="text-sm">Modifier le thème</label>
-                </div>
-                <div class="flex items-center gap-2">
-                  <Checkbox v-model="customPermissions.can_add_task" inputId="perm-add"/>
-                  <label for="perm-add" class="text-sm">Ajouter des tâches</label>
-                </div>
-                <div class="flex items-center gap-2">
-                  <Checkbox v-model="customPermissions.can_edit_task" inputId="perm-edit"/>
-                  <label for="perm-edit" class="text-sm">Modifier les tâches</label>
-                </div>
-                <div class="flex items-center gap-2">
-                  <Checkbox v-model="customPermissions.can_delete_task" inputId="perm-delete"/>
-                  <label for="perm-delete" class="text-sm">Supprimer les tâches</label>
-                </div>
-                <div class="flex items-center gap-2">
-                  <Checkbox v-model="customPermissions.can_validate_task" inputId="perm-validate"/>
-                  <label for="perm-validate" class="text-sm">Valider les tâches</label>
+                <Divider v-if="searchResults.indexOf(user) > 0" />
+                <div class="flex items-center justify-between py-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center overflow-hidden">
+                      <img
+                          v-if="user.avatar_url"
+                          :src="user.avatar_url"
+                          :alt="user.username"
+                          class="w-full h-full object-cover"
+                      />
+                      <span v-else class="material-symbols-rounded text-sm">person</span>
+                    </div>
+                    <div>
+                      <div class="font-medium">{{ user.username }}</div>
+                      <div class="text-sm text-gray-500">{{ user.email }}</div>
+                    </div>
+                  </div>
+                  <div>
+                    <Button
+                        @click="selectUserForInvite(user)"
+                        severity="primary"
+                        size="small"
+                        class="p-2"
+                    >
+                      Inviter
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-
-            <div class="flex gap-2">
-              <Button
-                  @click="confirmInvite"
-                  size="small"
-                  :loading="loading"
-              >
-                Inviter
-              </Button>
-              <Button
-                  @click="resetInviteForm"
-                  size="small"
-                  outlined
-                  :disabled="loading"
-              >
-                Annuler
-              </Button>
             </div>
           </div>
         </TabPanel>
       </TabPanels>
     </Tabs>
 
-    <!-- Dialog d'édition des permissions -->
-    <Dialog
-        v-model:visible="showPermissionsEdit"
-        modal
-        :header="editingMember ? `Permissions de ${getDisplayName(editingMember)}` : 'Permissions'"
-        class="w-96"
-    >
-      <div v-if="editingMember">
-        <!-- Sélection du preset -->
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-2">Niveau d'accès</label>
-          <div class="grid grid-cols-2 gap-2">
-            <Button
-                v-for="(preset, key) in permissionPresets"
-                :key="key"
-                @click="changePreset(key as PermissionPreset)"
-                :outlined="selectedPreset !== key"
-                :severity="selectedPreset === key ? 'primary' : 'secondary'"
-                size="small"
-                class="justify-start"
-            >
-              <span class="material-symbols-rounded text-sm mr-2">{{ preset.icon }}</span>
-              {{ preset.label }}
-            </Button>
-          </div>
-        </div>
+    <!-- Composant pour l'invitation -->
+    <ThemeMemberPermissionsEditor
+        v-model:visible="showInvitePermissions"
+        mode="invite"
+        title="Inviter un membre"
+        :user="selectedUser"
+        :permission-presets="permissionPresets"
+        :loading="loading"
+        @confirm="confirmInvite"
+        @cancel="cancelInvite"
+    />
 
-        <!-- Permissions détaillées -->
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-2">Permissions détaillées</label>
-          <div class="space-y-2">
-            <div class="flex items-center gap-2">
-              <Checkbox v-model="customPermissions.can_view" inputId="edit-perm-view"/>
-              <label for="edit-perm-view" class="text-sm">Voir le thème</label>
-            </div>
-            <div class="flex items-center gap-2">
-              <Checkbox v-model="customPermissions.can_update_theme" inputId="edit-perm-update"/>
-              <label for="edit-perm-update" class="text-sm">Modifier le thème</label>
-            </div>
-            <div class="flex items-center gap-2">
-              <Checkbox v-model="customPermissions.can_add_task" inputId="edit-perm-add"/>
-              <label for="edit-perm-add" class="text-sm">Ajouter des tâches</label>
-            </div>
-            <div class="flex items-center gap-2">
-              <Checkbox v-model="customPermissions.can_edit_task" inputId="edit-perm-edit"/>
-              <label for="edit-perm-edit" class="text-sm">Modifier les tâches</label>
-            </div>
-            <div class="flex items-center gap-2">
-              <Checkbox v-model="customPermissions.can_delete_task" inputId="edit-perm-delete"/>
-              <label for="edit-perm-delete" class="text-sm">Supprimer les tâches</label>
-            </div>
-            <div class="flex items-center gap-2">
-              <Checkbox v-model="customPermissions.can_validate_task" inputId="edit-perm-validate"/>
-              <label for="edit-perm-validate" class="text-sm">Valider les tâches</label>
-            </div>
-          </div>
-        </div>
-
-        <div class="flex gap-2 justify-end">
-          <Button
-              @click="cancelEditPermissions"
-              outlined
-              size="small"
-              :disabled="loading"
-          >
-            Annuler
-          </Button>
-          <Button
-              @click="confirmEditPermissions"
-              size="small"
-              :loading="loading"
-          >
-            Enregistrer
-          </Button>
-        </div>
-      </div>
-    </Dialog>
+    <!-- Composant pour l'édition des permissions -->
+    <ThemeMemberPermissionsEditor
+        v-model:visible="showEditPermissions"
+        mode="edit"
+        :title="editingMember ? `Permissions de ${getDisplayName(editingMember)}` : 'Permissions'"
+        :member="editingMember"
+        :permission-presets="permissionPresets"
+        :loading="loading"
+        @confirm="confirmEditPermissions"
+        @cancel="cancelEditPermissions"
+    />
 
     <!-- Confirmation de désactivation -->
     <Dialog
