@@ -13,7 +13,6 @@ export const useTasks = () => {
         to: null
     })
     const loading = ref(false)
-    const error = ref<string | null>(null)
 
     // Filtres réactifs
     const filters = reactive<TaskFilters>({
@@ -69,7 +68,6 @@ export const useTasks = () => {
     // Charger les tâches
     const fetchTasks = async (customFilters?: Partial<TaskFilters>) => {
         loading.value = true
-        error.value = null
 
         try {
             const queryParams = buildQueryParams(customFilters)
@@ -81,9 +79,9 @@ export const useTasks = () => {
 
             tasks.value = response.data.tasks
             pagination.value = response.data.pagination
-        } catch (err: any) {
-            error.value = err.message || 'Erreur lors du chargement des tâches'
-            console.error('Erreur fetchTasks:', err)
+        } catch (error: any) {
+            console.error(error.value)
+            throw new Error(error.message || 'Erreur lors du chargement des tâches');
         } finally {
             loading.value = false
         }
@@ -92,7 +90,6 @@ export const useTasks = () => {
     // Créer une tâche
     const createTask = async (taskData: { theme_id: string; title: string; status?: 'todo' | 'doing' | 'done' }) => {
         loading.value = true
-        error.value = null
 
         try {
             const response = await useApiFetch('/api/tasks', {
@@ -104,10 +101,9 @@ export const useTasks = () => {
             tasks.value.unshift(response.data.task)
 
             return response.data.task
-        } catch (err: any) {
-            error.value = err.message || 'Erreur lors de la création de la tâche'
-            console.error('Erreur createTask:', err)
-            throw err
+        } catch (error: any) {
+            console.error(error.value)
+            throw new Error(error.message || 'Erreur lors de la création de la tâche');
         } finally {
             loading.value = false
         }
@@ -163,30 +159,11 @@ export const useTasks = () => {
         filters.page = page
     }
 
-    // Computed pour les statistiques
-    const taskStats = computed(() => {
-        const total = tasks.value.length
-        const todo = tasks.value.filter(t => t.status === 'todo').length
-        const doing = tasks.value.filter(t => t.status === 'doing').length
-        const done = tasks.value.filter(t => t.status === 'done').length
-        const validated = tasks.value.filter(t => t.validated_at !== null).length
-
-        return {
-            total,
-            todo,
-            doing,
-            done,
-            validated,
-            progress: total > 0 ? Math.round((done / total) * 100) : 0
-        }
-    })
-
     return {
         // État
         tasks: readonly(tasks),
         pagination: readonly(pagination),
         loading: readonly(loading),
-        error: readonly(error),
 
         // Options
         sortOptions,
@@ -206,7 +183,5 @@ export const useTasks = () => {
         setSearchFilter,
         setPage,
 
-        // Computed
-        taskStats
     }
 }

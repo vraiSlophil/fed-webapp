@@ -5,7 +5,6 @@ import { HttpMethods } from '~/utils/httpMethods'
 export const useTask = (initialTask: Task) => {
     const task = ref<Task>(initialTask)
     const loading = ref(false)
-    const error = ref<string | null>(null)
 
     // Computed pour les propriétés de la tâche
     const isCompleted = computed(() => !!task.value.validated_at)
@@ -55,7 +54,6 @@ export const useTask = (initialTask: Task) => {
         if (!newTitle.trim() || newTitle.trim() === task.value.title) return false
 
         loading.value = true
-        error.value = null
 
         try {
             const response = await useApiFetch(`/api/tasks/${task.value.task_id}`, {
@@ -65,10 +63,7 @@ export const useTask = (initialTask: Task) => {
 
             updateLocalTask(response.data.task)
             return true
-        } catch (err: any) {
-            error.value = err.message || 'Erreur lors de la mise à jour du titre'
-            console.error('Erreur updateTitle:', err)
-            return false
+        } catch (error: any) {
         } finally {
             loading.value = false
         }
@@ -80,7 +75,6 @@ export const useTask = (initialTask: Task) => {
 
         const newStatus = getNextStatus(task.value.status)
         loading.value = true
-        error.value = null
 
         try {
             const response = await useApiFetch(`/api/tasks/${task.value.task_id}`, {
@@ -90,10 +84,9 @@ export const useTask = (initialTask: Task) => {
 
             updateLocalTask(response.data.task)
             return true
-        } catch (err: any) {
-            error.value = err.message || 'Erreur lors du changement de statut'
-            console.error('Erreur changeStatus:', err)
-            return false
+        } catch (error: any) {
+            console.error(error.value)
+            throw new Error(error.message || `Erreur lors du changement de statut`)
         } finally {
             loading.value = false
         }
@@ -104,7 +97,6 @@ export const useTask = (initialTask: Task) => {
         if (!canEdit.value) return false
 
         loading.value = true
-        error.value = null
 
         try {
             const endpoint = isCompleted.value ? 'uncomplete' : 'complete'
@@ -114,10 +106,9 @@ export const useTask = (initialTask: Task) => {
 
             updateLocalTask(response.data.task)
             return true
-        } catch (err: any) {
-            error.value = err.message || 'Erreur lors de la validation'
-            console.error('Erreur toggleCompletion:', err)
-            return false
+        } catch (error: any) {
+            console.error(error.value)
+            throw new Error(error.message || 'Erreur lors de la validation de la tâche');
         } finally {
             loading.value = false
         }
@@ -126,7 +117,6 @@ export const useTask = (initialTask: Task) => {
     // Archiver/Restaurer
     const toggleArchive = async () => {
         loading.value = true
-        error.value = null
 
         try {
             const endpoint = isArchived.value ? 'restore' : 'archive'
@@ -136,10 +126,9 @@ export const useTask = (initialTask: Task) => {
 
             updateLocalTask(response.data.task)
             return true
-        } catch (err: any) {
-            error.value = err.message || 'Erreur lors de l\'archivage'
-            console.error('Erreur toggleArchive:', err)
-            return false
+        } catch (error: any) {
+            console.error(error.value)
+            throw new Error(error.message || 'Erreur lors de l\'archivage de la tâche');
         } finally {
             loading.value = false
         }
@@ -148,17 +137,15 @@ export const useTask = (initialTask: Task) => {
     // Supprimer
     const deleteTask = async () => {
         loading.value = true
-        error.value = null
 
         try {
             await useApiFetch(`/api/tasks/${task.value.task_id}`, {
                 method: HttpMethods.DELETE
             })
             return true
-        } catch (err: any) {
-            error.value = err.message || 'Erreur lors de la suppression'
-            console.error('Erreur deleteTask:', err)
-            return false
+        } catch (error: any) {
+            console.error(error.value)
+            throw new Error(error.message || 'Erreur lors de la suppression de la tâche');
         } finally {
             loading.value = false
         }
@@ -168,7 +155,6 @@ export const useTask = (initialTask: Task) => {
         // État
         task: readonly(task),
         loading: readonly(loading),
-        error: readonly(error),
 
         // Computed
         isCompleted,

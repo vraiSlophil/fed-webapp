@@ -5,20 +5,18 @@ export const useThemes = () => {
     const themes = ref<Theme[]>([])
     const currentTheme = ref<Theme | null>(null)
     const loading = ref(false)
-    const error = ref<string | null>(null)
 
     const fetchThemes = async () => {
         loading.value = true
-        error.value = null
 
         try {
             const response = await useApiFetch('/api/themes', {
                 method: HttpMethods.GET
             })
             themes.value = response.data.themes
-        } catch (err: any) {
-            error.value = err.message || 'Erreur lors du chargement des thèmes'
+        } catch (error: any) {
             console.error(error.value)
+            throw new Error(error.message || `Erreur  lors de la récupération des thèmes`)
         } finally {
             loading.value = false
         }
@@ -26,7 +24,6 @@ export const useThemes = () => {
 
     const getTheme = async (id: string) => {
         loading.value = true
-        error.value = null
 
         try {
             const response = await useApiFetch(`/api/themes/${id}`, {
@@ -34,10 +31,9 @@ export const useThemes = () => {
             })
             currentTheme.value = response.data.theme
             return response.data.theme
-        } catch (err: any) {
-            error.value = err.message || `Erreur lors du chargement du thème ${id}`
+        } catch (error: any) {
             console.error(error.value)
-            return null
+            throw new Error(error.message || `Erreur lors de la récupération du thème ${id}`)
         } finally {
             loading.value = false
         }
@@ -45,7 +41,6 @@ export const useThemes = () => {
 
     const createTheme = async (themeData: { title: string; color: string }) => {
         loading.value = true
-        error.value = null
 
         try {
             const response = await useApiFetch('/api/themes', {
@@ -54,10 +49,9 @@ export const useThemes = () => {
             })
             await fetchThemes() // Recharger la liste après création
             return response.data.theme
-        } catch (err: any) {
-            error.value = err.message || 'Erreur lors de la création du thème'
+        } catch (error: any) {
             console.error(error.value)
-            return null
+            throw new Error(error.message || `Erreur lors de la création du thème`)
         } finally {
             loading.value = false
         }
@@ -65,7 +59,6 @@ export const useThemes = () => {
 
     const updateTheme = async (id: string, themeData: { title?: string; color?: string }) => {
         loading.value = true
-        error.value = null
 
         try {
             const response = await useApiFetch(`/api/themes/${id}`, {
@@ -80,10 +73,9 @@ export const useThemes = () => {
             }
 
             return response.data.theme
-        } catch (err: any) {
-            error.value = err.message || `Erreur lors de la mise à jour du thème ${id}`
+        } catch (error: any) {
             console.error(error.value)
-            return null
+            throw new Error(error.message || `Erreur lors de la mise à jour du thème ${id}`)
         } finally {
             loading.value = false
         }
@@ -91,7 +83,6 @@ export const useThemes = () => {
 
     const deleteTheme = async (id: string) => {
         loading.value = true
-        error.value = null
 
         try {
             await useApiFetch(`/api/themes/${id}`, {
@@ -101,10 +92,9 @@ export const useThemes = () => {
             // Supprimer le thème de la liste
             themes.value = themes.value.filter(t => t.theme_id !== id)
             return true
-        } catch (err: any) {
-            error.value = err.message || `Erreur lors de la suppression du thème ${id}`
+        } catch (error: any) {
             console.error(error.value)
-            return false
+            throw new Error(error.message || `Erreur lors de la suppression du thème ${id}`)
         } finally {
             loading.value = false
         }
@@ -114,7 +104,6 @@ export const useThemes = () => {
         themes,
         currentTheme,
         loading,
-        error,
         fetchThemes,
         getTheme,
         createTheme,

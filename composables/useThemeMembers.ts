@@ -130,8 +130,9 @@ export const useThemeMembers = () => {
                     } as ThemeMember)
 
                 })
-        } catch (err: any) {
-            console.error('Erreur searchUsers:', err)
+        } catch (error: any) {
+            console.error(error.value)
+            throw new Error(error.message || 'Erreur lors de la recherche d\'utilisateurs');
         } finally {
             searchLoading.value = false
         }
@@ -165,8 +166,9 @@ export const useThemeMembers = () => {
                 } as ThemeMember)
 
             })
-        } catch (err: any) {
-            console.error('Erreur fetchMembers:', err)
+        } catch (error: any) {
+            console.error(error.value)
+            throw new Error(error.message || 'Erreur lors de la récupération des membres du thème');
         } finally {
             loading.value = false
         }
@@ -193,9 +195,9 @@ export const useThemeMembers = () => {
 
             return response.data.invitation
 
-        } catch (err: any) {
-            console.error('Erreur inviteUser:', err)
-            throw err
+        } catch (error: any) {
+            console.error(error.value)
+            throw new Error(error.message || 'Erreur lors de l\'invitation de l\'utilisateur');
         } finally {
             loading.value = false
         }
@@ -218,9 +220,9 @@ export const useThemeMembers = () => {
             }
 
             return response.data.permissions
-        } catch (err: any) {
-            console.error('Erreur updateMemberPermissions:', err)
-            throw err
+        } catch (error: any) {
+            console.error(error.value)
+            throw new Error(error.message || 'Erreur lors de la mise à jour des permissions du membre');
         } finally {
             loading.value = false
         }
@@ -242,9 +244,9 @@ export const useThemeMembers = () => {
             }
 
             return true
-        } catch (err: any) {
-            console.error('Erreur deactivateMember:', err)
-            return false
+        } catch (error: any) {
+            console.error(error.value)
+            throw new Error(error.message || 'Erreur lors de la désactivation du membre');
         } finally {
             loading.value = false
         }
@@ -266,9 +268,9 @@ export const useThemeMembers = () => {
             }
 
             return true
-        } catch (err: any) {
-            console.error('Erreur reactivateMember:', err)
-            return false
+        } catch (error: any) {
+            console.error(error.value)
+            throw new Error(error.message || 'Erreur lors de la réactivation du membre');
         } finally {
             loading.value = false
         }
@@ -287,9 +289,9 @@ export const useThemeMembers = () => {
             members.value = members.value.filter(m => m.user_id !== userId)
 
             return true
-        } catch (err: any) {
-            console.error('Erreur removeMember:', err)
-            return false
+        } catch (error: any) {
+            console.error(error.value)
+            throw new Error(error.message || 'Erreur lors de la suppression du membre');
         } finally {
             loading.value = false
         }
@@ -305,9 +307,9 @@ export const useThemeMembers = () => {
             })
 
             return true
-        } catch (err: any) {
-            console.error('Erreur leaveTheme:', err)
-            return false
+        } catch (error: any) {
+            console.error(error.value)
+            throw new Error(error.message || 'Erreur lors de la sortie du thème');
         } finally {
             loading.value = false
         }
