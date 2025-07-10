@@ -17,14 +17,7 @@ const editedColor = ref(props.theme.color)
 const isThemeOpen = ref(false)
 
 const colorPopoverRef = ref()
-
 const membersPopoverVisible = ref(false)
-const membersPopoverRef = ref()
-
-const toggleMembersPopover = (event: any) => {
-  membersPopoverRef.value.toggle(event);
-}
-
 
 const openTheme = () => {
   isThemeOpen.value = !isThemeOpen.value

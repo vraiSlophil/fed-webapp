@@ -2,7 +2,6 @@
 import type {Theme} from '~/types/themes'
 import type {ThemeMember, ThemeMemberPermissions} from '~/types/themeMembers'
 import {useThemeMembers} from '~/composables/useThemeMembers'
-import {findNearestFile} from "pkg-types";
 
 const props = defineProps<{
 	visible: boolean

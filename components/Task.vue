@@ -14,11 +14,11 @@ const emit = defineEmits<{
 	(e: 'restored', task: Task): void
 }>()
 
+const toast = useToast();
 // Composable pour cette tâche
 const {
 	task,
 	loading,
-	error,
 	isCompleted,
 	isArchived,
 	canEdit,
@@ -42,10 +42,6 @@ const startTitleEdit = async () => {
 
 	editedTitle.value = task.value.title
 	isEditingTitle.value = true
-
-	await nextTick()
-	// titleInputRef.value?.focus()
-	// titleInputRef.value?.select()
 }
 
 // Confirmer l'édition du titre
@@ -54,11 +50,24 @@ const confirmTitleEdit = async () => {
 		cancelTitleEdit()
 		return
 	}
-
-	const success = await updateTitle(editedTitle.value)
-	if (success) {
-		isEditingTitle.value = false
+	try {
+		await updateTitle(editedTitle.value)
 		emit('updated', task.value)
+		toast.add({
+			severity: 'success',
+			summary: 'Titre modifié',
+			detail: 'Le titre de la tâche a été mis à jour avec succès.',
+			life: 3000
+		})
+	} catch (error: any) {
+		toast.add({
+			severity: 'error',
+			summary: 'Erreur',
+			detail: error.message,
+			life: 3000
+		})
+	} finally {
+		isEditingTitle.value = false
 	}
 }
 
@@ -72,9 +81,16 @@ const cancelTitleEdit = () => {
 const handleStatusChange = async () => {
 	if (!canEdit.value) return
 
-	const success = await changeStatus()
-	if (success) {
+	try {
+		await changeStatus()
 		emit('updated', task.value)
+	} catch (error: any) {
+		toast.add({
+			severity: 'error',
+			summary: 'Erreur',
+			detail: error.message,
+			life: 3000
+		})
 	}
 }
 
@@ -82,33 +98,68 @@ const handleStatusChange = async () => {
 const handleToggleCompletion = async () => {
 	if (!canEdit.value) return
 
-	const success = await toggleCompletion()
-	if (success) {
+	try {
+		await toggleCompletion()
 		emit('updated', task.value)
+	} catch (error: any) {
+		toast.add({
+			severity: 'error',
+			summary: 'Erreur',
+			detail: error.message,
+			life: 3000
+		})
 	}
+
 }
 
 // Gérer l'archivage/restauration
 const handleToggleArchive = async () => {
-	const wasArchived = isArchived.value
-	const success = await toggleArchive()
-
-	if (success) {
+	try {
+		const wasArchived = isArchived.value
+		await toggleArchive()
 		if (wasArchived) {
 			emit('restored', task.value)
 		} else {
 			emit('archived', task.value)
 		}
 		emit('updated', task.value)
+		toast.add({
+			severity: 'success',
+			summary: wasArchived ? 'Tâche restaurée' : 'Tâche archivée',
+			detail: `La tâche a été ${wasArchived ? 'restaurée' : 'archivée'} avec succès.`,
+			life: 3000
+		})
+	} catch (error: any) {
+		toast.add({
+			severity: 'error',
+			summary: 'Erreur',
+			detail: error.message,
+			life: 3000
+		})
 	}
+
 }
 
 // Gérer la suppression
 const handleDelete = async () => {
-	const success = await deleteTask()
-	if (success) {
+	try {
+		await deleteTask()
 		emit('deleted', task.value.task_id)
+		toast.add({
+			severity: 'success',
+			summary: 'Tâche supprimée',
+			detail: 'La tâche a été supprimée avec succès.',
+			life: 3000
+		})
+	} catch (error: any) {
+		toast.add({
+			severity: 'error',
+			summary: 'Erreur',
+			detail: error.message,
+			life: 3000
+		})
 	}
+
 }
 
 // Confirmer la suppression
@@ -210,7 +261,7 @@ const cancelDelete = () => {
 
 						<!-- Date de création -->
 						<span v-if="task.created_at" class="text-xs text-gray-400 dark:text-gray-500">
-							{{ new Date(task.created_at).toLocaleDateString('fr-FR') }}
+							{{ new Date(task.created_at).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) }}
 						</span>
 					</div>
 				</div>
@@ -286,12 +337,6 @@ const cancelDelete = () => {
 				</Button>
 			</div>
 		</div>
-
-		<!-- Message d'erreur -->
-		<div v-if="error" class="mt-2 text-sm text-red-500 bg-red-50 dark:bg-red-900/20 p-2 rounded">
-			{{ error }}
-		</div>
-
 		<!-- Confirmation de suppression -->
 		<div v-if="showDeleteConfirm" class="mt-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
 			<div class="flex items-center justify-between">

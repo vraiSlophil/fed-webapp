@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { useVuelidate } from '@vuelidate/core'
-import { required, minLength, helpers } from '@vuelidate/validators'
-import { useThemes } from '~/composables/useThemes'
-import type { Theme } from '~/types/themes'
+import {useVuelidate} from '@vuelidate/core'
+import {helpers, minLength, required} from '@vuelidate/validators'
+import {useThemes} from '~/composables/useThemes'
+import type {Theme} from '~/types/themes'
 
 // État
 const formData = reactive({
@@ -12,7 +12,6 @@ const formData = reactive({
 
 const deleteDialogVisible = ref(false)
 const selectedTheme = ref<Theme | null>(null)
-const apiResponse = ref<any>(null)
 
 // Validation du formulaire
 const rules = computed(() => ({
@@ -30,11 +29,11 @@ const rules = computed(() => ({
 
 const v$ = useVuelidate(rules, formData)
 
+const toast = useToast();
 // Initialisation du composable de thèmes
 const {
 	themes,
 	loading,
-	error,
 	fetchThemes,
 	createTheme,
 	updateTheme,
@@ -67,21 +66,44 @@ const submitForm = async () => {
 	if (!isValid) return
 
 	try {
-		const newTheme = await createTheme(formData)
-		apiResponse.value = { action: 'create', theme: newTheme }
+		await createTheme(formData)
+		toast.add({
+			severity: 'success',
+			summary: 'Succès',
+			detail: `Thème "${formData.title}" créé avec succès.`,
+			life: 3000
+		})
+	} catch (error: any) {
+		console.error(error)
+		toast.add({
+			severity: 'error',
+			summary: 'Erreur',
+			detail: error.message,
+			life: 3000
+		})
+	} finally {
 		resetForm()
-	} catch (err) {
-		console.error(err)
 	}
 }
 
 // Gestion de la mise à jour
 const handleUpdate = async (themeId: string, data: { title?: string, color?: string }) => {
 	try {
-		const updatedTheme = await updateTheme(themeId, data)
-		apiResponse.value = { action: 'update', theme: updatedTheme }
-	} catch (err) {
-		console.error(err)
+		await updateTheme(themeId, data)
+		toast.add({
+			severity: 'success',
+			summary: 'Succès',
+			detail: `Thème "${data.title || 'inconnu'}" mis à jour avec succès.`,
+			life: 3000
+		})
+	} catch (error: any) {
+		console.error(error)
+		toast.add({
+			severity: 'error',
+			summary: 'Erreur',
+			detail: error.message,
+			life: 3000
+		})
 	}
 }
 
@@ -95,11 +117,23 @@ const deleteTheme = async () => {
 	if (selectedTheme.value) {
 		try {
 			await removeTheme(selectedTheme.value.theme_id)
-			apiResponse.value = { action: 'delete', themeId: selectedTheme.value.theme_id }
+			toast.add({
+				severity: 'success',
+				summary: 'Succès',
+				detail: `Thème "${selectedTheme.value.title}" supprimé avec succès.`,
+				life: 3000
+			})
+		} catch (error: any) {
+			console.error(error)
+			toast.add({
+				severity: 'error',
+				summary: 'Erreur',
+				detail: error.message,
+				life: 3000
+			})
+		} finally {
 			deleteDialogVisible.value = false
 			selectedTheme.value = null
-		} catch (err) {
-			console.error(err)
 		}
 	}
 }

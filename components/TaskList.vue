@@ -14,12 +14,13 @@ const emit = defineEmits<{
 	(e: 'delete', theme: Theme): void
 }>()
 
+const toast = useToast();
+
 // Composable pour les tâches
 const {
 	tasks,
 	pagination,
 	loading,
-	error,
 	sortOptions,
 	statusOptions,
 	archiveOptions,
@@ -30,14 +31,12 @@ const {
 	setArchivedFilter,
 	setSearchFilter,
 	setPage,
-	taskStats
 } = useTasks()
 
 // Composable pour les statistiques du thème
 const {
 	stats: themeStats,
 	loading: statsLoading,
-	error: statsError,
 	fetchThemeStats
 } = useThemeStats()
 
@@ -80,10 +79,19 @@ const loadThemeStats = async () => {
 
 // Charger les tâches pour ce thème
 const loadTasks = async () => {
-	await fetchTasks({
-		theme_id: props.theme.theme_id,
-		archived: currentArchivedFilter.value
-	})
+	try {
+		await fetchTasks({
+			theme_id: props.theme.theme_id,
+			archived: currentArchivedFilter.value
+		})
+	} catch (error: any) {
+		toast.add({
+			severity: 'error',
+			summary: 'Erreur',
+			detail: error.message,
+			life: 3000
+		})
+	}
 }
 
 // Fonction pour basculer entre les options de tri
@@ -153,9 +161,14 @@ const handleCreateTask = async () => {
 			status: 'todo'
 		})
 		newTaskTitle.value = ''
-		await loadTasksAndStats() // Recharger la liste
-	} catch (error) {
-		console.error('Erreur lors de la création de la tâche:', error)
+		await loadTasksAndStats()
+	} catch (error: any) {
+		toast.add({
+			severity: 'error',
+			summary: 'Erreur',
+			detail: error.message,
+			life: 3000
+		})
 	} finally {
 		isCreatingTask.value = false
 	}
@@ -240,10 +253,10 @@ const toggleDetailedStats = () => {
 						<template #value="slotProps">
 							<div class="flex items-center gap-2">
 								<span class="material-symbols-rounded text-sm">
-								  {{ currentStatusFilter?.icon || statusOptions[0].icon}}
+								  {{ (currentStatusFilter as any)?.icon || statusOptions[0].icon}}
 								</span>
 								<span>
-									{{ currentStatusFilter?.label || statusOptions[0].label }}
+									{{ (currentStatusFilter as any)?.label || statusOptions[0].label }}
 								</span>
 							</div>
 						</template>
@@ -313,14 +326,16 @@ const toggleDetailedStats = () => {
 		</div>
 
 		<!-- Statistiques -->
-		<div v-if="(themeStats || (taskStats && taskStats.total > 0)) && !currentArchivedFilter" class="p-4 border-b dark:border-gray-700">
-			<!-- Affichage de l'erreur -->
-			<div v-if="statsError" class="text-sm text-red-500">
-				{{ statsError }}
-			</div>
+		<div
+			v-if="(themeStats) && !currentArchivedFilter"
+			class="p-4 border-b dark:border-gray-700 transition-all"
+			:style="{
+				filter: statsLoading ? 'blur(4px) brightness(0.5)' : 'none',
 
+			}"
+		>
 			<!-- Affichage des statistiques de base -->
-			<div v-else-if="themeStats" class="space-y-3">
+			<div class="space-y-3">
 				<!-- Statistiques de base et bouton pour afficher plus -->
 				<div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
 					<div class="flex items-center gap-2">
@@ -417,22 +432,6 @@ const toggleDetailedStats = () => {
 					</div>
 				</div>
 			</div>
-
-			<!-- Fallback sur les statistiques locales si les statistiques du thème ne sont pas disponibles -->
-			<div v-else-if="taskStats && taskStats.total > 0" class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
-				<span>{{ taskStats.total }} tâche{{ taskStats.total > 1 ? 's' : '' }}</span>
-				<span>{{ taskStats.progress }}% terminé</span>
-
-				<div class="mt-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-					<div
-						class="h-2 rounded-full transition-all duration-300"
-						:style="{
-							width: taskStats.progress + '%',
-							backgroundColor: props.theme.color
-						}"
-					></div>
-				</div>
-			</div>
 		</div>
 
 		<!-- Liste des tâches -->
@@ -445,11 +444,6 @@ const toggleDetailedStats = () => {
 					progress_activity
 				</span>
 			</div>
-
-			<div v-else-if="error" class="p-4 text-center text-red-500">
-				{{ error }}
-			</div>
-
 			<div v-else-if="tasks.length === 0" class="p-8 text-center text-gray-500 dark:text-gray-400">
 				<span class="material-symbols-rounded text-4xl mb-2 block">
 					{{ currentArchivedFilter ? 'archive' : 'assignment' }}

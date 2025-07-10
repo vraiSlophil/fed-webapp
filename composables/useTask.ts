@@ -64,6 +64,8 @@ export const useTask = (initialTask: Task) => {
             updateLocalTask(response.data.task)
             return true
         } catch (error: any) {
+            console.error(error.value)
+            throw new Error(error.message || 'Erreur lors de la mise à jour du titre de la tâche');
         } finally {
             loading.value = false
         }
