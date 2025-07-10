@@ -231,13 +231,6 @@ const deleteTheme = async () => {
 				</div>
 			</div>
 
-			<!-- Informations de l'API (optionnel) -->
-			<div v-if="apiResponse" class="mt-6 pt-6 border-t">
-				<h2 class="text-lg font-semibold mb-2">Dernière réponse API</h2>
-				<div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg overflow-auto max-h-60">
-					<pre class="text-xs font-mono">{{ JSON.stringify(apiResponse, null, 2) }}</pre>
-				</div>
-			</div>
 		</div>
 
 		<!-- Dialog de confirmation de suppression -->

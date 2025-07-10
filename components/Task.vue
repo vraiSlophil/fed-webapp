@@ -2,9 +2,11 @@
 import { ref, nextTick } from 'vue'
 import type { Task } from '~/types/task'
 import { useTask } from '~/composables/useTask'
+import type {Theme} from "~/types/themes";
 
 const props = defineProps<{
 	task: Task
+	theme: Theme
 }>()
 
 const emit = defineEmits<{
@@ -15,13 +17,22 @@ const emit = defineEmits<{
 }>()
 
 const toast = useToast();
+
+// Utiliser le composable de permissions
+const { 
+	isOwner,
+	canEditTask,
+	canDeleteTask,
+	canValidateTask
+} = useThemePermissions(toRef(props, 'theme'))
+
 // Composable pour cette tâche
 const {
 	task,
 	loading,
 	isCompleted,
 	isArchived,
-	canEdit,
+	canEdit: taskCanEdit, // Renommé pour éviter la confusion
 	getStatusLabel,
 	getStatusSeverity,
 	updateTitle,
@@ -30,6 +41,13 @@ const {
 	toggleArchive,
 	deleteTask
 } = useTask(props.task)
+
+const canEdit = computed(() => {
+	// L'utilisateur peut éditer si:
+	// 1. La tâche n'est pas archivée (logique interne à la tâche)
+	// 2. ET l'utilisateur a la permission d'éditer les tâches dans ce thème
+	return taskCanEdit.value && canEditTask.value
+})
 
 // État pour l'édition du titre
 const isEditingTitle = ref(false)
@@ -114,6 +132,8 @@ const handleToggleCompletion = async () => {
 
 // Gérer l'archivage/restauration
 const handleToggleArchive = async () => {
+	if (!isOwner.value) return
+
 	try {
 		const wasArchived = isArchived.value
 		await toggleArchive()
@@ -142,6 +162,8 @@ const handleToggleArchive = async () => {
 
 // Gérer la suppression
 const handleDelete = async () => {
+	if (!canDeleteTask.value) return
+
 	try {
 		await deleteTask()
 		emit('deleted', task.value.task_id)
@@ -166,6 +188,7 @@ const handleDelete = async () => {
 const showDeleteConfirm = ref(false)
 
 const confirmDelete = () => {
+	if (!canDeleteTask.value) return
 	showDeleteConfirm.value = true
 }
 
@@ -189,6 +212,7 @@ const cancelDelete = () => {
 			<div class="flex items-center gap-3 flex-1">
 				<!-- Checkbox de completion -->
 				<button
+					v-if="canValidateTask"
 					@click="handleToggleCompletion"
 					class="flex items-center justify-center w-6.5 h-6.5 rounded-full border-2 transition-colors flex-shrink-0 cursor-pointer"
 					:class="isCompleted
@@ -208,7 +232,7 @@ const cancelDelete = () => {
 					<!-- Mode affichage -->
 					<div v-if="!isEditingTitle" class="flex-1">
 						<h3
-							@dblclick="startTitleEdit"
+							@dblclick="canEdit ? startTitleEdit() : null"
 							class="font-medium max-w-58 px-3 py-1 mr-8truncate cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors "
 							:class="isCompleted ? 'line-through text-gray-500' : ''"
 							:title="canEdit ? 'Double-cliquez pour modifier' : ''"
@@ -236,6 +260,7 @@ const cancelDelete = () => {
 								backgroundColor: 'rgba(255,255,255,0.1)'
 							}"
 							:disabled="loading"
+							autofocus
 						/>
 					</div>
 
@@ -243,13 +268,12 @@ const cancelDelete = () => {
 					<div class="flex items-center gap-2 mt-1 flex-wrap">
 						<!-- Tag de statut -->
 						<Tag
-							@click="handleStatusChange"
+							v-if="!isEditingTitle"
 							:severity="getStatusSeverity(task.status)"
-							:disabled="!canEdit || loading"
-							class="cursor-pointer"
-						>
-							{{ getStatusLabel(task.status) }}
-						</Tag>
+							:value="getStatusLabel(task.status)"
+							@click="canEdit ? handleStatusChange() : null"
+							:class="{ 'cursor-pointer': canEdit }"
+						/>
 
 						<!-- Badge archivé -->
 						<Tag
@@ -298,7 +322,7 @@ const cancelDelete = () => {
 				<div>
 					<!-- Bouton archiver/restaurer -->
 					<Button
-						v-if="!isEditingTitle"
+						v-if="isOwner && !isEditingTitle"
 						@click="handleToggleArchive"
 						text
 						size="small"
@@ -326,6 +350,7 @@ const cancelDelete = () => {
 
 				<!-- Bouton supprimer -->
 				<Button
+					v-if="canDeleteTask"
 					@click="confirmDelete"
 					text
 					size="small"
@@ -338,30 +363,56 @@ const cancelDelete = () => {
 			</div>
 		</div>
 		<!-- Confirmation de suppression -->
-		<div v-if="showDeleteConfirm" class="mt-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
-			<div class="flex items-center justify-between">
-				<span class="text-sm text-red-800 dark:text-red-200">
-					Êtes-vous sûr de vouloir supprimer cette tâche ?
-				</span>
-				<div class="flex gap-2">
-					<Button
-						@click="handleConfirmDelete"
-						size="small"
-						severity="danger"
-						:loading="loading"
-					>
-						Supprimer
-					</Button>
-					<Button
-						@click="cancelDelete"
-						size="small"
-						outlined
-						:disabled="loading"
-					>
-						Annuler
-					</Button>
-				</div>
+<!--		<div v-if="showDeleteConfirm" class="mt-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">-->
+<!--			<div class="flex items-center justify-between">-->
+<!--				<span class="text-sm text-red-800 dark:text-red-200">-->
+<!--					Êtes-vous sûr de vouloir supprimer cette tâche ?-->
+<!--				</span>-->
+<!--				<div class="flex gap-2">-->
+<!--					<Button-->
+<!--						@click="handleConfirmDelete"-->
+<!--						size="small"-->
+<!--						severity="danger"-->
+<!--						:loading="loading"-->
+<!--					>-->
+<!--						Supprimer-->
+<!--					</Button>-->
+<!--					<Button-->
+<!--						@click="cancelDelete"-->
+<!--						size="small"-->
+<!--						outlined-->
+<!--						:disabled="loading"-->
+<!--					>-->
+<!--						Annuler-->
+<!--					</Button>-->
+<!--				</div>-->
+<!--			</div>-->
+<!--		</div>-->
+		<!-- Dialog de confirmation de suppression -->
+		<Dialog
+			v-model:visible="showDeleteConfirm"
+			:header="'Confirmer la suppression'"
+			:style="{ width: '450px' }"
+			:modal="true"
+		>
+			<div class="flex items-center gap-2 m-2">
+				<span class="material-symbols-rounded text-yellow-500">warning</span>
+				<span>Êtes-vous sûr de vouloir supprimer cette tâche ?</span>
 			</div>
-		</div>
+			<template #footer>
+				<Button
+					label="Non"
+					class="p-button-text"
+					@click="cancelDelete"
+				/>
+				<Button
+					label="Oui"
+					class="p-button-danger"
+					@click="handleConfirmDelete"
+					:loading="loading"
+				/>
+			</template>
+		</Dialog>
+
 	</div>
 </template>

@@ -19,12 +19,17 @@ const isThemeOpen = ref(false)
 const colorPopoverRef = ref()
 const membersPopoverVisible = ref(false)
 
+// Utiliser le composable de permissions avec le thème
+const { isOwner, canUpdateTheme } = useThemePermissions(toRef(props, 'theme'))
+
 const openTheme = () => {
-  isThemeOpen.value = !isThemeOpen.value
+	isThemeOpen.value = !isThemeOpen.value
 }
 
 // Démarrer l'édition
 const startEdit = () => {
+	if (!canUpdateTheme.value) return
+
 	editedTitle.value = props.theme.title
 	editedColor.value = props.theme.color
 	isEditing.value = true
@@ -149,33 +154,42 @@ watch(
 			<div class="flex gap-2">
 				<!-- Boutons en mode normal -->
 				<template v-if="!isEditing">
+					<!-- Bouton Modifier - affiché uniquement si l'utilisateur a le droit de modifier -->
 					<button
+						v-if="canUpdateTheme"
 						@click="startEdit"
 						class="cursor-pointer flex justify-center items-center align p-2 rounded-full"
 						title="Modifier"
 					>
 						<span class="material-symbols-rounded">edit</span>
 					</button>
+
+					<!-- Bouton Supprimer - affiché uniquement si l'utilisateur est propriétaire -->
 					<button
+						v-if="isOwner"
 						@click="$emit('delete', theme)"
 						class="cursor-pointer flex justify-center items-center p-2 rounded-full"
 						title="Supprimer"
 					>
 						<span class="material-symbols-rounded">delete</span>
 					</button>
+
+					<!-- Bouton Partager - affiché uniquement si l'utilisateur est propriétaire -->
 					<button
+						v-if="isOwner"
 						@click="membersPopoverVisible = true"
 						class="cursor-pointer flex justify-center items-center p-2 rounded-full"
 						title="Partager"
 					>
 						<span class="material-symbols-rounded">person_add</span>
 					</button>
-					<LazyThemeMembersMenu
-            :visible="membersPopoverVisible"
-						:theme="theme"
-            @update:visible="membersPopoverVisible = $event"
-          />
 
+					<LazyThemeMembersMenu
+						v-if="isOwner"
+						:visible="membersPopoverVisible"
+						:theme="theme"
+						@update:visible="membersPopoverVisible = $event"
+					/>
 				</template>
 
 				<!-- Boutons en mode édition -->

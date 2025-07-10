@@ -16,6 +16,12 @@ const emit = defineEmits<{
 
 const toast = useToast();
 
+// Utiliser le composable de permissions
+const {
+	isOwner,
+	canAddTask
+} = useThemePermissions(toRef(props, 'theme'))
+
 // Composable pour les tâches
 const {
 	tasks,
@@ -151,7 +157,7 @@ const newTaskTitle = ref('')
 const isCreatingTask = ref(false)
 
 const handleCreateTask = async () => {
-	if (!newTaskTitle.value.trim()) return
+	if (!newTaskTitle.value.trim() || !canAddTask.value) return
 
 	isCreatingTask.value = true
 	try {
@@ -304,7 +310,7 @@ const toggleDetailedStats = () => {
 		</div>
 
 		<!-- Formulaire de création de tâche (seulement pour les tâches actives) -->
-		<div v-if="!currentArchivedFilter" class="px-4">
+		<div v-if="(!currentArchivedFilter && canAddTask) || isOwner" class="px-4">
 			<div class="flex gap-2">
 				<InputText
 					v-model="newTaskTitle"
@@ -458,6 +464,7 @@ const toggleDetailedStats = () => {
 					v-for="task in tasks"
 					:key="task.task_id"
 					:task="task"
+					:theme="theme"
 					@updated="handleTaskUpdated"
 					@deleted="handleTaskDeleted"
 					@archived="handleTaskArchived"

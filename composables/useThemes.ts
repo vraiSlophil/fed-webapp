@@ -14,6 +14,7 @@ export const useThemes = () => {
                 method: HttpMethods.GET
             })
             themes.value = response.data.themes
+
         } catch (error: any) {
             console.error(error.value)
             throw new Error(error.message || `Erreur  lors de la récupération des thèmes`)

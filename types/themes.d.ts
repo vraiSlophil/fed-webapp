@@ -1,3 +1,5 @@
+import type {ThemeMemberPermissions} from "~/types/themeMembers";
+
 export type Theme = {
     theme_id: string
     owner_id: string
@@ -5,6 +7,13 @@ export type Theme = {
     color: string
     created_at?: string
     updated_at?: string
+    permissions?: {
+        permission_id: string
+        theme_id: string
+        user_id: string
+        invited_at?: string | null
+        status: 'active' | 'invited' | 'revoked'
+    } & ThemeMemberPermissions
 }
 
 export type ThemeStats = {
