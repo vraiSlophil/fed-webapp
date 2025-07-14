@@ -101,6 +101,25 @@ export const useThemes = () => {
         }
     }
 
+    const leaveTheme = async (id: string) => {
+        loading.value = true
+
+        try {
+            await useApiFetch(`/api/themes/${id}/leave`, {
+                method: HttpMethods.POST
+            })
+
+            // Supprimer le thème de la liste
+            themes.value = themes.value.filter(t => t.theme_id !== id)
+            return true
+        } catch (error: any) {
+            console.error(error.value)
+            throw new Error(error.message || `Erreur lors de la sortie du thème ${id}`)
+        } finally {
+            loading.value = false
+        }
+    }
+
     return {
         themes,
         currentTheme,
@@ -109,6 +128,7 @@ export const useThemes = () => {
         getTheme,
         createTheme,
         updateTheme,
-        deleteTheme
+        deleteTheme,
+        leaveTheme
     }
 }

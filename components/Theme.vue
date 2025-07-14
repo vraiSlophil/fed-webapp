@@ -6,24 +6,117 @@ const props = defineProps<{
 	theme: Theme
 }>()
 
-const emit = defineEmits<{
-	(e: 'update', themeId: string, data: { title?: string, color?: string }): void
-	(e: 'delete', theme: Theme): void
+const emits = defineEmits<{
+	(e: 'destroy', theme: Theme): void
 }>()
 
 const isEditing = ref(false)
 const editedTitle = ref(props.theme.title)
 const editedColor = ref(props.theme.color)
 const isThemeOpen = ref(false)
-
 const colorPopoverRef = ref()
 const membersPopoverVisible = ref(false)
+const deleteDialogVisible = ref(false)
+const leaveDialogVisible = ref(false)
 
-// Utiliser le composable de permissions avec le thème
-const { isOwner, canUpdateTheme } = useThemePermissions(toRef(props, 'theme'))
+// Importer les composables nécessaires
+const {
+	currentTheme: selectedTheme,
+	loading,
+	updateTheme,
+	deleteTheme,
+	leaveTheme
+} = useThemes();
+
+const {isOwner, canUpdateTheme} = useThemePermissions(toRef(props, 'theme'))
+const toast = useToast()
 
 const openTheme = () => {
 	isThemeOpen.value = !isThemeOpen.value
+}
+
+// Gestion de la mise à jour
+const handleUpdate = async (themeId: string, data: { title?: string, color?: string }) => {
+	try {
+		await updateTheme(themeId, data)
+		toast.add({
+			severity: 'success',
+			summary: 'Succès',
+			detail: `Thème "${data.title || 'inconnu'}" mis à jour avec succès.`,
+			life: 3000
+		})
+	} catch (error: any) {
+		console.error(error)
+		toast.add({
+			severity: 'error',
+			summary: 'Erreur',
+			detail: error.message,
+			life: 3000
+		})
+	}
+}
+
+// Gestion de la suppression
+const confirmDelete = (theme: Theme) => {
+	selectedTheme.value = theme
+	deleteDialogVisible.value = true
+}
+
+const handleDeleteTheme = async () => {
+	if (selectedTheme.value) {
+		try {
+			await deleteTheme(selectedTheme.value.theme_id)
+			emits('destroy', selectedTheme.value)
+			toast.add({
+				severity: 'success',
+				summary: 'Succès',
+				detail: `Thème "${selectedTheme.value.title}" supprimé avec succès.`,
+				life: 3000
+			})
+		} catch (error: any) {
+			console.error(error)
+			toast.add({
+				severity: 'error',
+				summary: 'Erreur',
+				detail: error.message,
+				life: 3000
+			})
+		} finally {
+			deleteDialogVisible.value = false
+			selectedTheme.value = null
+		}
+	}
+}
+
+const confirmLeave = (theme: Theme) => {
+	selectedTheme.value = theme
+	leaveDialogVisible.value = true
+}
+
+const handleLeaveTheme = async () => {
+	if (selectedTheme.value) {
+		try {
+			await leaveTheme(selectedTheme.value.theme_id)
+			emits('destroy', selectedTheme.value)
+			toast.add({
+				severity: 'success',
+				summary: 'Succès',
+				detail: `Vous avez quitté le thème "${selectedTheme.value.title}".`,
+				life: 3000
+			})
+		} catch (error: any) {
+			console.error(error)
+			toast.add({
+				severity: 'error',
+				summary: 'Erreur',
+				detail: error.message,
+				life: 3000
+			})
+		} finally {
+			leaveDialogVisible.value = false
+			selectedTheme.value = null
+		}
+	}
 }
 
 // Démarrer l'édition
@@ -35,15 +128,11 @@ const startEdit = () => {
 	isEditing.value = true
 }
 
-const updateColor = () => {
-	// emit('update', props.theme.theme_id, { color: editedColor.value })
-}
-
 // Confirmer l'édition
 const confirmEdit = () => {
 	if (editedTitle.value.trim().length < 3) return
 
-	emit('update', props.theme.theme_id, {
+	handleUpdate(props.theme.theme_id, {
 		title: editedTitle.value,
 		color: editedColor.value
 	})
@@ -164,10 +253,20 @@ watch(
 						<span class="material-symbols-rounded">edit</span>
 					</button>
 
+					<!-- Bouton Quitter - affiché uniquement si l'utilisateur est invité -->
+					<button
+						v-if="!isOwner && !isEditing"
+						@click="confirmLeave(theme)"
+						class="cursor-pointer flex justify-center items-center p-2 rounded-full"
+						title="Quitter le thème"
+					>
+						<span class="material-symbols-rounded">chip_extraction</span>
+					</button>
+
 					<!-- Bouton Supprimer - affiché uniquement si l'utilisateur est propriétaire -->
 					<button
 						v-if="isOwner"
-						@click="$emit('delete', theme)"
+						@click="confirmDelete(theme)"
 						class="cursor-pointer flex justify-center items-center p-2 rounded-full"
 						title="Supprimer"
 					>
@@ -212,7 +311,6 @@ watch(
 									<ColorPicker
 										v-model="editedColor"
 										inline
-										@change="updateColor"
 									/>
 								</div>
 								<div class="flex items-center justify-center flex-row gap-3">
@@ -220,7 +318,6 @@ watch(
 									<InputText
 										v-model="editedColor"
 										class="flex-1 font-mono text-sm w-30"
-										@change="updateColor"
 									/>
 								</div>
 							</div>
@@ -250,20 +347,67 @@ watch(
 				type="color"
 				v-model="editedColor"
 				class="hidden"
-				@input="updateColor"
 			/>
 		</div>
 		<div
 			v-if="isThemeOpen"
 			class="bg-white/10 dark:bg-gray/10 backdrop-blur-xs min-h-42 w-full rounded-b-lg"
-
 		>
 			<TaskList
 				:theme="theme"
 				:isThemeOpen="isThemeOpen"
-				@update="emit('update', theme.theme_id, $event)"
-				@delete="emit('delete', theme)"
 			/>
 		</div>
 	</div>
+
+	<Dialog
+		v-model:visible="deleteDialogVisible"
+		header="Confirmer la suppression"
+		:style="{ width: '30rem' }"
+		:modal="true"
+	>
+		<div class="confirmation-content flex items-center gap-3 m-4">
+			<span class="material-symbols-rounded text-yellow-500 text-2xl">warning</span>
+			<span>Êtes-vous sûr de vouloir supprimer le thème <strong>{{ selectedTheme?.title }}</strong> ?</span>
+		</div>
+		<template #footer>
+			<Button
+				label="Non"
+				outlined
+				@click="deleteDialogVisible = false"
+			/>
+			<Button
+				label="Oui"
+				severity="danger"
+				@click="handleDeleteTheme"
+				:loading="loading"
+			/>
+		</template>
+	</Dialog>
+
+	<Dialog
+		v-model:visible="leaveDialogVisible"
+		header="Confirmer la sortie"
+		:style="{ width: '30rem' }"
+		:modal="true"
+	>
+		<div class="confirmation-content flex items-center gap-3 m-4">
+			<span class="material-symbols-rounded text-yellow-500 text-2xl">warning</span>
+			<span>Êtes-vous sûr de vouloir quitter le thème <strong>{{ theme.title }}</strong> ?</span>
+		</div>
+		<template #footer>
+			<Button
+				label="Non"
+				outlined
+				@click="leaveDialogVisible = false"
+			/>
+			<Button
+				label="Oui"
+				severity="danger"
+				@click="handleLeaveTheme(theme)"
+				:loading="loading"
+			/>
+		</template>
+	</Dialog>
+
 </template>

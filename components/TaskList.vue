@@ -9,11 +9,6 @@ const props = defineProps<{
 	isThemeOpen: boolean
 }>()
 
-const emit = defineEmits<{
-	(e: 'update', data: { title?: string, color?: string }): void
-	(e: 'delete', theme: Theme): void
-}>()
-
 const toast = useToast();
 
 // Utiliser le composable de permissions
@@ -345,8 +340,14 @@ const toggleDetailedStats = () => {
 				<!-- Statistiques de base et bouton pour afficher plus -->
 				<div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
 					<div class="flex items-center gap-2">
-						<span>{{ themeStats.total }} tâche{{ themeStats.total > 1 ? 's' : '' }}</span>
-						<span class="font-semibold">{{ themeStats.completion_rate }}% terminé</span>
+						<span>{{ themeStats.active }} tâche{{ themeStats.active > 1 ? 's' : '' }} active{{ themeStats.active > 1 ? 's' : '' }}</span>
+						<span>{{ themeStats.done }} terminée{{ themeStats.done > 1 ? 's' : '' }}</span>
+						<Tag
+							severity="secondary"
+							:style="{ backgroundColor: props.theme.color + '44', color: textColor }"
+						>
+							{{ themeStats.completion_rate }}% terminé
+						</Tag>
 					</div>
 					<Button
 						@click="toggleDetailedStats"
