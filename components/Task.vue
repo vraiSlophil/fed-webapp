@@ -362,32 +362,6 @@ const cancelDelete = () => {
 				</Button>
 			</div>
 		</div>
-		<!-- Confirmation de suppression -->
-<!--		<div v-if="showDeleteConfirm" class="mt-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">-->
-<!--			<div class="flex items-center justify-between">-->
-<!--				<span class="text-sm text-red-800 dark:text-red-200">-->
-<!--					Êtes-vous sûr de vouloir supprimer cette tâche ?-->
-<!--				</span>-->
-<!--				<div class="flex gap-2">-->
-<!--					<Button-->
-<!--						@click="handleConfirmDelete"-->
-<!--						size="small"-->
-<!--						severity="danger"-->
-<!--						:loading="loading"-->
-<!--					>-->
-<!--						Supprimer-->
-<!--					</Button>-->
-<!--					<Button-->
-<!--						@click="cancelDelete"-->
-<!--						size="small"-->
-<!--						outlined-->
-<!--						:disabled="loading"-->
-<!--					>-->
-<!--						Annuler-->
-<!--					</Button>-->
-<!--				</div>-->
-<!--			</div>-->
-<!--		</div>-->
 		<!-- Dialog de confirmation de suppression -->
 		<Dialog
 			v-model:visible="showDeleteConfirm"

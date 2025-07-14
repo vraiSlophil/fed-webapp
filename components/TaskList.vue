@@ -312,6 +312,7 @@ const toggleDetailedStats = () => {
 					@keyup.enter="handleCreateTask"
 					placeholder="Ajouter une nouvelle tâche..."
 					class="flex-1"
+					autofocus
 					:disabled="isCreatingTask"
 				/>
 				<Button

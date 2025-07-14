@@ -5,8 +5,12 @@ export default defineNuxtRouteMiddleware(async (to) => {
     // Routes publiques accessibles à tous
     const publicRoutes = ['/login', '/register', '/', '/forgot-password', '/reset-password']
 
-    if (publicRoutes.some(route => to.path.startsWith(route))) {
-        return // Permet l'accès aux routes publiques (y compris les sous-niveaux)
+    if (publicRoutes.some(route =>
+        route === '/'
+            ? to.path === '/'
+            : to.path === route || (route !== '/' && to.path.startsWith(route + '/'))
+    )) {
+        return // Permet l'accès aux routes publiques
     }
 
     // Vérifier l'authentification pour les routes protégées
@@ -20,8 +24,13 @@ export default defineNuxtRouteMiddleware(async (to) => {
         return navigateTo('/login')
     }
 
+    const adminRoutes = ['/admin', '/admin/']
+    const isAdminRoute = adminRoutes.some(route =>
+        to.path === route || to.path.startsWith(route + '/')
+    )
+
     // Vérifications supplémentaires basées sur le rôle de l'utilisateur
-    if (to.path.startsWith('/admin') && user.value?.role_power < 50) {
+    if (isAdminRoute && (!user.value?.role_power || user.value.role_power < 50)) {
         toast.add({
             severity: 'error',
             summary: 'Accès refusé',

@@ -201,10 +201,15 @@ watch(
 			}"
 		>
 			<div>
-				<button
+				<Button
 					@click="openTheme"
 					class="cursor-pointer flex justify-center items-center align p-2 rounded-full"
 					title="Ouvrir"
+					text
+					size="small"
+					:style="{
+						color: textColor,
+					}"
 				>
 					<span
 						v-if="isThemeOpen"
@@ -216,7 +221,7 @@ watch(
 						class="material-symbols-rounded">
 						keyboard_arrow_down
 					</span>
-				</button>
+				</Button>
 
 			</div>
 			<!-- Mode normal -->
@@ -228,7 +233,7 @@ watch(
 			<div v-else class="flex items-center gap-3 flex-grow">
 				<input
 					v-model="editedTitle"
-					class="font-medium flex-grow px-3 py-1 mr-8 rounded-md focus:outline-none"
+					class="font-medium flex-grow px-3 py-1 mr-3 rounded-md focus:outline-none"
 					:style="{
 						color: textColor,
 						backgroundColor: textColor + '1A'
@@ -244,44 +249,64 @@ watch(
 				<!-- Boutons en mode normal -->
 				<template v-if="!isEditing">
 					<!-- Bouton Modifier - affiché uniquement si l'utilisateur a le droit de modifier -->
-					<button
+					<Button
 						v-if="canUpdateTheme"
 						@click="startEdit"
 						class="cursor-pointer flex justify-center items-center align p-2 rounded-full"
 						title="Modifier"
+						text
+						size="small"
+						:style="{
+							color: textColor,
+						}"
 					>
 						<span class="material-symbols-rounded">edit</span>
-					</button>
+					</Button>
 
 					<!-- Bouton Quitter - affiché uniquement si l'utilisateur est invité -->
-					<button
+					<Button
 						v-if="!isOwner && !isEditing"
 						@click="confirmLeave(theme)"
 						class="cursor-pointer flex justify-center items-center p-2 rounded-full"
 						title="Quitter le thème"
+						text
+						size="small"
+						:style="{
+							color: textColor,
+						}"
 					>
 						<span class="material-symbols-rounded">chip_extraction</span>
-					</button>
+					</Button>
 
 					<!-- Bouton Supprimer - affiché uniquement si l'utilisateur est propriétaire -->
-					<button
+					<Button
 						v-if="isOwner"
 						@click="confirmDelete(theme)"
 						class="cursor-pointer flex justify-center items-center p-2 rounded-full"
 						title="Supprimer"
+						text
+						size="small"
+						:style="{
+							color: textColor,
+						}"
 					>
 						<span class="material-symbols-rounded">delete</span>
-					</button>
+					</Button>
 
 					<!-- Bouton Partager - affiché uniquement si l'utilisateur est propriétaire -->
-					<button
+					<Button
 						v-if="isOwner"
 						@click="membersPopoverVisible = true"
 						class="cursor-pointer flex justify-center items-center p-2 rounded-full"
 						title="Partager"
+						text
+						size="small"
+						:style="{
+							color: textColor,
+						}"
 					>
 						<span class="material-symbols-rounded">person_add</span>
-					</button>
+					</Button>
 
 					<LazyThemeMembersMenu
 						v-if="isOwner"
@@ -295,13 +320,18 @@ watch(
 				<template v-else>
 					<!-- Bouton pour le sélecteur de couleur avec Popover -->
 					<div>
-						<button
+						<Button
 							@click="colorPopoverRef.show($event)"
 							class="cursor-pointer flex justify-center items-center p-2 rounded-full"
 							title="Changer la couleur"
+							text
+							size="small"
+							:style="{
+								color: textColor,
+							}"
 						>
 							<span class="material-symbols-rounded">palette</span>
-						</button>
+						</Button>
 						<Popover
 							ref="colorPopoverRef"
 							target="prev"
@@ -324,20 +354,30 @@ watch(
 						</Popover>
 					</div>
 
-					<button
+					<Button
 						@click="confirmEdit"
 						class="cursor-pointer flex justify-center items-center p-2 rounded-full"
 						title="Confirmer"
+						text
+						size="small"
+						:style="{
+							color: textColor,
+						}"
 					>
 						<span class="material-symbols-rounded">check</span>
-					</button>
-					<button
+					</Button>
+					<Button
 						@click="cancelEdit"
 						class="cursor-pointer flex justify-center items-center p-2 rounded-full"
 						title="Annuler"
+						text
+						size="small"
+						:style="{
+							color: textColor,
+						}"
 					>
 						<span class="material-symbols-rounded">close</span>
-					</button>
+					</Button>
 				</template>
 			</div>
 

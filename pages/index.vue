@@ -19,7 +19,9 @@ const handleLogout = async () => {
 
 </script>
 <template>
-	<div>
+	<div
+		class="min-h-screen flex flex-col"
+	>
 		<h1
 			class="text-3xl font-bold underline text-center mt-10 mb-5"
 		>
@@ -35,12 +37,14 @@ const handleLogout = async () => {
 			class="flex justify-center mt-10 space-x-4"
 		>
 			<NuxtLink
+				v-if="!isAuthenticated"
 				class="text-blue-500 hover:underline"
 				to="/login"
 			>
 				login
 			</NuxtLink>
 			<NuxtLink
+				v-if="!isAuthenticated"
 				class="text-blue-500 hover:underline"
 				to="/register"
 			>
@@ -62,15 +66,48 @@ const handleLogout = async () => {
 				déconnexion
 			</a>
 		</div>
-		<div>
-			<h1>Tests</h1>
-			<NuxtLink
-				class="text-blue-500 hover:underline"
-				to="tests/themes"
+		<div
+			class="flex justify-center items-center flex-1 flex-col"
+		>
+			<h1
+				class="text-2xl font-bold mb-10"
 			>
-				Themes
-			</NuxtLink>
-
+				Tests
+			</h1>
+			<div
+				class="space-y-8 w-full max-w-3xl"
+			>
+				<div
+					class="bg-black/10 dark:bg-white/10 p-6 rounded-xl shadow-lg"
+				>
+					<h2
+						class="text-xl font-bold mb-4"
+					>
+						Tests sur le composant <code>Theme</code>
+					</h2>
+					<NuxtLink
+						class="text-blue-500 hover:underline"
+						to="/tests/themes"
+					>
+						Themes
+					</NuxtLink>
+				</div>
+				<div
+					class="bg-black/10 dark:bg-white/10 p-6 rounded-xl shadow-lg"
+				>
+					<h2
+						class="text-xl font-bold mb-4"
+					>
+						Tests sur la page admin
+					</h2>
+					<NuxtLink
+						class="text-blue-500 hover:underline"
+						to="/admin"
+					>
+						Admin
+					</NuxtLink>
+				</div>
+			</div>
 		</div>
 	</div>
 </template>
