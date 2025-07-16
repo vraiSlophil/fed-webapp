@@ -1,5 +1,7 @@
 <script setup lang="ts">
 
+import Playground from "~/pages/playground.vue";
+
 const {isAuthenticated, logout} = useAuth();
 const toast = useToast();
 
@@ -77,6 +79,21 @@ const handleLogout = async () => {
 			<div
 				class="space-y-8 w-full max-w-3xl"
 			>
+				<div
+					class="bg-black/10 dark:bg-white/10 p-6 rounded-xl shadow-lg"
+				>
+					<h2
+						class="text-xl font-bold mb-4"
+					>
+						Page Playground
+					</h2>
+					<NuxtLink
+						class="text-blue-500 hover:underline"
+						to="/playground"
+					>
+						Playground
+					</NuxtLink>
+				</div>
 				<div
 					class="bg-black/10 dark:bg-white/10 p-6 rounded-xl shadow-lg"
 				>

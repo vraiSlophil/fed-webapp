@@ -14,6 +14,12 @@ export type Theme = {
         invited_at?: string | null
         status: 'active' | 'invited' | 'revoked'
     } & ThemeMemberPermissions
+    position?: {
+        x: number
+        y: number
+        width: number
+        zIndex: number
+    }
 }
 
 export type ThemeStats = {
