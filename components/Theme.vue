@@ -301,7 +301,7 @@ watch(
 
 			</div>
 			<!-- Mode normal -->
-			<div v-if="!isEditing" class="flex items-center gap-3 flex-grow ml-3">
+			<div v-if="!isEditing" class="flex items-center gap-3 flex-grow mx-6">
 				<span class="font-medium">{{ theme.title }}</span>
 			</div>
 
@@ -309,7 +309,7 @@ watch(
 			<div v-else class="flex items-center gap-3 flex-grow">
 				<input
 					v-model="editedTitle"
-					class="font-medium flex-grow px-3 py-1 mr-3 rounded-md focus:outline-none"
+					class="font-medium flex-grow px-3 py-1 mx-3 rounded-md focus:outline-none"
 					:style="{
 						color: textColor,
 						backgroundColor: textColor + '1A'

@@ -15,6 +15,10 @@ const props = defineProps({
 	height: {
 		type: Number
 	},
+	zIndex: {
+		type: [Number, String],
+		default: 1
+	},
 	parent: {
 		type: Boolean,
 		default: true
@@ -88,7 +92,7 @@ const draggableStyles = computed(() => {
 		position: 'absolute',
 		userSelect: 'none',
 		cursor: isDragging.value ? 'grabbing' : 'grab',
-		zIndex: isDragging.value || isResizing.value ? '10' : '1',
+		zIndex: isDragging.value || isResizing.value ? '1000' : (props.zIndex || '1'),
 	}
 })
 
@@ -113,26 +117,26 @@ const shouldIgnoreDrag = (e: MouseEvent): boolean => {
 
 // Gérer le début du drag
 const handleDragStart = (e: MouseEvent) => {
-  if (!props.draggable) return
+	if (!props.draggable) return
 
-  if (shouldIgnoreDrag(e)) return
+	if (shouldIgnoreDrag(e)) return
 
-  isDragging.value = true
-  dragOffset.value = {
-    x: e.clientX - position.value.x,
-    y: e.clientY - position.value.y
-  }
+	isDragging.value = true
+	dragOffset.value = {
+		x: e.clientX - position.value.x,
+		y: e.clientY - position.value.y
+	}
 
-  document.addEventListener('mousemove', handleDrag)
-  document.addEventListener('mouseup', handleDragEnd)
+	document.addEventListener('mousemove', handleDrag)
+	document.addEventListener('mouseup', handleDragEnd)
 
-  emit('dragstart', {
-    x: position.value.x,
-    y: position.value.y,
-    width: dimensions.value.width,
-    height: dimensions.value.height,
-    event: e
-  })
+	emit('dragstart', {
+		x: position.value.x,
+		y: position.value.y,
+		width: dimensions.value.width,
+		height: dimensions.value.height,
+		event: e
+	})
 }
 
 // Gérer le drag
@@ -198,8 +202,8 @@ const handleResizeStart = (e: MouseEvent) => {
 	isResizing.value = true
 	resizeStartPos.value = {x: e.clientX, y: e.clientY}
 	initialDimensions.value = {
-	  width: dimensions.value.width ?? 0,
-	  height: dimensions.value.height ?? 0
+		width: dimensions.value.width ?? 0,
+		height: dimensions.value.height ?? 0
 	}
 
 	document.addEventListener('mousemove', handleResize)
@@ -297,7 +301,12 @@ const handleDrop = (e: DragEvent) => {
 	<div
 		ref="draggableElement"
 		:style="draggableStyles"
-		@mousedown.prevent="handleDragStart"
+		@mousedown="(e) => {
+			if (!shouldIgnoreDrag(e)) {
+				e.preventDefault();
+				handleDragStart(e);
+			}
+		}"
 		@dragover="handleDragOver"
 		@dragenter="handleDragEnter"
 		@dragleave="handleDragLeave"
@@ -307,11 +316,15 @@ const handleDrop = (e: DragEvent) => {
 		<slot></slot>
 		<div
 			v-if="resizableX || resizableY"
-			class="absolute -bottom-1 -right-1 w-3 h-3 rounded-sm cursor-se-resize group-hover:bg-amber-500/20 transition-colors"
+			class="absolute -bottom-1 -right-1 w-3 h-3 cursor-se-resize opacity-0 group-hover:opacity-100 transition-all duration-200"
+			:class="{'opacity-100': isResizing, 'opacity-0': !isResizing}"
 			ref="resizeHandle"
-			:class="{'bg-amber-500': isResizing, 'bg-transparent': !isResizing}"
 			@mousedown.prevent.stop="handleResizeStart"
-			></div>
+		>
+			<span class="material-symbols-rounded h-min w-min rotate-45 origin-center text-black dark:text-white">
+				chevron_right
+			</span>
+		</div>
 	</div>
 </template>
 
@@ -319,6 +332,11 @@ const handleDrop = (e: DragEvent) => {
 .draggable-component {
 	touch-action: none;
 	box-sizing: border-box;
+}
+
+.draggable-component.group {
+	min-width: min-content;
+	min-height: min-content;
 }
 
 .draggable-component:hover {

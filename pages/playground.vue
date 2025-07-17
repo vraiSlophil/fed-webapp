@@ -2,7 +2,6 @@
 import {useVuelidate} from '@vuelidate/core'
 import {helpers, minLength, required} from '@vuelidate/validators'
 import {useThemes} from '~/composables/useThemes'
-import {absolutePosition} from "@primeuix/utils";
 
 // État
 const formData = reactive({
@@ -25,6 +24,7 @@ const rules = computed(() => ({
 }))
 
 const v$ = useVuelidate(rules, formData)
+const highestZIndex = ref(1)
 
 const toast = useToast();
 // Initialisation du composable de thèmes
@@ -82,11 +82,17 @@ const submitForm = async () => {
 }
 // Fonction pour gérer les changements de position des thèmes
 const handlePositionChange = (themeId: string, position: { x: number, y: number, width: number, zIndex: number }) => {
-	// Mettre à jour la position dans l'état local
-	const themeIndex = themes.value.findIndex(t => t.theme_id === themeId)
-	if (themeIndex !== -1) {
-		themes.value[themeIndex].position = position
-	}
+  // Incrémenter le z-index le plus élevé
+  highestZIndex.value += 1
+
+  // Mettre à jour la position avec le nouveau z-index
+  const themeIndex = themes.value.findIndex(t => t.theme_id === themeId)
+  if (themeIndex !== -1) {
+    themes.value[themeIndex].position = {
+      ...position,
+      zIndex: highestZIndex.value
+    }
+  }
 }
 
 </script>
@@ -101,7 +107,7 @@ const handlePositionChange = (themeId: string, position: { x: number, y: number,
 		</div>
 		<div
 			class="flex items-center justify-center flex-col w-128 bg-white/10 dark:bg-black/10 rounded-2xl">
-			<div class="p-8 rounded shadow-md w-full max-w-lg space-y-8">
+			<div class="p-8 w-full max-w-lg space-y-8">
 				<h1 class="text-2xl font-bold text-center mb-4">Gestion des thèmes</h1>
 				<!-- Formulaire de création -->
 				<form @submit.prevent="submitForm" class="space-y-4">
@@ -161,18 +167,38 @@ const handlePositionChange = (themeId: string, position: { x: number, y: number,
 				</div>
 			</div>
 		</div>
-		<div>
-			<div v-if="loading && !themes.length" class="p-4 text-center">
-				<i class="pi pi-spin pi-spinner text-2xl"></i>
+		<div
+			class="
+				flex items-center justify-center
+				h-[90vh] w-[90vw] mx-[5vw] my-[5vh]
+				bg-white
+				bg-[linear-gradient(rgba(128,128,128,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(128,128,128,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(128,128,128,0.1)_1px,transparent_1px),linear-gradient(rgba(128,128,128,0.1)_1px,transparent_1px)]
+				bg-[size:20px_20px,100px_100px]
+			  	dark:bg-black
+				dark:bg-[linear-gradient(rgba(128,128,128,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(128,128,128,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(128,128,128,0.2)_1px,transparent_1px),linear-gradient(rgba(128,128,128,0.2)_1px,transparent_1px)]
+				dark:bg-[size:20px_20px,100px_100px]
+			"
+		>
+			<div v-if="loading && !themes.length" class="text-center">
+				<span
+					v-if="loading"
+					class="material-symbols-rounded animate-spin">
+							progress_activity
+						</span>
+				<span
+					v-else
+					class="material-symbols-rounded">
+							refresh
+						</span>
 				<p class="mt-2">Chargement des thèmes...</p>
 			</div>
-			<div v-else-if="!themes.length" class="p-4 text-center">
-				<i class="pi pi-info-circle text-2xl text-primary"></i>
+			<div v-else-if="!themes.length" class="text-center">
+				<i class="material-symbols-rounded text-2xl text-primary">info</i>
 				<p class="mt-2">Aucun thème trouvé. Créez votre premier thème !</p>
 			</div>
 			<div
 				v-else
-				class="h-[90vh] w-[90vw] mx-[5vw] my-[5vh] relative overflow-hidden"
+				class="w-full h-full relative overflow-hidden"
 			>
 				<Draggable
 					v-for="theme in themes"
@@ -180,6 +206,7 @@ const handlePositionChange = (themeId: string, position: { x: number, y: number,
 					:x="theme.position?.x || 0"
 					:y="theme.position?.y || 0"
 					:width="theme.position?.width || 450"
+					:z-index="theme.position?.zIndex || 1"
 					:parent="true"
 					:draggable="true"
 					:resizable-x="true"
@@ -190,8 +217,7 @@ const handlePositionChange = (themeId: string, position: { x: number, y: number,
 						y: $event.y,
 						width: $event.width,
 						zIndex: theme.position?.zIndex || 1
-					});
-					console.log(toRaw(theme.position));"
+					});"
 				>
 					<Theme
 						:theme="theme"

@@ -235,15 +235,32 @@ const toggleDetailedStats = () => {
 			class="flex items-center justify-center flex-col p-4 gap-3"
 		>
 			<div
-				class="flex items-center justify-between w-full gap-2"
+				class="flex items-center justify-start w-full gap-2 flex-wrap"
 			>
+				<!-- Barre de recherche -->
+				<IconField class="flex-1 relative max-w-lg min-w-sm">
+					<span class="material-symbols-rounded text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2">
+					  search
+					</span>
+					<InputText
+						v-model="searchQuery"
+						@input="handleSearch"
+						placeholder="Rechercher une tâche..."
+						class="w-full h-12 pl-10 pr-4 py-2 text-sm"
+					/>
+				</IconField>
+<!--			</div>-->
+
+<!--			<div-->
+<!--				class="flex items-center justify-start w-full gap-2"-->
+<!--			>-->
 				<!-- Bouton de filtre par statut -->
 				<div class="relative">
 					<Select
 						v-model="currentStatusFilter"
 						:options="statusOptions"
 						optionLabel="label"
-						class="w-36"
+						class="w-36 h-12"
 					>
 						<template #option="slotProps">
 							<div class="flex items-center gap-2">
@@ -263,32 +280,15 @@ const toggleDetailedStats = () => {
 						</template>
 					</Select>
 				</div>
-				<!-- Barre de recherche -->
-				<IconField class="flex-1 relative flex items-center justify-start">
-            <span class="material-symbols-rounded text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2">
-              search
-            </span>
-					<InputText
-						v-model="searchQuery"
-						@input="handleSearch"
-						placeholder="Rechercher une tâche..."
-						class="w-full pl-10 pr-4 py-2 text-sm"
-					/>
-				</IconField>
-			</div>
-
-			<div
-				class="flex items-center justify-start w-full gap-2"
-			>
 				<!-- Bouton de tri (version toggle) -->
 				<Button
 					@click="toggleSortOrder"
 					:severity="currentSort === 'desc' ? 'secondary' : 'info'"
 					outlined
-					class="flex items-center gap-2"
+					class="flex items-center h-12 w-12"
 				>
 					<span class="material-symbols-rounded text-sm">{{ getCurrentSortOption().icon }}</span>
-					<span class="hidden sm:inline text-nowrap">{{ getCurrentSortOption().label }}</span>
+<!--					<span class="hidden sm:inline text-nowrap">{{ getCurrentSortOption().label }}</span>-->
 				</Button>
 
 				<!-- Bouton de filtre d'archivage (version toggle) -->
@@ -296,10 +296,10 @@ const toggleDetailedStats = () => {
 					@click="toggleArchivedFilter"
 					:severity="currentArchivedFilter ? 'default' : 'secondary'"
 					outlined
-					class="flex items-center gap-2"
+					class="flex items-center h-12 w-12"
 				>
 					<span class="material-symbols-rounded text-sm">{{ getCurrentArchiveOption().icon }}</span>
-					<span class="hidden sm:inline text-nowrap">{{ getCurrentArchiveOption().label }}</span>
+<!--					<span class="hidden sm:inline text-nowrap">{{ getCurrentArchiveOption().label }}</span>-->
 				</Button>
 			</div>
 		</div>
@@ -311,7 +311,7 @@ const toggleDetailedStats = () => {
 					v-model="newTaskTitle"
 					@keyup.enter="handleCreateTask"
 					placeholder="Ajouter une nouvelle tâche..."
-					class="flex-1"
+					class="flex-1 h-12 min-w-sm max-w-lg"
 					autofocus
 					:disabled="isCreatingTask"
 				/>
@@ -320,7 +320,7 @@ const toggleDetailedStats = () => {
 					:loading="isCreatingTask"
 					:disabled="!newTaskTitle.trim()"
 					size="small"
-					class="px-4"
+					class="px-4 h-12 w-12"
 				>
 					<span class="material-symbols-rounded">add</span>
 				</Button>
