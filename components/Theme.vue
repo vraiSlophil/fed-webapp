@@ -8,15 +8,8 @@ const props = defineProps<{
 
 const emits = defineEmits<{
 	(e: 'destroy', theme: Theme): void
-	(e: 'update:postion', themeId: string, position: { x: number, y: number, width: number, zIndex: number }): void
+	(e: 'update:theme', themeId: string, data: { title?: string, color?: string }): void
 }>()
-
-const DEFAULT_POSITION = {
-	x: 100,
-	y: 100,
-	width: 450,
-	zIndex: 1
-}
 
 const isEditing = ref(false)
 const editedTitle = ref(props.theme.title)
@@ -26,7 +19,6 @@ const colorPopoverRef = ref()
 const membersPopoverVisible = ref(false)
 const deleteDialogVisible = ref(false)
 const leaveDialogVisible = ref(false)
-const themePosition = ref(props.theme.position || DEFAULT_POSITION)
 
 // Importer les composables nécessaires
 const {
@@ -40,73 +32,6 @@ const {
 const {isOwner, canUpdateTheme} = useThemePermissions(toRef(props, 'theme'))
 const toast = useToast()
 
-
-// Fonction pour sauvegarder la position dans le stockage local
-const savePositionToLocalStorage = (themeId: string, position: { x: number, y: number, width: number, zIndex: number }) => {
-	try {
-		// Récupérer les positions existantes ou initialiser un nouvel objet
-		const storedPositions = localStorage.getItem('theme_positions')
-		const positions = storedPositions ? JSON.parse(storedPositions) : {}
-
-		// Mettre à jour la position pour ce thème
-		positions[themeId] = position
-
-		// Sauvegarder dans le localStorage
-		localStorage.setItem('theme_positions', JSON.stringify(positions))
-	} catch (error) {
-		console.error('Erreur lors de la sauvegarde de la position:', error)
-	}
-}
-
-// Fonction pour charger la position depuis le stockage local
-const loadPositionFromLocalStorage = (themeId: string): { x: number, y: number, width: number, zIndex: number } | null => {
-	try {
-		const storedPositions = localStorage.getItem('theme_positions')
-		if (!storedPositions) return null
-
-		const positions = JSON.parse(storedPositions)
-		return positions[themeId] || null
-	} catch (error) {
-		console.error('Erreur lors du chargement de la position:', error)
-		return null
-	}
-}
-
-// Initialiser la position du thème au chargement
-onMounted(() => {
-	// Charger depuis le localStorage
-	const savedPosition = loadPositionFromLocalStorage(props.theme.theme_id)
-	if (savedPosition) {
-		themePosition.value = savedPosition
-	}
-
-	// Si aucune position n'est trouvée (ni dans le thème ni dans le localStorage)
-	// utiliser les valeurs par défaut
-	if (!themePosition.value) {
-		themePosition.value = DEFAULT_POSITION
-	}
-})
-
-// Gérer les changements de position
-const handlePositionChange = (newPosition: { x: number, y: number, width: number, zIndex: number }) => {
-	themePosition.value = newPosition
-	savePositionToLocalStorage(props.theme.theme_id, newPosition)
-	emits('update:postion', props.theme.theme_id, newPosition)
-
-	// Mettre à jour la position dans le thème via l'API si nécessaire
-	updateThemePosition(props.theme.theme_id, newPosition)
-}
-
-// Fonction pour mettre à jour la position via l'API
-const updateThemePosition = async (themeId: string, position: { x: number, y: number, width: number, zIndex: number }) => {
-	try {
-		await updateTheme(themeId, { position } as any)
-	} catch (error: any) {
-		console.error('Erreur lors de la mise à jour de la position:', error)
-	}
-}
-
-
 const openTheme = () => {
 	isThemeOpen.value = !isThemeOpen.value
 }
@@ -115,6 +40,7 @@ const openTheme = () => {
 const handleUpdate = async (themeId: string, data: { title?: string, color?: string }) => {
 	try {
 		await updateTheme(themeId, data)
+		emits('update:theme', themeId, data)
 		toast.add({
 			severity: 'success',
 			summary: 'Succès',

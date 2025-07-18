@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type {Theme, ThemeStats} from '~/types/themes'
+import type {Theme} from '~/types/themes'
 import type {Task} from '~/types/task'
 import {useTasks} from '~/composables/useTasks'
-import { useThemeStats } from '~/composables/useThemeStats'
+import {useThemeStats} from '~/composables/useThemeStats'
 
 const props = defineProps<{
 	theme: Theme
@@ -75,7 +75,7 @@ const loadTasksAndStats = async () => {
 
 // Charger les statistiques du thème
 const loadThemeStats = async () => {
-  await fetchThemeStats(props.theme.theme_id)
+	await fetchThemeStats(props.theme.theme_id)
 }
 
 // Charger les tâches pour ce thème
@@ -239,28 +239,23 @@ const toggleDetailedStats = () => {
 			>
 				<!-- Barre de recherche -->
 				<IconField class="flex-1 relative max-w-lg min-w-sm">
-					<span class="material-symbols-rounded text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2">
+					<span
+						class="material-symbols-rounded text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2">
 					  search
 					</span>
 					<InputText
 						v-model="searchQuery"
 						@input="handleSearch"
 						placeholder="Rechercher une tâche..."
-						class="w-full h-12 pl-10 pr-4 py-2 text-sm"
+						class="w-full h-12 pl-10 pr-4 py-2 text-sm flex items-center justify-between"
 					/>
 				</IconField>
-<!--			</div>-->
-
-<!--			<div-->
-<!--				class="flex items-center justify-start w-full gap-2"-->
-<!--			>-->
-				<!-- Bouton de filtre par statut -->
 				<div class="relative">
 					<Select
 						v-model="currentStatusFilter"
 						:options="statusOptions"
 						optionLabel="label"
-						class="w-36 h-12"
+						class="w-36 h-12 flex items-center justify-between"
 					>
 						<template #option="slotProps">
 							<div class="flex items-center gap-2">
@@ -271,7 +266,7 @@ const toggleDetailedStats = () => {
 						<template #value="slotProps">
 							<div class="flex items-center gap-2">
 								<span class="material-symbols-rounded text-sm">
-								  {{ (currentStatusFilter as any)?.icon || statusOptions[0].icon}}
+								  {{ (currentStatusFilter as any)?.icon || statusOptions[0].icon }}
 								</span>
 								<span>
 									{{ (currentStatusFilter as any)?.label || statusOptions[0].label }}
@@ -288,7 +283,7 @@ const toggleDetailedStats = () => {
 					class="flex items-center h-12 w-12"
 				>
 					<span class="material-symbols-rounded text-sm">{{ getCurrentSortOption().icon }}</span>
-<!--					<span class="hidden sm:inline text-nowrap">{{ getCurrentSortOption().label }}</span>-->
+					<!--					<span class="hidden sm:inline text-nowrap">{{ getCurrentSortOption().label }}</span>-->
 				</Button>
 
 				<!-- Bouton de filtre d'archivage (version toggle) -->
@@ -299,7 +294,7 @@ const toggleDetailedStats = () => {
 					class="flex items-center h-12 w-12"
 				>
 					<span class="material-symbols-rounded text-sm">{{ getCurrentArchiveOption().icon }}</span>
-<!--					<span class="hidden sm:inline text-nowrap">{{ getCurrentArchiveOption().label }}</span>-->
+					<!--					<span class="hidden sm:inline text-nowrap">{{ getCurrentArchiveOption().label }}</span>-->
 				</Button>
 			</div>
 		</div>
@@ -327,162 +322,170 @@ const toggleDetailedStats = () => {
 			</div>
 		</div>
 
-		<!-- Statistiques -->
 		<div
-			v-if="(themeStats) && !currentArchivedFilter"
-			class="p-4 border-b dark:border-gray-700 transition-all"
-			:style="{
+			class="overflow-y-auto max-h-[50vh]"
+		>
+			<!-- Statistiques -->
+			<div
+				v-if="(themeStats) && !currentArchivedFilter"
+				class="p-4 border-b dark:border-gray-700 transition-all"
+				:style="{
 				filter: statsLoading ? 'blur(4px) brightness(0.5)' : 'none',
 
 			}"
-		>
-			<!-- Affichage des statistiques de base -->
-			<div class="space-y-3">
-				<!-- Statistiques de base et bouton pour afficher plus -->
-				<div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
-					<div class="flex items-center gap-2">
-						<span>{{ themeStats.active }} tâche{{ themeStats.active > 1 ? 's' : '' }} active{{ themeStats.active > 1 ? 's' : '' }}</span>
-						<span>{{ themeStats.done }} terminée{{ themeStats.done > 1 ? 's' : '' }}</span>
-						<Tag
-							severity="secondary"
-							:style="{ backgroundColor: props.theme.color + '44', color: textColor }"
+			>
+				<!-- Affichage des statistiques de base -->
+				<div class="space-y-3">
+					<!-- Statistiques de base et bouton pour afficher plus -->
+					<div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+						<div class="flex items-center gap-2">
+						<span>{{ themeStats.active }} tâche{{
+								themeStats.active > 1 ? 's' : ''
+							}} active{{ themeStats.active > 1 ? 's' : '' }}</span>
+							<span>{{ themeStats.done }} terminée{{ themeStats.done > 1 ? 's' : '' }}</span>
+							<Tag
+								severity="secondary"
+								:style="{ backgroundColor: props.theme.color + '44', color: textColor }"
+							>
+								{{ themeStats.completion_rate }}% terminé
+							</Tag>
+						</div>
+						<Button
+							@click="toggleDetailedStats"
+							:severity="'secondary'"
+							text
+							:aria-label="showDetailedStats ? 'Masquer les détails' : 'Afficher les détails'"
 						>
-							{{ themeStats.completion_rate }}% terminé
-						</Tag>
-					</div>
-					<Button
-						@click="toggleDetailedStats"
-						:severity="'secondary'"
-						text
-						:aria-label="showDetailedStats ? 'Masquer les détails' : 'Afficher les détails'"
-					>
 						<span class="material-symbols-rounded text-sm">
 							{{ showDetailedStats ? 'expand_less' : 'expand_more' }}
 						</span>
-					</Button>
-				</div>
+						</Button>
+					</div>
 
-				<!-- Barre de progression -->
-				<div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-					<div
-						class="h-2 rounded-full transition-all duration-300"
-						:style="{
+					<!-- Barre de progression -->
+					<div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+						<div
+							class="h-2 rounded-full transition-all duration-300"
+							:style="{
 							width: themeStats.completion_rate + '%',
 							backgroundColor: props.theme.color
 						}"
-					></div>
-				</div>
+						></div>
+					</div>
 
-				<!-- Statistiques détaillées (conditionnelles) -->
-				<div v-if="showDetailedStats" class="pt-3 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-					<!-- Statistiques par statut -->
-					<div class="bg-white/10 dark:bg-gray/10 rounded-lg p-3 space-y-2">
-						<h4 class="font-semibold text-gray-700 dark:text-gray-300">Par statut</h4>
-						<div class="flex items-center justify-between">
+					<!-- Statistiques détaillées (conditionnelles) -->
+					<div v-if="showDetailedStats" class="pt-3 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+						<!-- Statistiques par statut -->
+						<div class="bg-white/10 dark:bg-gray/10 rounded-lg p-3 space-y-2">
+							<h4 class="font-semibold text-gray-700 dark:text-gray-300">Par statut</h4>
+							<div class="flex items-center justify-between">
 							<span class="flex items-center gap-1">
-								<span class="material-symbols-rounded text-blue-500 text-sm">radio_button_unchecked</span>
+								<span
+									class="material-symbols-rounded text-blue-500 text-sm">radio_button_unchecked</span>
 								À faire
 							</span>
-							<span class="font-medium">{{ themeStats.todo }}</span>
-						</div>
-						<div class="flex items-center justify-between">
+								<span class="font-medium">{{ themeStats.todo }}</span>
+							</div>
+							<div class="flex items-center justify-between">
 							<span class="flex items-center gap-1">
 								<span class="material-symbols-rounded text-yellow-500 text-sm">schedule</span>
 								En cours
 							</span>
-							<span class="font-medium">{{ themeStats.doing }}</span>
-						</div>
-						<div class="flex items-center justify-between">
+								<span class="font-medium">{{ themeStats.doing }}</span>
+							</div>
+							<div class="flex items-center justify-between">
 							<span class="flex items-center gap-1">
 								<span class="material-symbols-rounded text-green-500 text-sm">check_circle</span>
 								Terminé
 							</span>
-							<span class="font-medium">{{ themeStats.done }}</span>
+								<span class="font-medium">{{ themeStats.done }}</span>
+							</div>
 						</div>
-					</div>
 
-					<!-- Statistiques d'archivage -->
-					<div class="bg-white/10 dark:bg-gray/10 rounded-lg p-3 space-y-2">
-						<h4 class="font-semibold text-gray-700 dark:text-gray-300">Archivage</h4>
-						<div class="flex items-center justify-between">
+						<!-- Statistiques d'archivage -->
+						<div class="bg-white/10 dark:bg-gray/10 rounded-lg p-3 space-y-2">
+							<h4 class="font-semibold text-gray-700 dark:text-gray-300">Archivage</h4>
+							<div class="flex items-center justify-between">
 							<span class="flex items-center gap-1">
 								<span class="material-symbols-rounded text-green-500 text-sm">visibility</span>
 								Actives
 							</span>
-							<span class="font-medium">{{ themeStats.active }}</span>
-						</div>
-						<div class="flex items-center justify-between">
+								<span class="font-medium">{{ themeStats.active }}</span>
+							</div>
+							<div class="flex items-center justify-between">
 							<span class="flex items-center gap-1">
 								<span class="material-symbols-rounded text-gray-500 text-sm">archive</span>
 								Archivées
 							</span>
-							<span class="font-medium">{{ themeStats.archived }}</span>
+								<span class="font-medium">{{ themeStats.archived }}</span>
+							</div>
 						</div>
-					</div>
 
-					<!-- Statistiques récentes -->
-					<div class="bg-white/10 dark:bg-gray/10 rounded-lg p-3 space-y-2 col-span-2 md:col-span-1">
-						<h4 class="font-semibold text-gray-700 dark:text-gray-300">Derniers 7 jours</h4>
-						<div class="flex items-center justify-between">
+						<!-- Statistiques récentes -->
+						<div class="bg-white/10 dark:bg-gray/10 rounded-lg p-3 space-y-2 col-span-2 md:col-span-1">
+							<h4 class="font-semibold text-gray-700 dark:text-gray-300">Derniers 7 jours</h4>
+							<div class="flex items-center justify-between">
 							<span class="flex items-center gap-1">
 								<span class="material-symbols-rounded text-blue-500 text-sm">add_circle</span>
 								Créées
 							</span>
-							<span class="font-medium">{{ themeStats.recently_created }}</span>
-						</div>
-						<div class="flex items-center justify-between">
+								<span class="font-medium">{{ themeStats.recently_created }}</span>
+							</div>
+							<div class="flex items-center justify-between">
 							<span class="flex items-center gap-1">
 								<span class="material-symbols-rounded text-green-500 text-sm">task_alt</span>
 								Terminées
 							</span>
-							<span class="font-medium">{{ themeStats.recently_completed }}</span>
+								<span class="font-medium">{{ themeStats.recently_completed }}</span>
+							</div>
 						</div>
 					</div>
 				</div>
 			</div>
-		</div>
 
-		<!-- Liste des tâches -->
-		<div class="flex-1 overflow-y-auto">
-			<div
-				v-if="loading"
-				class="flex items-center justify-center w-full h-42"
-			>
+			<!-- Liste des tâches -->
+			<div class="flex-1">
+				<div
+					v-if="loading"
+					class="flex items-center justify-center w-full h-42"
+				>
 				<span class="material-symbols-rounded text-gray-400 !text-4xl animate-spin">
 					progress_activity
 				</span>
-			</div>
-			<div v-else-if="tasks.length === 0" class="p-8 text-center text-gray-500 dark:text-gray-400">
+				</div>
+				<div v-else-if="tasks.length === 0" class="p-8 text-center text-gray-500 dark:text-gray-400">
 				<span class="material-symbols-rounded text-4xl mb-2 block">
 					{{ currentArchivedFilter ? 'archive' : 'assignment' }}
 				</span>
-				<p>{{ currentArchivedFilter ? 'Aucune tâche archivée' : 'Aucune tâche trouvée' }}</p>
-				<p v-if="!currentArchivedFilter" class="text-sm mt-1">Créez votre première tâche ci-dessus</p>
+					<p>{{ currentArchivedFilter ? 'Aucune tâche archivée' : 'Aucune tâche trouvée' }}</p>
+					<p v-if="!currentArchivedFilter" class="text-sm mt-1">Créez votre première tâche ci-dessus</p>
+				</div>
+
+				<div v-else class="divide-y-0">
+					<!-- Utilisation du composant Task -->
+					<Task
+						v-for="task in tasks"
+						:key="task.task_id"
+						:task="task"
+						:theme="theme"
+						@updated="handleTaskUpdated"
+						@deleted="handleTaskDeleted"
+						@archived="handleTaskArchived"
+						@restored="handleTaskRestored"
+					/>
+				</div>
 			</div>
 
-			<div v-else class="divide-y-0">
-				<!-- Utilisation du composant Task -->
-				<Task
-					v-for="task in tasks"
-					:key="task.task_id"
-					:task="task"
-					:theme="theme"
-					@updated="handleTaskUpdated"
-					@deleted="handleTaskDeleted"
-					@archived="handleTaskArchived"
-					@restored="handleTaskRestored"
+			<!-- Pagination -->
+			<div v-if="pagination.last_page > 1" class="p-4 border-t dark:border-gray-700">
+				<Paginator
+					:rows="pagination.per_page"
+					:totalRecords="pagination.total"
+					:first="(pagination.current_page - 1) * pagination.per_page"
+					@page="setPage($event.page + 1); loadTasks()"
 				/>
 			</div>
 		</div>
-
-		<!-- Pagination -->
-		<div v-if="pagination.last_page > 1" class="p-4 border-t dark:border-gray-700">
-			<Paginator
-				:rows="pagination.per_page"
-				:totalRecords="pagination.total"
-				:first="(pagination.current_page - 1) * pagination.per_page"
-				@page="setPage($event.page + 1); loadTasks()"
-			/>
-		</div>
 	</div>
+
 </template>

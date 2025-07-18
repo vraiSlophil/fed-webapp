@@ -24,7 +24,6 @@ const rules = computed(() => ({
 }))
 
 const v$ = useVuelidate(rules, formData)
-const highestZIndex = ref(1)
 
 const toast = useToast();
 // Initialisation du composable de thèmes
@@ -35,9 +34,19 @@ const {
 	createTheme
 } = useThemes()
 
+const {
+	applyPositionsToThemes,
+	handlePositionChange
+} = useMovableThemes()
+
+const fetchThemesWithSavedPositions = async () => {
+	await fetchThemes()
+	themes.value = applyPositionsToThemes(themes.value)
+}
+
 // Chargement initial
 onMounted(async () => {
-	await fetchThemes()
+	await fetchThemesWithSavedPositions()
 })
 
 watch(
@@ -62,6 +71,7 @@ const submitForm = async () => {
 
 	try {
 		await createTheme(formData)
+		await fetchThemesWithSavedPositions()
 		toast.add({
 			severity: 'success',
 			summary: 'Succès',
@@ -81,18 +91,8 @@ const submitForm = async () => {
 	}
 }
 // Fonction pour gérer les changements de position des thèmes
-const handlePositionChange = (themeId: string, position: { x: number, y: number, width: number, zIndex: number }) => {
-  // Incrémenter le z-index le plus élevé
-  highestZIndex.value += 1
-
-  // Mettre à jour la position avec le nouveau z-index
-  const themeIndex = themes.value.findIndex(t => t.theme_id === themeId)
-  if (themeIndex !== -1) {
-    themes.value[themeIndex].position = {
-      ...position,
-      zIndex: highestZIndex.value
-    }
-  }
+const handleThemePositionChange = (themeId: string, position: any) => {
+	handlePositionChange(themes, themeId, position)
 }
 
 </script>
@@ -148,7 +148,7 @@ const handlePositionChange = (themeId: string, position: { x: number, y: number,
 					<div class="flex justify-between items-center">
 						<h2 class="text-lg font-semibold">Mes thèmes</h2>
 						<Button
-							@click="fetchThemes"
+							@click="fetchThemesWithSavedPositions"
 							:loading="loading"
 						>
 						<span
@@ -199,32 +199,16 @@ const handlePositionChange = (themeId: string, position: { x: number, y: number,
 			<div
 				v-else
 				class="w-full h-full relative overflow-hidden"
+				@contextmenu.prevent="console.log('Context menu clicked')"
 			>
-				<Draggable
+
+				<MovableTheme
 					v-for="theme in themes"
 					:key="theme.theme_id"
-					:x="theme.position?.x || 0"
-					:y="theme.position?.y || 0"
-					:width="theme.position?.width || 450"
-					:z-index="theme.position?.zIndex || 1"
-					:parent="true"
-					:draggable="true"
-					:resizable-x="true"
-					:resizable-y="false"
-					:no-drag-elements="['button', 'a', 'input', '[data-no-drag]']"
-					@dragend="handlePositionChange(theme.theme_id, {
-						x: $event.x,
-						y: $event.y,
-						width: $event.width,
-						zIndex: theme.position?.zIndex || 1
-					});"
-				>
-					<Theme
-						:theme="theme"
-						@destroy="fetchThemes"
-						@update:position="handlePositionChange"
-					/>
-				</Draggable>
+					:theme="theme"
+
+					@position-change="handleThemePositionChange"
+				/>
 			</div>
 		</div>
 	</div>
