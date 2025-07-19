@@ -24,6 +24,7 @@ const rules = computed(() => ({
 }))
 
 const v$ = useVuelidate(rules, formData)
+const createThemeDialogVisible = ref(false)
 
 const toast = useToast();
 // Initialisation du composable de thèmes
@@ -44,6 +45,18 @@ const fetchThemesWithSavedPositions = async () => {
 	themes.value = applyPositionsToThemes(themes.value)
 }
 
+const contextMenuItems = ref(
+	[
+		{
+			label: 'Créer un thème',
+			icon: 'add',
+			command: () => {
+				showCreateThemeDialog(true)
+			}
+		}
+	]
+)
+
 // Chargement initial
 onMounted(async () => {
 	await fetchThemesWithSavedPositions()
@@ -57,6 +70,13 @@ watch(
 		}
 	}
 )
+
+const showCreateThemeDialog = (bool: boolean = true) => {
+	createThemeDialogVisible.value = bool
+	if (bool) {
+		resetForm()
+	}
+}
 
 // Méthodes du formulaire
 const resetForm = () => {
@@ -179,6 +199,20 @@ const handleThemePositionChange = (themeId: string, position: any) => {
 				dark:bg-[size:20px_20px,100px_100px]
 			"
 		>
+			<Menu
+				:visible="createThemeDialogVisible"
+				:model="contextMenuItems"
+			>
+				<template #item="{ item, props }">
+					<div
+						@click="item.command()"
+						class="flex items-center p-2 gap-4 cursor-pointer"
+					>
+						<span class="material-symbols-rounded">{{ item.icon }}</span>
+						{{ item.label }}
+					</div>
+				</template>
+			</Menu>
 			<div v-if="loading && !themes.length" class="text-center">
 				<span
 					v-if="loading"
@@ -206,7 +240,6 @@ const handleThemePositionChange = (themeId: string, position: any) => {
 					v-for="theme in themes"
 					:key="theme.theme_id"
 					:theme="theme"
-
 					@position-change="handleThemePositionChange"
 				/>
 			</div>
