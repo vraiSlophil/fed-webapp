@@ -26,6 +26,19 @@ const rules = computed(() => ({
 const v$ = useVuelidate(rules, formData)
 const createThemeDialogVisible = ref(false)
 
+const contextMenu = ref()
+const contextMenuPosition = ref({ x: 0, y: 0 })
+const onContextMenu = (event: any) => {
+	contextMenuPosition.value = {
+		x: event.clientX,
+		y: event.clientY
+	} as any
+	(contextMenu.value as any)?.show(event)
+}
+const closeContextMenu = (event: any) => {
+	(contextMenu.value as any)?.hide(event)
+}
+
 const toast = useToast();
 // Initialisation du composable de thèmes
 const {
@@ -91,6 +104,7 @@ const submitForm = async () => {
 
 	try {
 		await createTheme(formData)
+		showCreateThemeDialog(false)
 		await fetchThemesWithSavedPositions()
 		toast.add({
 			severity: 'success',
@@ -118,79 +132,34 @@ const handleThemePositionChange = (themeId: string, position: any) => {
 </script>
 
 <template>
-	<div>
-		<div class="flex items-center justify-center mb-4 w-full">
+	<div
+		@click="closeContextMenu"
+		class="overflow-hidden w-screen h-screen"
+	>
+		<div class="absolute top-4 left-0 z-50 flex items-center justify-center w-full">
 			<span class="material-symbols-rounded text-blue-500 mr-2">arrow_back</span>
 			<NuxtLink class="text-blue-500 hover:underline flex justify-center items-center" to="/">
 				Retour à l'accueil
 			</NuxtLink>
 		</div>
-		<div
-			class="flex items-center justify-center flex-col w-128 bg-white/10 dark:bg-black/10 rounded-2xl">
-			<div class="p-8 w-full max-w-lg space-y-8">
-				<h1 class="text-2xl font-bold text-center mb-4">Gestion des thèmes</h1>
-				<!-- Formulaire de création -->
-				<form @submit.prevent="submitForm" class="space-y-4">
-					<h2 class="text-lg font-semibold">Créer un nouveau thème</h2>
-					<div>
-						<label class="block mb-1">Titre</label>
-						<InputText
-							v-model="formData.title"
-							class="w-full"
-							placeholder="Nom du thème"
-							:class="{ 'p-invalid': v$.title.$error }"
-						/>
-						<small v-if="v$.title.$error" class="p-error">
-							{{ v$.title.$errors[0].$message }}
-						</small>
-					</div>
-					<div>
-						<label class="block mb-1">Couleur</label>
-						<div class="flex items-center gap-3">
-							<ColorPicker
-								v-model="formData.color"
-							/>
-							<InputText
-								class="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded"
-								v-model="formData.color"
-								placeholder="#FBC531"
-							/>
-						</div>
-						<small v-if="v$.color.$error" class="p-error">
-							{{ v$.color.$errors[0].$message }}
-						</small>
-					</div>
-
-					<Button type="submit" class="w-full" :loading="loading">Créer un thème</Button>
-				</form>
-				<!-- Liste des thèmes -->
-				<div class="space-y-4 mt-6 pt-6 border-t">
-					<div class="flex justify-between items-center">
-						<h2 class="text-lg font-semibold">Mes thèmes</h2>
-						<Button
-							@click="fetchThemesWithSavedPositions"
-							:loading="loading"
-						>
-						<span
-							v-if="loading"
-							class="material-symbols-rounded animate-spin">
-							progress_activity
-						</span>
-							<span
-								v-else
-								class="material-symbols-rounded">
-							refresh
-						</span>
-						</Button>
-					</div>
-
-				</div>
-			</div>
-		</div>
+		<Button
+			@click="fetchThemesWithSavedPositions"
+			:loading="loading"
+			class="absolute top-4 -right-4 z-50"
+		>
+			<span v-if="loading" class="material-symbols-rounded animate-spin w-min">
+				progress_activity
+			</span>
+			<span v-else class="material-symbols-rounded w-min">
+				refresh
+			</span>
+		</Button>
 		<div
 			class="
+				absolute top-0 left-0
 				flex items-center justify-center
-				h-[90vh] w-[90vw] mx-[5vw] my-[5vh]
+				h-full w-full m-0
+				overflow-hidden
 				bg-white
 				bg-[linear-gradient(rgba(128,128,128,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(128,128,128,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(128,128,128,0.1)_1px,transparent_1px),linear-gradient(rgba(128,128,128,0.1)_1px,transparent_1px)]
 				bg-[size:20px_20px,100px_100px]
@@ -200,13 +169,16 @@ const handleThemePositionChange = (themeId: string, position: any) => {
 			"
 		>
 			<Menu
-				:visible="createThemeDialogVisible"
+				ref="contextMenu"
 				:model="contextMenuItems"
+				popup
+				class="!absolute !w-min !min-w-min"
+				:style="{ top: `${contextMenuPosition.y}px`, left: `${contextMenuPosition.x}px` }"
 			>
 				<template #item="{ item, props }">
 					<div
-						@click="item.command()"
-						class="flex items-center p-2 gap-4 cursor-pointer"
+						@click="item.command && item.command(true)"
+						class="flex items-center p-2 gap-4 cursor-pointer text-nowrap"
 					>
 						<span class="material-symbols-rounded">{{ item.icon }}</span>
 						{{ item.label }}
@@ -233,7 +205,8 @@ const handleThemePositionChange = (themeId: string, position: any) => {
 			<div
 				v-else
 				class="w-full h-full relative overflow-hidden"
-				@contextmenu.prevent="console.log('Context menu clicked')"
+				@contextmenu.prevent="onContextMenu"
+				@click="closeContextMenu"
 			>
 
 				<MovableTheme
@@ -244,5 +217,47 @@ const handleThemePositionChange = (themeId: string, position: any) => {
 				/>
 			</div>
 		</div>
+		<Dialog
+			v-model:visible="createThemeDialogVisible"
+			header="Créer un nouveau thème"
+			:modal="true"
+			:closable="true"
+		>
+			<form @submit.prevent="submitForm" class="space-y-4">
+				<h2 class="text-lg font-semibold">Créer un nouveau thème</h2>
+				<div>
+					<label class="block mb-1">Titre</label>
+					<InputText
+						v-model="formData.title"
+						class="w-full"
+						placeholder="Nom du thème"
+						:class="{ 'p-invalid': v$.title.$error }"
+					/>
+					<small v-if="v$.title.$error" class="p-error">
+						{{ v$.title.$errors[0].$message }}
+					</small>
+				</div>
+				<div>
+					<label class="block mb-1">Couleur</label>
+					<div class="flex items-center gap-3">
+						<ColorPicker
+							v-model="formData.color"
+						/>
+						<InputText
+							class="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded"
+							v-model="formData.color"
+							placeholder="#FBC531"
+						/>
+					</div>
+					<small v-if="v$.color.$error" class="p-error">
+						{{ v$.color.$errors[0].$message }}
+					</small>
+				</div>
+			</form>
+			<template #footer>
+				<Button label="Annuler" @click="showCreateThemeDialog(false); closeContextMenu" class="p-button-text"/>
+				<Button label="Créer" @click="submitForm" :loading="loading"/>
+			</template>
+		</Dialog>
 	</div>
 </template>

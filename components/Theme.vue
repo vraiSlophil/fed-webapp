@@ -8,7 +8,6 @@ const props = defineProps<{
 
 const emits = defineEmits<{
 	(e: 'destroy', theme: Theme): void
-	(e: 'update:theme', themeId: string, data: { title?: string, color?: string }): void
 }>()
 
 const isEditing = ref(false)
@@ -40,7 +39,9 @@ const openTheme = () => {
 const handleUpdate = async (themeId: string, data: { title?: string, color?: string }) => {
 	try {
 		await updateTheme(themeId, data)
-		emits('update:theme', themeId, data)
+		// modifie le titre et la couleur du thème dans le composant parent
+		props.theme.title = data.title || props.theme.title
+		props.theme.color = data.color || props.theme.color
 		toast.add({
 			severity: 'success',
 			summary: 'Succès',

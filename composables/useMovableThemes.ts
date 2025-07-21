@@ -40,7 +40,7 @@ export const useMovableThemes = () => {
         position: savedPositions[theme.theme_id] || theme.position || {
           x: 100,
           y: 100,
-          width: 450,
+          width: 475,
           zIndex: 1
         }
       }

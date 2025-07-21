@@ -7,7 +7,6 @@ const props = defineProps<{
 
 const emits = defineEmits<{
 	(e: 'destroy', theme: Theme): void
-	(e: 'update:theme', themeId: string, data: { title?: string, color?: string }): void
 	(e: 'position-change', themeId: string, position: { x: number, y: number, width: number, zIndex: number }): void
 }>()
 
@@ -37,7 +36,6 @@ const handlePositionChange = (position: { x: number, y: number, width: number, z
 		<Theme
 			:theme="theme"
 			@destroy="emits('destroy', $event)"
-			@update:theme="emits('update:theme', $event[0], $event[1])"
 		/>
 	</Draggable>
 </template>
