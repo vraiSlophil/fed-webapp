@@ -190,218 +190,214 @@ watch(
 
 <template>
 	<div
-		class="flex items-center justify-center flex-col shadow-sm transition-all duration-200 min-w-100"
-	>
-		<div
-			class="flex items-center justify-between w-full p-4 rounded-t-lg"
-			:class="{
+		class="flex items-center justify-between w-full p-4 rounded-t-lg transition-all duration-200 min-w-100 hover:shadow-lg"
+		:class="{
 				'rounded-b-lg': !isThemeOpen,
 				'rounded-b-none': isThemeOpen
 			}"
-			:style="{
+		:style="{
 				backgroundColor: `${editedColor}`,
 				color: textColor
 			}"
-		>
-			<div>
-				<Button
-					@click="openTheme"
-					class="cursor-pointer flex justify-center items-center align p-2 rounded-full"
-					title="Ouvrir"
-					text
-					size="small"
-					:style="{
+	>
+		<div>
+			<Button
+				@click="openTheme"
+				class="cursor-pointer flex justify-center items-center align p-2 rounded-full"
+				title="Ouvrir"
+				text
+				size="small"
+				:style="{
 						color: textColor,
 					}"
-				>
+			>
 					<span
 						v-if="isThemeOpen"
 						class="material-symbols-rounded">
 						keyboard_arrow_up
 					</span>
-					<span
-						v-else
-						class="material-symbols-rounded">
+				<span
+					v-else
+					class="material-symbols-rounded">
 						keyboard_arrow_down
 					</span>
-				</Button>
+			</Button>
 
-			</div>
-			<!-- Mode normal -->
-			<div v-if="!isEditing" class="flex items-center gap-3 flex-grow mx-6">
-				<span class="font-medium">{{ theme.title }}</span>
-			</div>
+		</div>
+		<!-- Mode normal -->
+		<div v-if="!isEditing" class="flex items-center gap-3 flex-grow mx-6">
+			<span class="font-medium">{{ theme.title }}</span>
+		</div>
 
-			<!-- Mode édition -->
-			<div v-else class="flex items-center gap-3 flex-grow">
-				<input
-					v-model="editedTitle"
-					class="font-medium flex-grow px-3 py-1 mx-3 rounded-md focus:outline-none"
-					:style="{
+		<!-- Mode édition -->
+		<div v-else class="flex items-center gap-3 flex-grow">
+			<input
+				v-model="editedTitle"
+				class="font-medium flex-grow px-3 py-1 mx-3 rounded-md focus:outline-none"
+				:style="{
 						color: textColor,
 						backgroundColor: textColor + '1A'
 					}"
-					placeholder="Nom du thème"
-					@keyup.enter="confirmEdit"
-					@keyup.esc="cancelEdit"
+				placeholder="Nom du thème"
+				@keyup.enter="confirmEdit"
+				@keyup.esc="cancelEdit"
+			/>
+		</div>
+
+		<!-- Actions -->
+		<div class="flex gap-2">
+			<!-- Boutons en mode normal -->
+			<template v-if="!isEditing">
+				<!-- Bouton Modifier - affiché uniquement si l'utilisateur a le droit de modifier -->
+				<Button
+					v-if="canUpdateTheme"
+					@click="startEdit"
+					class="cursor-pointer flex justify-center items-center align p-2 rounded-full"
+					title="Modifier"
+					text
+					size="small"
+					:style="{
+							color: textColor,
+						}"
+				>
+					<span class="material-symbols-rounded">edit</span>
+				</Button>
+
+				<!-- Bouton Quitter - affiché uniquement si l'utilisateur est invité -->
+				<Button
+					v-if="!isOwner && !isEditing"
+					@click="confirmLeave(theme)"
+					class="cursor-pointer flex justify-center items-center p-2 rounded-full"
+					title="Quitter le thème"
+					text
+					size="small"
+					:style="{
+							color: textColor,
+						}"
+				>
+					<span class="material-symbols-rounded">chip_extraction</span>
+				</Button>
+
+				<!-- Bouton Supprimer - affiché uniquement si l'utilisateur est propriétaire -->
+				<Button
+					v-if="isOwner"
+					@click="confirmDelete(theme)"
+					class="cursor-pointer flex justify-center items-center p-2 rounded-full"
+					title="Supprimer"
+					text
+					size="small"
+					:style="{
+							color: textColor,
+						}"
+				>
+					<span class="material-symbols-rounded">delete</span>
+				</Button>
+
+				<!-- Bouton Partager - affiché uniquement si l'utilisateur est propriétaire -->
+				<Button
+					v-if="isOwner"
+					@click="membersPopoverVisible = true"
+					class="cursor-pointer flex justify-center items-center p-2 rounded-full"
+					title="Partager"
+					text
+					size="small"
+					:style="{
+							color: textColor,
+						}"
+				>
+					<span class="material-symbols-rounded">person_add</span>
+				</Button>
+
+				<LazyThemeMembersMenu
+					v-if="isOwner"
+					:visible="membersPopoverVisible"
+					:theme="theme"
+					@update:visible="membersPopoverVisible = $event"
 				/>
-			</div>
+			</template>
 
-			<!-- Actions -->
-			<div class="flex gap-2">
-				<!-- Boutons en mode normal -->
-				<template v-if="!isEditing">
-					<!-- Bouton Modifier - affiché uniquement si l'utilisateur a le droit de modifier -->
+			<!-- Boutons en mode édition -->
+			<template v-else>
+				<!-- Bouton pour le sélecteur de couleur avec Popover -->
+				<div>
 					<Button
-						v-if="canUpdateTheme"
-						@click="startEdit"
-						class="cursor-pointer flex justify-center items-center align p-2 rounded-full"
-						title="Modifier"
-						text
-						size="small"
-						:style="{
-							color: textColor,
-						}"
-					>
-						<span class="material-symbols-rounded">edit</span>
-					</Button>
-
-					<!-- Bouton Quitter - affiché uniquement si l'utilisateur est invité -->
-					<Button
-						v-if="!isOwner && !isEditing"
-						@click="confirmLeave(theme)"
+						@click="colorPopoverRef.show($event)"
 						class="cursor-pointer flex justify-center items-center p-2 rounded-full"
-						title="Quitter le thème"
+						title="Changer la couleur"
 						text
 						size="small"
 						:style="{
-							color: textColor,
-						}"
-					>
-						<span class="material-symbols-rounded">chip_extraction</span>
-					</Button>
-
-					<!-- Bouton Supprimer - affiché uniquement si l'utilisateur est propriétaire -->
-					<Button
-						v-if="isOwner"
-						@click="confirmDelete(theme)"
-						class="cursor-pointer flex justify-center items-center p-2 rounded-full"
-						title="Supprimer"
-						text
-						size="small"
-						:style="{
-							color: textColor,
-						}"
-					>
-						<span class="material-symbols-rounded">delete</span>
-					</Button>
-
-					<!-- Bouton Partager - affiché uniquement si l'utilisateur est propriétaire -->
-					<Button
-						v-if="isOwner"
-						@click="membersPopoverVisible = true"
-						class="cursor-pointer flex justify-center items-center p-2 rounded-full"
-						title="Partager"
-						text
-						size="small"
-						:style="{
-							color: textColor,
-						}"
-					>
-						<span class="material-symbols-rounded">person_add</span>
-					</Button>
-
-					<LazyThemeMembersMenu
-						v-if="isOwner"
-						:visible="membersPopoverVisible"
-						:theme="theme"
-						@update:visible="membersPopoverVisible = $event"
-					/>
-				</template>
-
-				<!-- Boutons en mode édition -->
-				<template v-else>
-					<!-- Bouton pour le sélecteur de couleur avec Popover -->
-					<div>
-						<Button
-							@click="colorPopoverRef.show($event)"
-							class="cursor-pointer flex justify-center items-center p-2 rounded-full"
-							title="Changer la couleur"
-							text
-							size="small"
-							:style="{
 								color: textColor,
 							}"
-						>
-							<span class="material-symbols-rounded">palette</span>
-						</Button>
-						<Popover
-							ref="colorPopoverRef"
-							target="prev"
-						>
-							<div class="p-3 flex items-center justify-center gap-2 flex-col">
-								<div class="mb-3">
-									<ColorPicker
-										v-model="editedColor"
-										inline
-									/>
-								</div>
-								<div class="flex items-center justify-center flex-row gap-3">
-									<span class="text-sm  dark:text-gray-300">Code hex:</span>
-									<InputText
-										v-model="editedColor"
-										class="flex-1 font-mono text-sm w-30"
-									/>
-								</div>
+					>
+						<span class="material-symbols-rounded">palette</span>
+					</Button>
+					<Popover
+						ref="colorPopoverRef"
+						target="prev"
+					>
+						<div class="p-3 flex items-center justify-center gap-2 flex-col">
+							<div class="mb-3">
+								<ColorPicker
+									v-model="editedColor"
+									inline
+								/>
 							</div>
-						</Popover>
-					</div>
+							<div class="flex items-center justify-center flex-row gap-3">
+								<span class="text-sm  dark:text-gray-300">Code hex:</span>
+								<InputText
+									v-model="editedColor"
+									class="flex-1 font-mono text-sm w-30"
+								/>
+							</div>
+						</div>
+					</Popover>
+				</div>
 
-					<Button
-						@click="confirmEdit"
-						class="cursor-pointer flex justify-center items-center p-2 rounded-full"
-						title="Confirmer"
-						text
-						size="small"
-						:style="{
+				<Button
+					@click="confirmEdit"
+					class="cursor-pointer flex justify-center items-center p-2 rounded-full"
+					title="Confirmer"
+					text
+					size="small"
+					:style="{
 							color: textColor,
 						}"
-					>
-						<span class="material-symbols-rounded">check</span>
-					</Button>
-					<Button
-						@click="cancelEdit"
-						class="cursor-pointer flex justify-center items-center p-2 rounded-full"
-						title="Annuler"
-						text
-						size="small"
-						:style="{
+				>
+					<span class="material-symbols-rounded">check</span>
+				</Button>
+				<Button
+					@click="cancelEdit"
+					class="cursor-pointer flex justify-center items-center p-2 rounded-full"
+					title="Annuler"
+					text
+					size="small"
+					:style="{
 							color: textColor,
 						}"
-					>
-						<span class="material-symbols-rounded">close</span>
-					</Button>
-				</template>
-			</div>
+				>
+					<span class="material-symbols-rounded">close</span>
+				</Button>
+			</template>
+		</div>
 
-			<!-- Sélecteur de couleur (caché par défaut) -->
-			<input
-				ref="colorPickerRef"
-				type="color"
-				v-model="editedColor"
-				class="hidden"
-			/>
-		</div>
-		<div
-			v-if="isThemeOpen"
-			class="bg-white/10 dark:bg-gray/10 backdrop-blur-xs min-h-42 w-full rounded-b-lg"
-			data-no-drag
-		>
-			<TaskList
-				:theme="theme"
-				:isThemeOpen="isThemeOpen"
-			/>
-		</div>
+		<!-- Sélecteur de couleur (caché par défaut) -->
+		<input
+			ref="colorPickerRef"
+			type="color"
+			v-model="editedColor"
+			class="hidden"
+		/>
+	</div>
+	<div
+		v-if="isThemeOpen"
+		class="bg-white/10 dark:bg-gray/10 backdrop-blur-xs min-h-42 w-full rounded-b-lg"
+		data-no-drag
+	>
+		<TaskList
+			:theme="theme"
+			:isThemeOpen="isThemeOpen"
+		/>
 	</div>
 
 	<Dialog

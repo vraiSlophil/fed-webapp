@@ -115,10 +115,23 @@ const shouldIgnoreDrag = (e: MouseEvent): boolean => {
 	})
 }
 
+const handleNativeDragStart = (event: DragEvent) => {
+	// Si déjà en train de draguer avec le système personnalisé, ne rien faire
+	if (isDragging.value) return;
+
+	event.dataTransfer.setData('text/plain', 'theme-being-dragged');
+	emit('dragstart', {
+		x: position.value.x,
+		y: position.value.y,
+		width: dimensions.value.width,
+		height: dimensions.value.height,
+		event
+	});
+}
+
 // Gérer le début du drag
 const handleDragStart = (e: MouseEvent) => {
 	if (!props.draggable) return
-
 	if (shouldIgnoreDrag(e)) return
 
 	isDragging.value = true
@@ -184,6 +197,15 @@ const handleDragEnd = (e: MouseEvent) => {
 	document.removeEventListener('mouseup', handleDragEnd)
 
 	isDragging.value = false
+
+	// Déclencher l'événement dragend natif
+	if (draggableElement.value) {
+		const dragEndEvent = new DragEvent('dragend', {
+			bubbles: true,
+			cancelable: true
+		});
+		draggableElement.value.dispatchEvent(dragEndEvent);
+	}
 
 	emit('dragend', {
 		x: position.value.x,
@@ -301,6 +323,8 @@ const handleDrop = (e: DragEvent) => {
 	<div
 		ref="draggableElement"
 		:style="draggableStyles"
+		draggable="true"
+		@dragstart="handleNativeDragStart"
 		@mousedown="(e) => {
 			if (!shouldIgnoreDrag(e)) {
 				e.preventDefault();
@@ -337,9 +361,5 @@ const handleDrop = (e: DragEvent) => {
 .draggable-component.group {
 	min-width: min-content;
 	min-height: min-content;
-}
-
-.draggable-component:hover {
-	box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
 }
 </style>
