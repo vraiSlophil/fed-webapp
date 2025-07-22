@@ -3,6 +3,7 @@ import {useVuelidate} from '@vuelidate/core'
 import {helpers, minLength, required} from '@vuelidate/validators'
 import {useThemes} from '~/composables/useThemes'
 import type {Theme} from "~/types/themes";
+import {useColors} from "~/composables/useColors";
 
 // États et validation (code existant...)
 const formData = reactive({
@@ -31,10 +32,19 @@ const contextMenuPosition = ref({x: 0, y: 0})
 const toast = useToast()
 
 // Composables
-const { themes, loading, fetchThemes, createTheme } = useThemes()
-const { applyPositionsToThemes, handlePositionChange } = useMovableThemes()
-const { isDragging, draggedTheme } = useDraggableThemes()
-const { dropZoneVisible } = useDropZoneInteraction() // ← AJOUTÉ
+const {themes, loading, fetchThemes, createTheme} = useThemes()
+const {
+	applyPositionsToThemes,
+	handlePositionChange,
+	setThemeStored,
+	getVisibleThemes
+} = useMovableThemes()
+const {isDragging, draggedTheme} = useDraggableThemes()
+const {dropZoneVisible, isHovering, activeDropZone} = useDropZoneInteraction()
+const {getTextColor} = useColors();
+
+// Utilisez themes.value (tableau simple) pour le computed
+const visibleThemes = computed(() => getVisibleThemes(themes.value));
 
 // Fonctions (code existant adapté...)
 const fetchThemesWithSavedPositions = async () => {
@@ -43,10 +53,18 @@ const fetchThemesWithSavedPositions = async () => {
 }
 
 const handleThemeStored = (theme: Theme) => {
-	// console.log('Le thème a été rangé dans la zone de dépôt:', theme)
-	console.log('AZERTYUIOPMLKJHGFDSQWXCVBN')
-	// Ici vous pouvez implémenter la logique de rangement
-	// Par exemple, changer le statut du thème, le cacher, etc.
+	console.log(`Thème rangé: %c${theme.title}`, `background-color: ${theme.color}; font-weight: bold; color: ${getTextColor(theme.color)}; font-size: 1.2em; padding: 5px 2px; border-radius: 4px;`)
+
+	// Mettre le thème en stored
+	setThemeStored(themes, theme.theme_id, true)
+
+	// Notification
+	toast.add({
+		severity: 'success',
+		summary: 'Thème rangé',
+		detail: `Le thème "${theme.title}" a été rangé`,
+		life: 3000
+	})
 }
 
 const handleThemePositionChange = (themeId: string, position: any) => {
@@ -157,19 +175,35 @@ watch(dropZoneVisible, (newVal) => {
 		</Button>
 
 		<!-- Zone principale -->
-		<div class="absolute top-0 left-0 flex items-center justify-center h-full w-full m-0 overflow-hidden bg-white bg-[linear-gradient(rgba(128,128,128,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(128,128,128,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(128,128,128,0.1)_1px,transparent_1px),linear-gradient(rgba(128,128,128,0.1)_1px,transparent_1px)] bg-[size:20px_20px,100px_100px] dark:bg-black dark:bg-[linear-gradient(rgba(128,128,128,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(128,128,128,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(128,128,128,0.2)_1px,transparent_1px),linear-gradient(rgba(128,128,128,0.2)_1px,transparent_1px)] dark:bg-[size:20px_20px,100px_100px]">
+		<div
+			class="absolute top-0 left-0 flex items-center justify-center h-full w-full m-0 overflow-hidden bg-white bg-[linear-gradient(rgba(128,128,128,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(128,128,128,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(128,128,128,0.1)_1px,transparent_1px),linear-gradient(rgba(128,128,128,0.1)_1px,transparent_1px)] bg-[size:20px_20px,100px_100px] dark:bg-black dark:bg-[linear-gradient(rgba(128,128,128,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(128,128,128,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(128,128,128,0.2)_1px,transparent_1px),linear-gradient(rgba(128,128,128,0.2)_1px,transparent_1px)] dark:bg-[size:20px_20px,100px_100px]">
 
-			<div class="fixed top-20 left-4 z-50 bg-black/80 text-white p-2 rounded text-xs">
+			<div class="fixed top-20 left-4 z-2 bg-black/80 text-white p-2 rounded text-xs">
 				<div>isDragging: {{ isDragging }}</div>
 				<div>draggedTheme: {{ draggedTheme?.title || 'null' }}</div>
 				<div>dropZoneVisible: {{ dropZoneVisible }}</div>
+				<div>isHovering: {{ isHovering }}</div>
+				<div>activeDropZone: {{ activeDropZone }}</div>
+
+				<div>Context Menu Position: {{ contextMenuPosition }}</div>
+				<div>Context Menu Visible: {{ contextMenu?.visible }}</div>
+				<div>Context Menu Items: {{ contextMenuItems }}</div>
+				<div>Visible Themes Count: {{ visibleThemes.length }}</div>
+				<div>All Themes Count: {{ themes.length }}</div>
+				<div>Loading: {{ loading }}</div>
+
+				<div>
+					{{ toRaw(themes) }}
+				</div>
 			</div>
 
 
 			<!-- Menu contextuel -->
-			<Menu ref="contextMenu" :model="contextMenuItems" popup class="!absolute !w-min !min-w-min" :style="{ top: `${contextMenuPosition.y}px`, left: `${contextMenuPosition.x}px` }">
+			<Menu ref="contextMenu" :model="contextMenuItems" popup class="!absolute !w-min !min-w-min"
+				  :style="{ top: `${contextMenuPosition.y}px`, left: `${contextMenuPosition.x}px` }">
 				<template #item="{ item, props }">
-					<div @click="item.command && item.command(true)" class="flex items-center p-2 gap-4 cursor-pointer text-nowrap">
+					<div @click="item.command && item.command(true)"
+						 class="flex items-center p-2 gap-4 cursor-pointer text-nowrap">
 						<span class="material-symbols-rounded">{{ item.icon }}</span>
 						{{ item.label }}
 					</div>
@@ -177,7 +211,14 @@ watch(dropZoneVisible, (newVal) => {
 			</Menu>
 
 			<!-- Zone de drop -->
-			<ThemeDropZone @drop-theme="handleThemeStored" />
+			<ThemeDropZone @drop-theme="handleThemeStored"/>
+
+			<!-- Bouton de création de thème -->
+			<ThemeStorage
+				class="absolute top-4 right-4 z-50"
+				:themelist="themes"
+				@reload="fetchThemesWithSavedPositions"
+			/>
 
 			<!-- États de chargement/vide -->
 			<div v-if="loading && !themes.length" class="text-center">
@@ -192,31 +233,35 @@ watch(dropZoneVisible, (newVal) => {
 			</div>
 
 			<!-- Conteneur des thèmes -->
-			<div v-else class="w-full h-full relative overflow-hidden" @contextmenu.prevent="onContextMenu" @click="closeContextMenu">
+			<div v-else class="w-full h-full relative overflow-hidden" @contextmenu.prevent="onContextMenu"
+				 @click="closeContextMenu">
 				<MovableTheme
-					v-for="theme in themes"
+					v-for="theme in visibleThemes"
 					:key="theme.theme_id"
 					:theme="theme"
 					@position-change="handleThemePositionChange"
-					@dragend="handleThemeStored"
+					@storetheme="handleThemeStored"
 				/>
 			</div>
 		</div>
 
 		<!-- Dialog de création (code existant...) -->
-		<Dialog v-model:visible="createThemeDialogVisible" header="Créer un nouveau thème" :modal="true" :closable="true">
+		<Dialog v-model:visible="createThemeDialogVisible" header="Créer un nouveau thème" :modal="true"
+				:closable="true">
 			<form @submit.prevent="submitForm" class="space-y-4">
 				<h2 class="text-lg font-semibold">Créer un nouveau thème</h2>
 				<div>
 					<label class="block mb-1">Titre</label>
-					<InputText v-model="formData.title" class="w-full" placeholder="Nom du thème" :class="{ 'p-invalid': v$.title.$error }" />
+					<InputText v-model="formData.title" class="w-full" placeholder="Nom du thème"
+							   :class="{ 'p-invalid': v$.title.$error }"/>
 					<small v-if="v$.title.$error" class="p-error">{{ v$.title.$errors[0].$message }}</small>
 				</div>
 				<div>
 					<label class="block mb-1">Couleur</label>
 					<div class="flex items-center gap-3">
-						<ColorPicker v-model="formData.color" />
-						<InputText class="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded" v-model="formData.color" placeholder="#FBC531" />
+						<ColorPicker v-model="formData.color"/>
+						<InputText class="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded"
+								   v-model="formData.color" placeholder="#FBC531"/>
 					</div>
 					<small v-if="v$.color.$error" class="p-error">{{ v$.color.$errors[0].$message }}</small>
 				</div>

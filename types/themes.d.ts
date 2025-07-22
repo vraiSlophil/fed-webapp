@@ -20,6 +20,7 @@ export type Theme = {
         width: number
         zIndex: number
     }
+    stored?: boolean
 }
 
 export type ThemeStats = {

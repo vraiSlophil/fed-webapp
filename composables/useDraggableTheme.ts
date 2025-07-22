@@ -31,9 +31,8 @@ const endDrag = () => {
 
 // Vérifier si on peut dropper sur une zone
 const canDrop = (dropZone: string) => {
-    const canDropResult = isDragging.value && draggedTheme.value !== null
     // console.log(`canDrop(${dropZone}):`, canDropResult, 'isDragging:', isDragging.value, 'draggedTheme:', draggedTheme.value?.title || 'null')
-    return canDropResult
+    return isDragging.value && draggedTheme.value !== null
 }
 
 // // NOUVELLE FONCTION : Arrêt immédiat sans délai (pour quand on drop effectivement)

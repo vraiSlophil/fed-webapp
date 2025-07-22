@@ -10,10 +10,12 @@ const emits = defineEmits<{
 	(e: 'position-change', themeId: string, position: { x: number, y: number, width: number, zIndex: number }): void
 	(e: 'dragstart', theme: Theme): void
 	(e: 'dragend', theme: Theme): void
+	(e: 'storetheme', theme: Theme): void
 }>()
 
 // Utiliser le composable de drag
-const { isDragging, startDrag, endDrag } = useDraggableThemes()
+const {isDragging, startDrag, endDrag} = useDraggableThemes()
+const {isHovering, activeDropZone} = useDropZoneInteraction()
 
 const handlePositionChange = (position: { x: number, y: number, width: number, zIndex: number }) => {
 	emits('position-change', props.theme.theme_id, position)
@@ -33,6 +35,13 @@ const handleDragEnd = (event: any) => {
 		width: event.width,
 		zIndex: props.theme.position?.zIndex || 1
 	})
+	if (isHovering.value && activeDropZone.value === 'storage') {
+		// Si on est dans la zone de drop, on émet l'événement pour ranger le thème
+		emits('storetheme', props.theme)
+	} else {
+		// Sinon, on émet un dragend normal
+		console.log('Drag terminé ailleurs:', props.theme.title)
+	}
 	// console.log('isDragging before end :', toRaw(isDragging.value))
 	endDrag()
 	// console.log('isDragging after end :', toRaw(isDragging.value))

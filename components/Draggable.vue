@@ -327,8 +327,8 @@ const handleDrop = (e: DragEvent) => {
 	<div
 		ref="draggableElement"
 		:style="draggableStyles"
-		draggable="true"
-		@dragstart="handleNativeDragStart"
+
+
 		@mousedown="(e) => {
 			if (!shouldIgnoreDrag(e)) {
 				e.preventDefault();

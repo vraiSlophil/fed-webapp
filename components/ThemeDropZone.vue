@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type {Theme} from "~/types/themes";
+
 const emit = defineEmits(['drop-theme'])
 
 // Composables
