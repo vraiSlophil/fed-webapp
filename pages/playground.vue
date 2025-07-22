@@ -43,7 +43,8 @@ const fetchThemesWithSavedPositions = async () => {
 }
 
 const handleThemeStored = (theme: Theme) => {
-	console.log('Le thème a été rangé dans la zone de dépôt:', theme)
+	// console.log('Le thème a été rangé dans la zone de dépôt:', theme)
+	console.log('AZERTYUIOPMLKJHGFDSQWXCVBN')
 	// Ici vous pouvez implémenter la logique de rangement
 	// Par exemple, changer le statut du thème, le cacher, etc.
 }
@@ -127,15 +128,15 @@ watch(() => formData.color, (newVal) => {
 })
 
 watch(isDragging, (newVal) => {
-	console.log('Playground - isDragging changed:', newVal)
+	// console.log('Playground - isDragging changed:', newVal)
 })
 
 watch(draggedTheme, (newVal) => {
-	console.log('Playground - draggedTheme changed:', newVal?.title || 'null')
+	// console.log('Playground - draggedTheme changed:', newVal?.title || 'null')
 })
 
 watch(dropZoneVisible, (newVal) => {
-	console.log('Playground - dropZoneVisible changed:', newVal)
+	// console.log('Playground - dropZoneVisible changed:', newVal)
 })
 
 </script>
@@ -197,6 +198,7 @@ watch(dropZoneVisible, (newVal) => {
 					:key="theme.theme_id"
 					:theme="theme"
 					@position-change="handleThemePositionChange"
+					@dragend="handleThemeStored"
 				/>
 			</div>
 		</div>

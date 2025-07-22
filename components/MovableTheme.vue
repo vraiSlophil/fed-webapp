@@ -20,9 +20,9 @@ const handlePositionChange = (position: { x: number, y: number, width: number, z
 }
 
 const handleDragStart = () => {
-	console.log('isDragging before start :', toRaw(isDragging.value))
+	// console.log('isDragging before start :', toRaw(isDragging.value))
 	startDrag(props.theme)
-	console.log('isDragging after start :', toRaw(isDragging.value))
+	// console.log('isDragging after start :', toRaw(isDragging.value))
 	emits('dragstart', props.theme)
 }
 
@@ -33,9 +33,9 @@ const handleDragEnd = (event: any) => {
 		width: event.width,
 		zIndex: props.theme.position?.zIndex || 1
 	})
-	console.log('isDragging before end :', toRaw(isDragging.value))
+	// console.log('isDragging before end :', toRaw(isDragging.value))
 	endDrag()
-	console.log('isDragging after end :', toRaw(isDragging.value))
+	// console.log('isDragging after end :', toRaw(isDragging.value))
 	emits('dragend', props.theme)
 }
 </script>

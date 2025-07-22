@@ -119,7 +119,7 @@ const handleNativeDragStart = (event: DragEvent) => {
 	// Si déjà en train de draguer avec le système personnalisé, ne rien faire
 	if (isDragging.value) return;
 
-	event.dataTransfer.setData('text/plain', 'theme-being-dragged');
+	event.dataTransfer?.setData('text/plain', 'theme-being-dragged');
 	emit('dragstart', {
 		x: position.value.x,
 		y: position.value.y,
@@ -175,7 +175,11 @@ const handleDrag = (e: MouseEvent) => {
 
 	position.value = {x: newX, y: newY}
 
+	const {updateMousePosition} = useDropZoneInteraction()
+	updateMousePosition(e.clientX, e.clientY)
+
 	emit('drag', {
+
 		x: newX,
 		y: newY,
 		width: dimensions.value.width,
