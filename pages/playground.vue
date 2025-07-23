@@ -176,7 +176,10 @@ watch(dropZoneVisible, (newVal) => {
 
 		<!-- Zone principale -->
 		<div
-			class="absolute top-0 left-0 flex items-center justify-center h-full w-full m-0 overflow-hidden bg-white bg-[linear-gradient(rgba(128,128,128,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(128,128,128,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(128,128,128,0.1)_1px,transparent_1px),linear-gradient(rgba(128,128,128,0.1)_1px,transparent_1px)] bg-[size:20px_20px,100px_100px] dark:bg-black dark:bg-[linear-gradient(rgba(128,128,128,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(128,128,128,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(128,128,128,0.2)_1px,transparent_1px),linear-gradient(rgba(128,128,128,0.2)_1px,transparent_1px)] dark:bg-[size:20px_20px,100px_100px]">
+			class="absolute top-0 left-0 flex items-center justify-center h-full w-full m-0 overflow-hidden bg-white bg-[linear-gradient(rgba(128,128,128,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(128,128,128,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(128,128,128,0.1)_1px,transparent_1px),linear-gradient(rgba(128,128,128,0.1)_1px,transparent_1px)] bg-[size:20px_20px,100px_100px] dark:bg-black dark:bg-[linear-gradient(rgba(128,128,128,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(128,128,128,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(128,128,128,0.2)_1px,transparent_1px),linear-gradient(rgba(128,128,128,0.2)_1px,transparent_1px)] dark:bg-[size:20px_20px,100px_100px]"
+			@contextmenu.prevent="onContextMenu"
+			@click="closeContextMenu"
+		>
 
 			<div class="fixed top-20 left-4 z-2 bg-black/80 text-white p-2 rounded text-xs">
 				<div>isDragging: {{ isDragging }}</div>
@@ -215,6 +218,7 @@ watch(dropZoneVisible, (newVal) => {
 
 			<!-- Bouton de création de thème -->
 			<ThemeStorage
+				v-if="!isDragging && !createThemeDialogVisible"
 				class="absolute top-4 right-4 z-50"
 				:themelist="themes"
 				@reload="fetchThemesWithSavedPositions"
@@ -233,12 +237,12 @@ watch(dropZoneVisible, (newVal) => {
 			</div>
 
 			<!-- Conteneur des thèmes -->
-			<div v-else class="w-full h-full relative overflow-hidden" @contextmenu.prevent="onContextMenu"
-				 @click="closeContextMenu">
+			<div v-else class="w-full h-full relative overflow-hidden">
 				<MovableTheme
 					v-for="theme in visibleThemes"
 					:key="theme.theme_id"
 					:theme="theme"
+					@destroy="fetchThemesWithSavedPositions"
 					@position-change="handleThemePositionChange"
 					@storetheme="handleThemeStored"
 				/>

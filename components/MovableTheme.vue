@@ -14,7 +14,7 @@ const emits = defineEmits<{
 }>()
 
 // Utiliser le composable de drag
-const {isDragging, startDrag, endDrag} = useDraggableThemes()
+const {startDrag, endDrag} = useDraggableThemes()
 const {isHovering, activeDropZone} = useDropZoneInteraction()
 
 const handlePositionChange = (position: { x: number, y: number, width: number, zIndex: number }) => {
@@ -51,9 +51,9 @@ const handleDragEnd = (event: any) => {
 
 <template>
 	<Draggable
-		:x="theme.position?.x || 0"
-		:y="theme.position?.y || 0"
-		:width="theme.position?.width || 450"
+		:x="theme.position?.x || 100"
+		:y="theme.position?.y || 100"
+		:width="theme.position?.width || 475"
 		:z-index="theme.position?.zIndex || 1"
 		:parent="true"
 		:draggable="true"
