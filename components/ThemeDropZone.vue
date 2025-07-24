@@ -141,11 +141,11 @@ watch(isHovering, (newVal) => {
 <template>
 	<div
 		ref="dropZoneElement"
-		class="fixed top-0 right-0 h-full w-0 bg-white/10 backdrop-blur border-l-4 border-black transition-all duration-300 flex items-center justify-center overflow-hidden cursor-pointer z-40"
-		:class="{
-		  'w-64': isVisible,
-		  'bg-green-400/30 border-l-4 border-green-400': isZoneActive(ZONE_ID)
-		}"
+		class="fixed top-0 right-0 h-full backdrop-blur transition-all duration-200 flex items-center justify-center overflow-hidden cursor-pointer z-40"
+		:class="[
+		  isVisible ? 'w-64' : 'w-0',
+		  isZoneActive(ZONE_ID) ? 'bg-green-400/30 border-l-2 border-green-400' : 'bg-white/10'
+		]"
 		@mouseenter="handleMouseEnter"
 		@mouseleave="handleMouseLeave"
 		@mouseup="handleMouseUp"
@@ -167,13 +167,13 @@ watch(isHovering, (newVal) => {
 			</p>
 
 			<!-- Debug info -->
-			<div class="mt-4 text-xs opacity-70">
-				<div>canDrop: {{ canDrop(ZONE_ID) }}</div>
-				<div>isHovering: {{ isHovering }}</div>
-				<div>isZoneActive: {{ isZoneActive(ZONE_ID) }}</div>
-				<div>draggedTheme: {{ draggedTheme?.title || 'null' }}</div>
-				<div>themeBeingDropped: {{ themeBeingDropped?.title || 'null' }}</div>
-			</div>
+<!--			<div class="mt-4 text-xs opacity-70">-->
+<!--				<div>canDrop: {{ canDrop(ZONE_ID) }}</div>-->
+<!--				<div>isHovering: {{ isHovering }}</div>-->
+<!--				<div>isZoneActive: {{ isZoneActive(ZONE_ID) }}</div>-->
+<!--				<div>draggedTheme: {{ draggedTheme?.title || 'null' }}</div>-->
+<!--				<div>themeBeingDropped: {{ themeBeingDropped?.title || 'null' }}</div>-->
+<!--			</div>-->
 		</div>
 	</div>
 </template>

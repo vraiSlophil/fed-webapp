@@ -375,6 +375,7 @@ watch(
 		<TaskList
 			:theme="theme"
 			:isThemeOpen="isThemeOpen"
+			class="cursor-auto"
 		/>
 	</div>
 

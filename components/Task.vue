@@ -204,7 +204,7 @@ const cancelDelete = () => {
 
 <template>
 	<div
-		class="p-4 hover:bg-white/20 dark:hover:bg-black/20 transition-colors border-b dark:border-gray-700 last:border-b-0"
+		class="p-4 hover:bg-white/20 dark:hover:bg-black/20 transition-colors border-b border-gray-300 dark:border-gray-700 last:border-b-0"
 		:class="{ 'opacity-60': isArchived }"
 	>
 		<!-- Contenu principal de la tâche -->

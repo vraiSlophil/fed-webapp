@@ -90,14 +90,14 @@ export const useMovableThemes = () => {
         return updatedPosition
     }
 
-    const setThemeStored = (themes: Ref<Theme[]>, themeId: string, stored: boolean) => {
-        const themeIndex = themes.value.findIndex(t => t.theme_id === themeId)
+    const setThemeStored = (themes: Theme[], themeId: string, stored: boolean) => {
+        const themeIndex = themes.findIndex(t => t.theme_id === themeId)
         if (themeIndex !== -1) {
             // Mettre à jour l'état local
-            themes.value[themeIndex].stored = stored
+            themes[themeIndex].stored = stored
 
             // Sauvegarder dans localStorage
-            const position = themes.value[themeIndex].position || {x: 100, y: 100, width: 475, zIndex: 1}
+            const position = themes[themeIndex].position || {x: 100, y: 100, width: 475, zIndex: 1}
             savePositionToLocalStorage(themeId, position, stored)
 
             return true

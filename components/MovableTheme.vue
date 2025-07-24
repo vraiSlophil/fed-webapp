@@ -62,6 +62,7 @@ const handleDragEnd = (event: any) => {
 		:no-drag-elements="['button', 'a', 'input', '[data-no-drag]']"
 		@dragstart="handleDragStart"
 		@dragend="handleDragEnd"
+		@resizeend="handlePositionChange; console.log('Resize terminé:', theme.title, 'à', $event.x, $event.y, $event.width, $event.height)"
 	>
 		<Theme
 			:theme="theme"

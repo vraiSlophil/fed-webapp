@@ -10,6 +10,7 @@ const emit = defineEmits(['reload']);
 
 const {getTextColor} = useColors();
 const {getStoredThemes, setThemeStored} = useMovableThemes();
+const toast = useToast();
 
 // Référence au popover
 const storedThemesRef = ref();
@@ -23,16 +24,12 @@ const togglePanel = (event: any) => {
 };
 
 const restoreTheme = (theme: Theme) => {
-  // On a besoin de récupérer la référence réactive du composant parent
-  const themesRef = inject('themesRef') as Ref<Theme[]>;
-
   // Mettre stored à false
-  if (setThemeStored(themesRef, theme.theme_id, false)) {
+  if (setThemeStored(props.themelist, theme.theme_id, false)) {
     // Forcer le rechargement de l'affichage
     emit('reload');
 
     // Notification
-    const toast = useToast();
     toast.add({
       severity: 'success',
       summary: 'Thème restauré',
@@ -66,9 +63,9 @@ watch(storedThemes, () => {
 		<!-- Panel de thèmes rangés -->
 		<Popover
 			ref="storedThemesRef"
-			class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 mb-4 min-w-64 max-h-80 overflow-y-auto"
+			class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-2 mb-4 min-w-64 max-h-80 overflow-y-auto"
 		>
-			<h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
+			<h3 class="text-lg font-semibold mb-3 flex items-center gap-2 border-b pb-2 dark:border-gray-700">
 				<span class="material-symbols-rounded">inventory_2</span>
 				Thèmes rangés
 			</h3>
@@ -81,7 +78,7 @@ watch(storedThemes, () => {
 				<li
 					v-for="theme in storedThemes"
 					:key="theme.theme_id"
-					class="rounded-lg overflow-hidden flex items-center justify-between p-2"
+					class="rounded-lg overflow-hidden flex items-center justify-between p-2 pl-6 mt-4 w-64"
 					:style="{
 						backgroundColor: theme.color,
 						color: getTextColor(theme.color)

@@ -56,7 +56,7 @@ const handleThemeStored = (theme: Theme) => {
 	console.log(`Thème rangé: %c${theme.title}`, `background-color: ${theme.color}; font-weight: bold; color: ${getTextColor(theme.color)}; font-size: 1.2em; padding: 5px 2px; border-radius: 4px;`)
 
 	// Mettre le thème en stored
-	setThemeStored(themes, theme.theme_id, true)
+	setThemeStored(themes.value, theme.theme_id, true)
 
 	// Notification
 	toast.add({
@@ -181,7 +181,7 @@ watch(dropZoneVisible, (newVal) => {
 			@click="closeContextMenu"
 		>
 
-			<div class="fixed top-20 left-4 z-2 bg-black/80 text-white p-2 rounded text-xs">
+			<div class="fixed top-20 left-4 z-0 bg-black/80 text-white p-2 rounded text-xs">
 				<div>isDragging: {{ isDragging }}</div>
 				<div>draggedTheme: {{ draggedTheme?.title || 'null' }}</div>
 				<div>dropZoneVisible: {{ dropZoneVisible }}</div>

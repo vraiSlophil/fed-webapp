@@ -49,6 +49,7 @@ const emit = defineEmits([
 	'dragover',
 	'dragstart',
 	'drop',
+	'resizeend',
 	'update:x',
 	'update:y',
 	'update:width',
@@ -113,20 +114,6 @@ const shouldIgnoreDrag = (e: MouseEvent): boolean => {
 
 		return false
 	})
-}
-
-const handleNativeDragStart = (event: DragEvent) => {
-	// Si déjà en train de draguer avec le système personnalisé, ne rien faire
-	if (isDragging.value) return;
-
-	event.dataTransfer?.setData('text/plain', 'theme-being-dragged');
-	emit('dragstart', {
-		x: position.value.x,
-		y: position.value.y,
-		width: dimensions.value.width,
-		height: dimensions.value.height,
-		event
-	});
 }
 
 // Gérer le début du drag
@@ -278,6 +265,13 @@ const handleResizeEnd = () => {
 	document.removeEventListener('mousemove', handleResize)
 	document.removeEventListener('mouseup', handleResizeEnd)
 	isResizing.value = false
+
+	emit('resizeend', {
+		x: position.value.x,
+		y: position.value.y,
+		width: dimensions.value.width,
+		height: dimensions.value.height,
+	})
 }
 
 // Initialisation après montage
