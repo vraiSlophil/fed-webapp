@@ -32,7 +32,7 @@ const handleMouseEnter = () => {
 
 // Gérer la sortie de la souris
 const handleMouseLeave = () => {
-	console.log('Mouse leave')
+	// console.log('Mouse leave')
 	leaveDropZone(ZONE_ID)
 }
 

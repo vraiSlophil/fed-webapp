@@ -107,8 +107,8 @@ export const useMovableThemes = () => {
 
     // Méthode pour récupérer les thèmes rangés
     const getStoredThemes = (themes: Theme[]) => {
-        console.log('getStoredThemes in useMovableThemes')
-        console.table(toRaw(themes))
+        // console.log('getStoredThemes in useMovableThemes')
+        // console.table(toRaw(themes))
         return themes ? themes.filter(theme => theme.stored === true) : []
     }
 

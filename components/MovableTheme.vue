@@ -40,7 +40,7 @@ const handleDragEnd = (event: any) => {
 		emits('storetheme', props.theme)
 	} else {
 		// Sinon, on émet un dragend normal
-		console.log('Drag terminé ailleurs:', props.theme.title)
+		// console.log('Drag terminé ailleurs:', props.theme.title)
 	}
 	// console.log('isDragging before end :', toRaw(isDragging.value))
 	endDrag()
@@ -62,7 +62,7 @@ const handleDragEnd = (event: any) => {
 		:no-drag-elements="['button', 'a', 'input', '[data-no-drag]']"
 		@dragstart="handleDragStart"
 		@dragend="handleDragEnd"
-		@resizeend="handlePositionChange; console.log('Resize terminé:', theme.title, 'à', $event.x, $event.y, $event.width, $event.height)"
+		@resizeend="handlePositionChange"
 	>
 		<Theme
 			:theme="theme"

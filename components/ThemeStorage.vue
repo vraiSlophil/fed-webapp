@@ -40,8 +40,8 @@ const restoreTheme = (theme: Theme) => {
 };
 
 watch(storedThemes, () => {
-	console.log('getStoredThemes in ThemeStorage');
-	console.table(toRaw(storedThemes.value));
+	// console.log('getStoredThemes in ThemeStorage');
+	// console.table(toRaw(storedThemes.value));
 
 }, { immediate: true });
 

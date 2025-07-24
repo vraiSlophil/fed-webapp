@@ -53,7 +53,7 @@ const fetchThemesWithSavedPositions = async () => {
 }
 
 const handleThemeStored = (theme: Theme) => {
-	console.log(`Thème rangé: %c${theme.title}`, `background-color: ${theme.color}; font-weight: bold; color: ${getTextColor(theme.color)}; font-size: 1.2em; padding: 5px 2px; border-radius: 4px;`)
+	// console.log(`Thème rangé: %c${theme.title}`, `background-color: ${theme.color}; font-weight: bold; color: ${getTextColor(theme.color)}; font-size: 1.2em; padding: 5px 2px; border-radius: 4px;`)
 
 	// Mettre le thème en stored
 	setThemeStored(themes.value, theme.theme_id, true)
