@@ -259,7 +259,9 @@ const toggleDetailedStats = () => {
 					>
 						<template #option="slotProps">
 							<div class="flex items-center gap-2">
-								<span class="material-symbols-rounded text-sm text-gray-400">{{ slotProps.option.icon }}</span>
+								<span class="material-symbols-rounded text-sm text-gray-400">{{
+										slotProps.option.icon
+									}}</span>
 								{{ slotProps.option.label }}
 							</div>
 						</template>
@@ -445,9 +447,9 @@ const toggleDetailedStats = () => {
 					v-if="loading"
 					class="flex items-center justify-center w-full h-42"
 				>
-				<span class="material-symbols-rounded text-gray-400 !text-4xl animate-spin">
-					progress_activity
-				</span>
+					<span class="material-symbols-rounded text-gray-400 !text-4xl animate-spin">
+						progress_activity
+					</span>
 				</div>
 				<div v-else-if="tasks.length === 0" class="p-8 text-center text-gray-500 dark:text-gray-400">
 				<span class="material-symbols-rounded text-4xl mb-2 block">

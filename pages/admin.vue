@@ -15,7 +15,7 @@ interface AdminStats {
 	recent_registrations: number
 }
 
-const activeTab = ref(0)
+const activeTab = ref<number>(0)
 const users = ref<User[]>([])
 const selectedUser = ref<User | null>(null)
 const userMetrics = ref<SpecificUserMetrics | null>(null)
@@ -75,7 +75,12 @@ const loadUsers = async () => {
 				avatar_path: user.avatar_path ? `${config.public.BACKEND_URL}/api/media/${user.avatar_path}` : null
 			}
 		})
-		roles.value = response.roles
+		roles.value = response.roles.map(role => {
+			return {
+				...role,
+				name: role.name.charAt(0).toUpperCase() + role.name.slice(1)
+			}
+		})
 		globalStats.value = response.stats
 		totalUsers.value = response.stats.total_users
 	} catch (error: any) {
@@ -319,7 +324,7 @@ onMounted(() => {
 				Retour à l'accueil
 			</NuxtLink>
 		</div>
-		<div class="max-w-7xl mx-auto">
+		<div class="w-min min-w-7xl mx-auto">
 			<!-- Header -->
 			<div class="flex items-center justify-between mb-8">
 				<div class="flex items-center">
@@ -331,457 +336,531 @@ onMounted(() => {
 			</div>
 
 			<!-- Tabs -->
-			<TabView v-model:activeIndex="activeTab" class="mb-6">
-				<TabPanel header="Utilisateurs">
-					<!-- Statistiques globales -->
-					<div v-if="globalStats" class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-						<Card class="bg-blue-50 dark:bg-blue-900/20">
-							<template #content>
-								<div class="flex items-center">
-									<i class="pi pi-users text-2xl text-blue-600 mr-3"></i>
-									<div>
-										<div class="text-2xl font-bold text-gray-900 dark:text-white">
-											{{ globalStats.total_users }}
-										</div>
-										<div class="text-sm text-gray-600 dark:text-gray-400">
-											Total utilisateurs
+			<LazyTabs value="0"
+					  class="mb-6 border-[1px] border-slate-200 dark:border-zinc-700 rounded-3xl overflow-hidden">
+				<TabList>
+					<Tab value="0" class="flex justify-center items-center">
+						<span class="material-symbols-rounded mr-2">group</span>
+						Utilisateurs
+					</Tab>
+					<Tab value="1" class="flex justify-center items-center">
+						<span class="material-symbols-rounded mr-2">info</span>
+						Détails Utilisateur
+					</Tab>
+				</TabList>
+				<TabPanels
+					:active-index="activeTab"
+					@update:activeIndex="activeTab = $event"
+				>
+					<TabPanel value="0">
+						<!-- Statistiques globales -->
+						<div
+							class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
+							:class="globalStats ? 'blur-none' : 'blur-sm'"
+						>
+							<Card class="border-[1px] border-slate-200 dark:border-zinc-700">
+
+								<template #content>
+									<div class="flex items-center">
+										<span class="material-symbols-rounded !text-4xl text-blue-600 mr-3">
+											group
+										</span>
+										<div>
+											<div class="text-2xl font-bold text-gray-900 dark:text-white">
+												{{ globalStats?.total_users || 0 }}
+											</div>
+											<div class="text-sm text-gray-600 dark:text-gray-400">
+												Total utilisateurs
+											</div>
 										</div>
 									</div>
-								</div>
-							</template>
-						</Card>
+								</template>
+							</Card>
 
-						<Card class="bg-green-50 dark:bg-green-900/20">
-							<template #content>
-								<div class="flex items-center">
-									<i class="pi pi-check-circle text-2xl text-green-600 mr-3"></i>
-									<div>
-										<div class="text-2xl font-bold text-gray-900 dark:text-white">
-											{{ globalStats.active_users }}
-										</div>
-										<div class="text-sm text-gray-600 dark:text-gray-400">
-											Actifs
+							<Card class="border-[1px] border-slate-200 dark:border-zinc-700">
+								<template #content>
+									<div class="flex items-center">
+										<span class="material-symbols-rounded !text-4xl text-green-600 mr-3">
+											group
+										</span>
+										<div>
+											<div class="text-2xl font-bold text-gray-900 dark:text-white">
+												{{ globalStats?.active_users || 0 }}
+											</div>
+											<div class="text-sm text-gray-600 dark:text-gray-400">
+												Actifs
+											</div>
 										</div>
 									</div>
-								</div>
-							</template>
-						</Card>
+								</template>
+							</Card>
 
-						<Card class="bg-red-50 dark:bg-red-900/20">
-							<template #content>
-								<div class="flex items-center">
-									<i class="pi pi-ban text-2xl text-red-600 mr-3"></i>
-									<div>
-										<div class="text-2xl font-bold text-gray-900 dark:text-white">
-											{{ globalStats.blocked_users }}
-										</div>
-										<div class="text-sm text-gray-600 dark:text-gray-400">
-											Bloqués
+							<Card class="border-[1px] border-slate-200 dark:border-zinc-700">
+								<template #content>
+									<div class="flex items-center">
+										<span class="material-symbols-rounded !text-4xl text-red-600 mr-3">
+											block
+										</span>
+										<div>
+											<div class="text-2xl font-bold text-gray-900 dark:text-white">
+												{{ globalStats?.blocked_users || 0 }}
+											</div>
+											<div class="text-sm text-gray-600 dark:text-gray-400">
+												Bloqués
+											</div>
 										</div>
 									</div>
-								</div>
-							</template>
-						</Card>
+								</template>
+							</Card>
 
-						<Card class="bg-yellow-50 dark:bg-yellow-900/20">
-							<template #content>
-								<div class="flex items-center">
-									<i class="pi pi-verified text-2xl text-yellow-600 mr-3"></i>
-									<div>
-										<div class="text-2xl font-bold text-gray-900 dark:text-white">
-											{{ globalStats.verified_users }}
-										</div>
-										<div class="text-sm text-gray-600 dark:text-gray-400">
-											Vérifiés
+							<Card class="border-[1px] border-slate-200 dark:border-zinc-700">
+								<template #content>
+									<div class="flex items-center">
+										<span class="material-symbols-rounded !text-4xl text-yellow-600 mr-3">
+											verified_user
+										</span>
+										<div>
+											<div class="text-2xl font-bold text-gray-900 dark:text-white">
+												{{ globalStats?.verified_users || 0 }}
+											</div>
+											<div class="text-sm text-gray-600 dark:text-gray-400">
+												Vérifiés
+											</div>
 										</div>
 									</div>
-								</div>
-							</template>
-						</Card>
+								</template>
+							</Card>
 
-						<Card class="bg-purple-50 dark:bg-purple-900/20">
-							<template #content>
-								<div class="flex items-center">
-									<i class="pi pi-calendar text-2xl text-purple-600 mr-3"></i>
-									<div>
-										<div class="text-2xl font-bold text-gray-900 dark:text-white">
-											{{ globalStats.recent_registrations }}
-										</div>
-										<div class="text-sm text-gray-600 dark:text-gray-400">
-											Récents (7j)
+							<Card class="border-[1px] border-slate-200 dark:border-zinc-700">
+								<template #content>
+									<div class="flex items-center">
+										<span class="material-symbols-rounded !text-4xl text-purple-600 mr-3">
+											access_time
+										</span>
+										<div>
+											<div class="text-2xl font-bold text-gray-900 dark:text-white">
+												{{ globalStats?.created_last_7_days || 0 }}
+											</div>
+											<div class="text-sm text-gray-600 dark:text-gray-400">
+												Créés ces 7 derniers jours
+											</div>
 										</div>
 									</div>
-								</div>
-							</template>
-						</Card>
-					</div>
+								</template>
+							</Card>
 
-					<!-- Filtres et actions -->
-					<Card class="mb-6">
-						<template #content>
-							<div class="flex flex-wrap items-center gap-4">
-								<div class="flex-1 min-w-64">
-									<InputText
-										v-model="searchQuery"
-										placeholder="Rechercher par nom, email..."
-										class="w-full"
+							<Card class="border-[1px] border-slate-200 dark:border-zinc-700">
+								<template #content>
+									<div class="flex items-center">
+										<span class="material-symbols-rounded !text-4xl text-pink-600 mr-3">
+											verified_user
+										</span>
+										<div>
+											<div class="text-2xl font-bold text-gray-900 dark:text-white">
+												{{ globalStats?.verified_last_7_days || 0 }}
+											</div>
+											<div class="text-sm text-gray-600 dark:text-gray-400">
+												Comptes validés ces 7 derniers jours
+											</div>
+										</div>
+									</div>
+								</template>
+							</Card>
+						</div>
+
+						<!-- Filtres et actions -->
+						<Card class="mb-6 border-[1px] border-slate-200 dark:border-zinc-700">
+							<template #content>
+								<div class="flex flex-wrap items-center gap-4">
+									<IconField class="flex-1 relative max-w-lg min-w-sm">
+										<span
+											class="material-symbols-rounded text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2">
+										  	search
+										</span>
+										<InputText
+											v-model="searchQuery"
+											placeholder="Rechercher par nom, email..."
+											class="w-full h-11.5 pl-10 pr-4 py-2 text-sm flex items-center justify-between"
+										/>
+									</IconField>
+									<Select
+										v-model="selectedRole"
+										:options="roles"
+										option-label="name"
+										option-value="power"
+										placeholder="Filtrer par rôle"
+										show-clear
+										class="flex-1 h-11.5"
+									/>
+
+									<Select
+										v-model="selectedStatus"
+										:options="[
+											{ label: 'Actifs', value: 'active' },
+											{ label: 'Bloqués', value: 'blocked' }
+										]"
+										option-label="label"
+										option-value="value"
+										placeholder="Filtrer par statut"
+										show-clear
+										class="flex-1 h-11.5"
+									/>
+
+									<Button
+										@click="showCreateDialog = true"
+										class="flex-1 h-11.5"
+										severity="primary"
 									>
-										<template #prepend>
-											<i class="pi pi-search"></i>
+										<span class="material-symbols-rounded mr-2">add</span>
+										Créer un utilisateur
+									</Button>
+								</div>
+							</template>
+						</Card>
+
+						<!-- Table des utilisateurs -->
+						<Card class="border-[1px] border-slate-200 dark:border-zinc-700">
+							<template #content>
+								<div
+									v-if="loading"
+									class="flex items-center justify-center w-full h-42"
+								>
+									<span class="material-symbols-rounded text-gray-400 !text-4xl animate-spin">
+										progress_activity
+									</span>
+								</div>
+								<DataTable
+									v-else
+									:value="users"
+									paginator
+									:rows="20"
+									:total-records="totalUsers"
+									lazy
+									@page="onPageChange"
+								>
+									<Column field="username" header="Nom d'utilisateur" sortable>
+										<template #body="slotProps">
+											<div class="flex items-center">
+												<Avatar
+													v-if="slotProps.data.avatar_path"
+													:image="slotProps.data.avatar_path"
+													size="small"
+													shape="circle"
+													class="mr-2"
+												/>
+												<Avatar
+													v-else
+													:label="slotProps.data.username.charAt(0).toUpperCase()"
+													size="small"
+													shape="circle"
+													class="mr-2"
+												/>
+												<span class="font-medium">{{ slotProps.data.username }}</span>
+											</div>
 										</template>
-									</InputText>
-								</div>
+									</Column>
 
-								<Dropdown
-									v-model="selectedRole"
-									:options="roles"
-									option-label="name"
-									option-value="power"
-									placeholder="Filtrer par rôle"
-									show-clear
-									class="min-w-48"
-								/>
+									<Column field="email" header="Email" sortable/>
 
-								<Dropdown
-									v-model="selectedStatus"
-									:options="[
-                    { label: 'Actifs', value: 'active' },
-                    { label: 'Bloqués', value: 'blocked' }
-                  ]"
-									option-label="label"
-									option-value="value"
-									placeholder="Filtrer par statut"
-									show-clear
-									class="min-w-48"
-								/>
+									<Column field="first_name" header="Prénom">
+										<template #body="slotProps">
+											{{ slotProps.data.first_name || '-' }}
+										</template>
+									</Column>
 
-								<Button
-									label="Nouvel utilisateur"
-									icon="pi pi-plus"
-									@click="showCreateDialog = true"
-								/>
-							</div>
-						</template>
-					</Card>
+									<Column field="last_name" header="Nom">
+										<template #body="slotProps">
+											{{ slotProps.data.last_name || '-' }}
+										</template>
+									</Column>
 
-					<!-- Table des utilisateurs -->
-					<Card>
-						<template #content>
-							<DataTable
-								:value="users"
-								:loading="loading"
-								paginator
-								:rows="20"
-								:total-records="totalUsers"
-								lazy
-								@page="onPageChange"
-								class="p-datatable-sm"
-							>
-								<Column field="username" header="Nom d'utilisateur" sortable>
-									<template #body="slotProps">
-										<div class="flex items-center">
-											<Avatar
-												v-if="slotProps.data.avatar_path"
-												:image="slotProps.data.avatar_path"
-												size="small"
-												shape="circle"
-												class="mr-2"
-											/>
-											<Avatar
-												v-else
-												:label="slotProps.data.username.charAt(0).toUpperCase()"
-												size="small"
-												shape="circle"
-												class="mr-2"
-											/>
-											<span class="font-medium">{{ slotProps.data.username }}</span>
-										</div>
-									</template>
-								</Column>
-
-								<Column field="email" header="Email" sortable/>
-
-								<Column field="first_name" header="Prénom">
-									<template #body="slotProps">
-										{{ slotProps.data.first_name || '-' }}
-									</template>
-								</Column>
-
-								<Column field="last_name" header="Nom">
-									<template #body="slotProps">
-										{{ slotProps.data.last_name || '-' }}
-									</template>
-								</Column>
-
-								<Column field="role_power" header="Rôle">
-									<template #body="slotProps">
-										<Tag
-											:value="getRoleLabel(slotProps.data.role_power)"
-											:severity="slotProps.data.role_power >= 100 ? 'danger' : 'info'"
-										/>
-									</template>
-								</Column>
-
-								<Column header="Statut">
-									<template #body="slotProps">
-										<Tag
-											:value="slotProps.data.blocked_at ? 'Bloqué' : 'Actif'"
-											:severity="slotProps.data.blocked_at ? 'danger' : 'success'"
-										/>
-									</template>
-								</Column>
-
-								<Column field="created_at" header="Créé le">
-									<template #body="slotProps">
-										{{ new Date(slotProps.data.created_at).toLocaleDateString('fr-FR') }}
-									</template>
-								</Column>
-
-								<Column header="Actions">
-									<template #body="slotProps">
-										<div class="flex gap-2">
-											<Button
-												icon="pi pi-eye"
-												size="small"
-												severity="info"
-												@click="loadUserDetails(slotProps.data)"
-												v-tooltip="'Voir les détails'"
-											/>
-											<Button
-												icon="pi pi-chart-line"
-												size="small"
-												severity="secondary"
-												@click="loadUserMetrics(slotProps.data.user_id)"
-												v-tooltip="'Voir les métriques'"
-											/>
-											<Button
-												icon="pi pi-pencil"
-												size="small"
-												severity="warning"
-												@click="prepareEditForm(slotProps.data)"
-												v-tooltip="'Modifier'"
-											/>
-											<Button
-												v-if="!slotProps.data.blocked_at"
-												icon="pi pi-ban"
-												size="small"
-												severity="danger"
-												@click="blockUser(slotProps.data)"
-												v-tooltip="'Bloquer'"
-											/>
-											<Button
-												v-else
-												icon="pi pi-check-circle"
-												size="small"
-												severity="success"
-												@click="unblockUser(slotProps.data)"
-												v-tooltip="'Débloquer'"
-											/>
-											<Button
-												icon="pi pi-trash"
-												size="small"
-												severity="danger"
-												@click="deleteUser(slotProps.data)"
-												v-tooltip="'Supprimer'"
-											/>
-										</div>
-									</template>
-								</Column>
-							</DataTable>
-						</template>
-					</Card>
-				</TabPanel>
-
-				<TabPanel header="Détails Utilisateur">
-					<div v-if="selectedUser" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-						<!-- Informations de base -->
-						<Card>
-							<template #title>
-								<div class="flex items-center">
-									<i class="pi pi-user mr-2"></i>
-									Informations de base
-								</div>
-							</template>
-							<template #content>
-								<div class="space-y-4">
-									<div class="flex items-center justify-center mb-4">
-										<Avatar
-											v-if="selectedUser.avatar_path"
-											:image="selectedUser.avatar_path"
-											size="xlarge"
-											shape="circle"
-										/>
-										<Avatar
-											v-else
-											:label="selectedUser.username.charAt(0).toUpperCase()"
-											size="xlarge"
-											shape="circle"
-										/>
-									</div>
-
-									<div class="grid grid-cols-2 gap-4">
-										<div>
-											<label
-												class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-												ID Utilisateur
-											</label>
-											<div class="text-sm text-gray-600 dark:text-gray-400">
-												{{ selectedUser.user_id }}
-											</div>
-										</div>
-
-										<div>
-											<label
-												class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-												Nom d'utilisateur
-											</label>
-											<div class="text-sm text-gray-600 dark:text-gray-400">
-												{{ selectedUser.username }}
-											</div>
-										</div>
-
-										<div>
-											<label
-												class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-												Email
-											</label>
-											<div class="text-sm text-gray-600 dark:text-gray-400">
-												{{ selectedUser.email }}
-											</div>
-										</div>
-
-										<div>
-											<label
-												class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-												Rôle
-											</label>
+									<Column field="role_power" header="Rôle">
+										<template #body="slotProps">
 											<Tag
-												:value="getRoleLabel(selectedUser.role_power)"
-												:severity="selectedUser.role_power >= 100 ? 'danger' : 'info'"
+												:value="getRoleLabel(slotProps.data.role_power)"
+												:severity="slotProps.data.role_power >= 100 ? 'danger' : 'info'"
+											/>
+										</template>
+									</Column>
+
+									<Column header="Statut">
+										<template #body="slotProps">
+											<Tag
+												:value="slotProps.data.blocked_at ? 'Bloqué' : 'Actif'"
+												:severity="slotProps.data.blocked_at ? 'danger' : 'success'"
+											/>
+										</template>
+									</Column>
+
+									<Column field="created_at" header="Créé le">
+										<template #body="slotProps">
+											{{ new Date(slotProps.data.created_at).toLocaleDateString('fr-FR') }}
+										</template>
+									</Column>
+
+									<Column header="Actions">
+										<template #body="slotProps">
+											<div class="flex gap-2">
+												<Button
+													size="small"
+													severity="info"
+													class="w-10 h-10 p-0"
+													@click="loadUserDetails(slotProps.data)"
+													v-tooltip="'Voir les détails'"
+												>
+												<span
+													class="material-symbols-rounded text-sm"
+													v-if="!slotProps.data.blocked_at"
+												>
+													visibility
+												</span>
+												</Button>
+												<Button
+													size="small"
+													severity="secondary"
+													class="w-10 h-10 p-0"
+													@click="loadUserMetrics(slotProps.data.user_id)"
+													v-tooltip="'Voir les métriques'"
+												>
+													<span class="material-symbols-rounded text-sm">analytics</span>
+												</Button>
+												<Button
+													size="small"
+													severity="warning"
+													class="w-10 h-10 p-0"
+													@click="prepareEditForm(slotProps.data)"
+													v-tooltip="'Modifier'"
+												>
+													<span class="material-symbols-rounded text-sm">edit</span>
+												</Button>
+												<Button
+													v-if="!slotProps.data.blocked_at"
+													size="small"
+													severity="danger"
+													class="w-10 h-10 p-0"
+													@click="blockUser(slotProps.data)"
+													v-tooltip="'Bloquer'"
+												>
+													<span class="material-symbols-rounded text-sm">block</span>
+												</Button>
+												<Button
+													v-else
+													size="small"
+													severity="success"
+													class="w-10 h-10 p-0"
+													@click="unblockUser(slotProps.data)"
+													v-tooltip="'Débloquer'"
+												>
+													<span class="material-symbols-rounded text-sm">check_circle</span>
+												</Button>
+												<Button
+													size="small"
+													severity="danger"
+													class="w-10 h-10 p-0"
+													@click="deleteUser(slotProps.data)"
+													v-tooltip="'Supprimer'"
+												>
+													<span class="material-symbols-rounded text-sm">delete</span>
+												</Button>
+											</div>
+										</template>
+									</Column>
+								</DataTable>
+							</template>
+						</Card>
+					</TabPanel>
+
+					<TabPanel value="1">
+						<div v-if="selectedUser" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+							<!-- Informations de base -->
+							<Card class="border-[1px] border-slate-200 dark:border-zinc-700">
+								<template #title>
+									<div class="flex items-center">
+										<i class="pi pi-user mr-2"></i>
+										Informations de base
+									</div>
+								</template>
+								<template #content>
+									<div class="space-y-4">
+										<div class="flex items-center justify-center mb-4">
+											<Avatar
+												v-if="selectedUser.avatar_path"
+												:image="selectedUser.avatar_path"
+												size="xlarge"
+												shape="circle"
+											/>
+											<Avatar
+												v-else
+												:label="selectedUser.username.charAt(0).toUpperCase()"
+												size="xlarge"
+												shape="circle"
 											/>
 										</div>
 
-										<div>
-											<label
-												class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-												Prénom
-											</label>
+										<div class="grid grid-cols-2 gap-4">
+											<div>
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+													ID Utilisateur
+												</label>
+												<div class="text-sm text-gray-600 dark:text-gray-400">
+													{{ selectedUser.user_id }}
+												</div>
+											</div>
+
+											<div>
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+													Nom d'utilisateur
+												</label>
+												<div class="text-sm text-gray-600 dark:text-gray-400">
+													{{ selectedUser.username }}
+												</div>
+											</div>
+
+											<div>
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+													Email
+												</label>
+												<div class="text-sm text-gray-600 dark:text-gray-400">
+													{{ selectedUser.email }}
+												</div>
+											</div>
+
+											<div>
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+													Rôle
+												</label>
+												<Tag
+													:value="getRoleLabel(selectedUser.role_power)"
+													:severity="selectedUser.role_power >= 100 ? 'danger' : 'info'"
+												/>
+											</div>
+
+											<div>
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+													Prénom
+												</label>
+												<div class="text-sm text-gray-600 dark:text-gray-400">
+													{{ selectedUser.first_name || '-' }}
+												</div>
+											</div>
+
+											<div>
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+													Nom
+												</label>
+												<div class="text-sm text-gray-600 dark:text-gray-400">
+													{{ selectedUser.last_name || '-' }}
+												</div>
+											</div>
+
+											<div>
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+													Créé le
+												</label>
+												<div class="text-sm text-gray-600 dark:text-gray-400">
+													{{ new Date(selectedUser.created_at).toLocaleString('fr-FR') }}
+												</div>
+											</div>
+
+											<div>
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+													Dernière modification
+												</label>
+												<div class="text-sm text-gray-600 dark:text-gray-400">
+													{{ new Date(selectedUser.updated_at).toLocaleString('fr-FR') }}
+												</div>
+											</div>
+										</div>
+									</div>
+								</template>
+							</Card>
+
+							<!-- Métriques -->
+							<Card v-if="userMetrics">
+								<template #title>
+									<div class="flex items-center">
+										<i class="pi pi-chart-bar mr-2"></i>
+										Métriques et statistiques
+									</div>
+								</template>
+								<template #content>
+									<div class="grid grid-cols-2 gap-4">
+										<div class="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+											<div class="text-2xl font-bold text-blue-600">
+												{{ userMetrics.themes_count }}
+											</div>
 											<div class="text-sm text-gray-600 dark:text-gray-400">
-												{{ selectedUser.first_name || '-' }}
+												Thèmes créés
 											</div>
 										</div>
 
-										<div>
-											<label
-												class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-												Nom
-											</label>
+										<div class="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+											<div class="text-2xl font-bold text-green-600">
+												{{ userMetrics.tasks_count }}
+											</div>
 											<div class="text-sm text-gray-600 dark:text-gray-400">
-												{{ selectedUser.last_name || '-' }}
+												Tâches totales
 											</div>
 										</div>
 
-										<div>
-											<label
-												class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-												Créé le
-											</label>
+										<div class="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+											<div class="text-2xl font-bold text-purple-600">
+												{{ userMetrics.completed_tasks_count }}
+											</div>
 											<div class="text-sm text-gray-600 dark:text-gray-400">
-												{{ new Date(selectedUser.created_at).toLocaleString('fr-FR') }}
+												Tâches terminées
 											</div>
 										</div>
 
-										<div>
-											<label
-												class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-												Dernière modification
-											</label>
+										<div class="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+											<div class="text-2xl font-bold text-orange-600">
+												{{ userMetrics.themes_as_member }}
+											</div>
 											<div class="text-sm text-gray-600 dark:text-gray-400">
-												{{ new Date(selectedUser.updated_at).toLocaleString('fr-FR') }}
+												Thèmes membre
+											</div>
+										</div>
+
+										<div class="col-span-2 text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+											<div class="text-lg font-bold text-gray-700 dark:text-gray-300">
+												{{ userMetrics.account_age_days }} jours
+											</div>
+											<div class="text-sm text-gray-600 dark:text-gray-400">
+												Âge du compte
+											</div>
+										</div>
+
+										<div
+											class="col-span-2 text-center p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+											<div class="text-sm font-medium text-indigo-700 dark:text-indigo-300">
+												Dernière activité
+											</div>
+											<div class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+												{{ new Date(userMetrics.last_activity).toLocaleString('fr-FR') }}
 											</div>
 										</div>
 									</div>
-								</div>
-							</template>
-						</Card>
+								</template>
+							</Card>
+						</div>
 
-						<!-- Métriques -->
-						<Card v-if="userMetrics">
-							<template #title>
-								<div class="flex items-center">
-									<i class="pi pi-chart-bar mr-2"></i>
-									Métriques et statistiques
-								</div>
-							</template>
-							<template #content>
-								<div class="grid grid-cols-2 gap-4">
-									<div class="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-										<div class="text-2xl font-bold text-blue-600">
-											{{ userMetrics.themes_count }}
-										</div>
-										<div class="text-sm text-gray-600 dark:text-gray-400">
-											Thèmes créés
-										</div>
-									</div>
-
-									<div class="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-										<div class="text-2xl font-bold text-green-600">
-											{{ userMetrics.tasks_count }}
-										</div>
-										<div class="text-sm text-gray-600 dark:text-gray-400">
-											Tâches totales
-										</div>
-									</div>
-
-									<div class="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-										<div class="text-2xl font-bold text-purple-600">
-											{{ userMetrics.completed_tasks_count }}
-										</div>
-										<div class="text-sm text-gray-600 dark:text-gray-400">
-											Tâches terminées
-										</div>
-									</div>
-
-									<div class="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-										<div class="text-2xl font-bold text-orange-600">
-											{{ userMetrics.themes_as_member }}
-										</div>
-										<div class="text-sm text-gray-600 dark:text-gray-400">
-											Thèmes membre
-										</div>
-									</div>
-
-									<div class="col-span-2 text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-										<div class="text-lg font-bold text-gray-700 dark:text-gray-300">
-											{{ userMetrics.account_age_days }} jours
-										</div>
-										<div class="text-sm text-gray-600 dark:text-gray-400">
-											Âge du compte
-										</div>
-									</div>
-
-									<div
-										class="col-span-2 text-center p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-										<div class="text-sm font-medium text-indigo-700 dark:text-indigo-300">
-											Dernière activité
-										</div>
-										<div class="text-xs text-gray-600 dark:text-gray-400 mt-1">
-											{{ new Date(userMetrics.last_activity).toLocaleString('fr-FR') }}
-										</div>
-									</div>
-								</div>
-							</template>
-						</Card>
-					</div>
-
-					<div v-else class="text-center p-8">
-						<i class="pi pi-info-circle text-4xl text-gray-400 mb-4"></i>
-						<p class="text-gray-600 dark:text-gray-400">
-							Sélectionnez un utilisateur pour voir ses détails
-						</p>
-					</div>
-				</TabPanel>
-			</TabView>
+						<div v-else class="text-center p-8">
+							<i class="pi pi-info-circle text-4xl text-gray-400 mb-4"></i>
+							<p class="text-gray-600 dark:text-gray-400">
+								Sélectionnez un utilisateur pour voir ses détails
+							</p>
+						</div>
+					</TabPanel>
+				</TabPanels>
+			</LazyTabs>
 		</div>
 
 		<!-- Dialog de création -->
@@ -815,7 +894,7 @@ onMounted(() => {
 
 				<div>
 					<label class="block text-sm font-medium mb-2">Rôle *</label>
-					<Dropdown
+					<Select
 						v-model="createForm.role_power"
 						:options="roles"
 						option-label="name"
@@ -891,7 +970,7 @@ onMounted(() => {
 
 				<div>
 					<label class="block text-sm font-medium mb-2">Rôle *</label>
-					<Dropdown
+					<Select
 						v-model="editForm.role_power"
 						:options="roles"
 						option-label="name"
