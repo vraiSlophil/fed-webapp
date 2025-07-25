@@ -122,13 +122,12 @@ export const useThemeMembers = () => {
 
             searchResults.value = response.data.users
                 .map(member => {
-                    //vérifier que avatar_url est défini, si oui ajouter back/api/media/ devant
+                    //vérifier que avatar_path est défini, si oui ajouter back/api/media/ devant
                     const config = useRuntimeConfig()
                     return ({
                         ...member,
-                        avatar_url: member.avatar_url ? `${config.public.BACKEND_URL}/api/media/${member.avatar_url}` : null
+                        avatar_path: member.avatar_path ? `${config.public.BACKEND_URL}/api/media/${member.avatar_path}` : null
                     } as ThemeMember)
-
                 })
         } catch (error: any) {
             console.error(error.value)
@@ -158,11 +157,11 @@ export const useThemeMembers = () => {
 
             members.value = response.data.members
                 .map(member => {
-                //vérifier que avatar_url est défini, si oui ajouter back/api/media/ devant
+                //vérifier que avatar_path est défini, si oui ajouter back/api/media/ devant
                 const config = useRuntimeConfig()
                 return ({
                     ...member,
-                    avatar_url: member.avatar_url ? `${config.public.BACKEND_URL}/api/media/${member.avatar_url}` : null
+                    avatar_path: member.avatar_path ? `${config.public.BACKEND_URL}/api/media/${member.avatar_path}` : null
                 } as ThemeMember)
 
             })

@@ -111,8 +111,8 @@ const getDisplayName = (person: any) => {
     <div v-if="displayPerson" class="flex items-center gap-3 mb-4">
       <div class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center overflow-hidden">
         <img
-            v-if="displayPerson.avatar_url"
-            :src="displayPerson.avatar_url"
+            v-if="displayPerson.avatar_path"
+            :src="displayPerson.avatar_path"
             :alt="displayPerson.username"
             class="w-full h-full object-cover"
         />

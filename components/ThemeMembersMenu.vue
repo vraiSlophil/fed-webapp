@@ -313,8 +313,8 @@ const getDisplayName = (member: ThemeMember) => {
 									<div
 										class="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center overflow-hidden">
 										<img
-											v-if="member.avatar_url"
-											:src="member.avatar_url"
+											v-if="member.avatar_path"
+											:src="member.avatar_path"
 											:alt="member.username"
 											class="w-full h-full object-cover"
 										/>
@@ -428,8 +428,8 @@ const getDisplayName = (member: ThemeMember) => {
 										<div
 											class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center overflow-hidden">
 											<img
-												v-if="user.avatar_url"
-												:src="user.avatar_url"
+												v-if="user.avatar_path"
+												:src="user.avatar_path"
 												:alt="user.username"
 												class="w-full h-full object-cover"
 											/>

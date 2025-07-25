@@ -133,7 +133,7 @@ const formatLastLogin = computed(() => {
 
 <template>
 	<div class="flex min-h-screen items-center justify-center flex-col">
-		<div class="flex items-center justify-center mb-4 w-full">
+		<div class="absolute top-4 left-1/2 -translate-x-1/2 z-50 w-min text-nowrap flex items-center justify-center">
 			<span class="material-symbols-rounded text-blue-500 mr-2">arrow_back</span>
 			<NuxtLink class="text-blue-500 hover:underline flex justify-center items-center" to="/">
 				Retour à l'accueil

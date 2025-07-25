@@ -5,7 +5,7 @@ export type ThemeMemberUser = {
     email: string
     first_name?: string | null
     last_name?: string | null
-    avatar_url?: string | null
+    avatar_path?: string | null
 }
 
 export type ThemeMemberPermissions = {
@@ -25,7 +25,7 @@ export type ThemeMember = {
     email: string
     first_name?: string | null
     last_name?: string | null
-    avatar_url?: string | null
+    avatar_path?: string | null
     status: ThemeMemberStatus
     invited_at?: string | null
     permissions: ThemeMemberPermissions
