@@ -3,8 +3,8 @@ import type {
 	User,
 	Role,
 	UserResponse,
-	SpecificUserMetrics,
-	UsersMetrics
+	UserSpecificMetrics,
+	UsersMetrics, UserDetailsResponse
 } from '~/types/user'
 
 interface AdminStats {
@@ -18,7 +18,7 @@ interface AdminStats {
 const activeTab = ref<number>(0)
 const users = ref<User[]>([])
 const selectedUser = ref<User | null>(null)
-const userMetrics = ref<SpecificUserMetrics | null>(null)
+const userMetrics = ref<UserSpecificMetrics | null>(null)
 const roles = ref<Role[]>([])
 const globalStats = ref<UsersMetrics | null>(null)
 const loading = ref(false)
@@ -97,7 +97,7 @@ const loadUsers = async () => {
 // Charger les détails d'un utilisateur
 const loadUserDetails = async (user: User) => {
 	try {
-		const response = await useApiFetch(`/api/admin/users/${user.user_id}`)
+		const response = (await useApiFetch(`/api/admin/users/${user.user_id}`) as any).data as UserDetailsResponse
 		selectedUser.value = response.user
 		userMetrics.value = response.additional_stats
 	} catch (error: any) {
@@ -606,11 +606,11 @@ onMounted(() => {
 													severity="info"
 													class="w-10 h-10 p-0"
 													@click="loadUserDetails(slotProps.data)"
-													v-tooltip="'Voir les détails'"
+													v-tooltip.bottom="'Voir les détails'"
+
 												>
 												<span
 													class="material-symbols-rounded text-sm"
-													v-if="!slotProps.data.blocked_at"
 												>
 													visibility
 												</span>
@@ -620,7 +620,7 @@ onMounted(() => {
 													severity="secondary"
 													class="w-10 h-10 p-0"
 													@click="loadUserMetrics(slotProps.data.user_id)"
-													v-tooltip="'Voir les métriques'"
+													v-tooltip.bottom="'Voir les métriques'"
 												>
 													<span class="material-symbols-rounded text-sm">analytics</span>
 												</Button>
@@ -629,7 +629,7 @@ onMounted(() => {
 													severity="warning"
 													class="w-10 h-10 p-0"
 													@click="prepareEditForm(slotProps.data)"
-													v-tooltip="'Modifier'"
+													v-tooltip.bottom="'Modifier'"
 												>
 													<span class="material-symbols-rounded text-sm">edit</span>
 												</Button>
@@ -639,7 +639,7 @@ onMounted(() => {
 													severity="danger"
 													class="w-10 h-10 p-0"
 													@click="blockUser(slotProps.data)"
-													v-tooltip="'Bloquer'"
+													v-tooltip.bottom="'Bloquer'"
 												>
 													<span class="material-symbols-rounded text-sm">block</span>
 												</Button>
@@ -649,7 +649,7 @@ onMounted(() => {
 													severity="success"
 													class="w-10 h-10 p-0"
 													@click="unblockUser(slotProps.data)"
-													v-tooltip="'Débloquer'"
+													v-tooltip.bottom="'Débloquer'"
 												>
 													<span class="material-symbols-rounded text-sm">check_circle</span>
 												</Button>
@@ -658,7 +658,7 @@ onMounted(() => {
 													severity="danger"
 													class="w-10 h-10 p-0"
 													@click="deleteUser(slotProps.data)"
-													v-tooltip="'Supprimer'"
+													v-tooltip.bottom="'Supprimer'"
 												>
 													<span class="material-symbols-rounded text-sm">delete</span>
 												</Button>
