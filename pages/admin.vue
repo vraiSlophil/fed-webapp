@@ -87,6 +87,7 @@ const loadUsers = async () => {
 		toast.add({
 			severity: 'error',
 			summary: 'Erreur',
+			life: 3000,
 			detail: error.message || 'Erreur lors du chargement des utilisateurs'
 		})
 	} finally {
@@ -98,12 +99,19 @@ const loadUsers = async () => {
 const loadUserDetails = async (user: User) => {
 	try {
 		const response = (await useApiFetch(`/api/admin/users/${user.user_id}`) as any).data as UserDetailsResponse
-		selectedUser.value = response.user
+		selectedUser.value = (() => {
+			const userData = response.user
+			return {
+				...userData,
+				avatar_path: userData.avatar_path ? `${useRuntimeConfig().public.BACKEND_URL}/api/media/${userData.avatar_path}` : null
+			}
+		})()
 		userMetrics.value = response.additional_stats
 	} catch (error: any) {
 		toast.add({
 			severity: 'error',
 			summary: 'Erreur',
+			life: 3000,
 			detail: error.message || 'Erreur lors du chargement des détails'
 		})
 	}
@@ -117,6 +125,7 @@ const loadUserMetrics = async (userId: string) => {
 		toast.add({
 			severity: 'error',
 			summary: 'Erreur',
+			life: 3000,
 			detail: error.message || 'Erreur lors du chargement des métriques'
 		})
 	}
@@ -150,6 +159,7 @@ const createUser = async () => {
 		toast.add({
 			severity: 'error',
 			summary: 'Erreur',
+			life: 3000,
 			detail: error.message || 'Erreur lors de la création'
 		})
 	}
@@ -184,6 +194,7 @@ const updateUser = async () => {
 		toast.add({
 			severity: 'error',
 			summary: 'Erreur',
+			life: 3000,
 			detail: error.message || 'Erreur lors de la modification'
 		})
 	}
@@ -207,6 +218,7 @@ const deleteUser = async (user: User) => {
 		toast.add({
 			severity: 'error',
 			summary: 'Erreur',
+			life: 3000,
 			detail: error.message || 'Erreur lors de la suppression'
 		})
 	}
@@ -230,6 +242,7 @@ const blockUser = async (user: User) => {
 		toast.add({
 			severity: 'error',
 			summary: 'Erreur',
+			life: 3000,
 			detail: error.message || 'Erreur lors du blocage'
 		})
 	}
@@ -253,6 +266,7 @@ const unblockUser = async (user: User) => {
 		toast.add({
 			severity: 'error',
 			summary: 'Erreur',
+			life: 3000,
 			detail: error.message || 'Erreur lors du déblocage'
 		})
 	}
@@ -297,6 +311,11 @@ const onPageChange = (event: any) => {
 	loadUsers()
 }
 
+const switchToUserDetails = (user: User) => {
+	loadUserDetails(user)
+	activeTab.value = 1
+}
+
 // Watchers pour les filtres
 let filterTimeout: ReturnType<typeof setTimeout> | null = null
 
@@ -336,23 +355,20 @@ onMounted(() => {
 			</div>
 
 			<!-- Tabs -->
-			<LazyTabs value="0"
+			<LazyTabs v-model:value="activeTab"
 					  class="mb-6 border-[1px] border-slate-200 dark:border-zinc-700 rounded-3xl overflow-hidden">
 				<TabList>
-					<Tab value="0" class="flex justify-center items-center">
+					<Tab :value="0" class="flex justify-center items-center">
 						<span class="material-symbols-rounded mr-2">group</span>
 						Utilisateurs
 					</Tab>
-					<Tab value="1" class="flex justify-center items-center">
+					<Tab :value="1" class="flex justify-center items-center">
 						<span class="material-symbols-rounded mr-2">info</span>
 						Détails Utilisateur
 					</Tab>
 				</TabList>
-				<TabPanels
-					:active-index="activeTab"
-					@update:activeIndex="activeTab = $event"
-				>
-					<TabPanel value="0">
+				<TabPanels>
+					<TabPanel :value="0">
 						<!-- Statistiques globales -->
 						<div
 							class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
@@ -605,7 +621,7 @@ onMounted(() => {
 													size="small"
 													severity="info"
 													class="w-10 h-10 p-0"
-													@click="loadUserDetails(slotProps.data)"
+													@click="switchToUserDetails(slotProps.data)"
 													v-tooltip.bottom="'Voir les détails'"
 
 												>
@@ -670,13 +686,15 @@ onMounted(() => {
 						</Card>
 					</TabPanel>
 
-					<TabPanel value="1">
+					<TabPanel :value="1">
 						<div v-if="selectedUser" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 							<!-- Informations de base -->
 							<Card class="border-[1px] border-slate-200 dark:border-zinc-700">
 								<template #title>
 									<div class="flex items-center">
-										<i class="pi pi-user mr-2"></i>
+										<span class="material-symbols-rounded mr-2 text-gray-600 dark:text-gray-300">
+											info
+										</span>
 										Informations de base
 									</div>
 								</template>
@@ -699,8 +717,7 @@ onMounted(() => {
 
 										<div class="grid grid-cols-2 gap-4">
 											<div>
-												<label
-													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+												<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
 													ID Utilisateur
 												</label>
 												<div class="text-sm text-gray-600 dark:text-gray-400">
@@ -709,8 +726,7 @@ onMounted(() => {
 											</div>
 
 											<div>
-												<label
-													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+												<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
 													Nom d'utilisateur
 												</label>
 												<div class="text-sm text-gray-600 dark:text-gray-400">
@@ -719,8 +735,7 @@ onMounted(() => {
 											</div>
 
 											<div>
-												<label
-													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+												<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
 													Email
 												</label>
 												<div class="text-sm text-gray-600 dark:text-gray-400">
@@ -729,8 +744,35 @@ onMounted(() => {
 											</div>
 
 											<div>
-												<label
-													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+												<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+													Email vérifié
+												</label>
+												<Tag
+													:value="selectedUser.email_verified_at ? 'Vérifié' : 'Non vérifié'"
+													:severity="selectedUser.email_verified_at ? 'success' : 'warning'"
+												/>
+											</div>
+
+											<div>
+												<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+													Prénom
+												</label>
+												<div class="text-sm text-gray-600 dark:text-gray-400">
+													{{ selectedUser.first_name || '-' }}
+												</div>
+											</div>
+
+											<div>
+												<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+													Nom
+												</label>
+												<div class="text-sm text-gray-600 dark:text-gray-400">
+													{{ selectedUser.last_name || '-' }}
+												</div>
+											</div>
+
+											<div>
+												<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
 													Rôle
 												</label>
 												<Tag
@@ -740,42 +782,66 @@ onMounted(() => {
 											</div>
 
 											<div>
-												<label
-													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-													Prénom
+												<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+													Statut
+												</label>
+												<Tag
+													:value="selectedUser.blocked_at ? 'Bloqué' : 'Actif'"
+													:severity="selectedUser.blocked_at ? 'danger' : 'success'"
+												/>
+											</div>
+
+											<div>
+												<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+													Dernière connexion
 												</label>
 												<div class="text-sm text-gray-600 dark:text-gray-400">
-													{{ selectedUser.first_name || '-' }}
+													{{ selectedUser.last_login_at ? new Date(selectedUser.last_login_at).toLocaleString('fr-FR') : 'Jamais' }}
 												</div>
 											</div>
 
 											<div>
-												<label
-													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-													Nom
+												<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+													IP dernière connexion
 												</label>
 												<div class="text-sm text-gray-600 dark:text-gray-400">
-													{{ selectedUser.last_name || '-' }}
+													{{ selectedUser.last_login_ip || '-' }}
 												</div>
 											</div>
 
 											<div>
-												<label
-													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+												<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+													Email vérifié le
+												</label>
+												<div class="text-sm text-gray-600 dark:text-gray-400">
+													{{ selectedUser.email_verified_at ? new Date(selectedUser.email_verified_at).toLocaleString('fr-FR') : 'Non vérifié' }}
+												</div>
+											</div>
+
+											<div>
+												<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+													Bloqué le
+												</label>
+												<div class="text-sm text-gray-600 dark:text-gray-400">
+													{{ selectedUser.blocked_at ? new Date(selectedUser.blocked_at).toLocaleString('fr-FR') : '-' }}
+												</div>
+											</div>
+
+											<div>
+												<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
 													Créé le
 												</label>
 												<div class="text-sm text-gray-600 dark:text-gray-400">
-													{{ new Date(selectedUser.created_at).toLocaleString('fr-FR') }}
+													{{ selectedUser.created_at ? new Date(selectedUser.created_at).toLocaleString('fr-FR') : '-' }}
 												</div>
 											</div>
 
 											<div>
-												<label
-													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+												<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
 													Dernière modification
 												</label>
 												<div class="text-sm text-gray-600 dark:text-gray-400">
-													{{ new Date(selectedUser.updated_at).toLocaleString('fr-FR') }}
+													{{ selectedUser.updated_at ? new Date(selectedUser.updated_at).toLocaleString('fr-FR') : '-' }}
 												</div>
 											</div>
 										</div>
@@ -783,68 +849,147 @@ onMounted(() => {
 								</template>
 							</Card>
 
-							<!-- Métriques -->
-							<Card v-if="userMetrics">
+							<!-- Métriques détaillées -->
+							<Card v-if="userMetrics" class="border-[1px] border-slate-200 dark:border-zinc-700">
 								<template #title>
 									<div class="flex items-center">
-										<i class="pi pi-chart-bar mr-2"></i>
+										<span class="material-symbols-rounded mr-2 text-gray-600 dark:text-gray-300">
+											analytics
+										</span>
 										Métriques et statistiques
 									</div>
 								</template>
 								<template #content>
-									<div class="grid grid-cols-2 gap-4">
-										<div class="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-											<div class="text-2xl font-bold text-blue-600">
-												{{ userMetrics.themes_count }}
-											</div>
-											<div class="text-sm text-gray-600 dark:text-gray-400">
-												Thèmes créés
-											</div>
-										</div>
-
-										<div class="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-											<div class="text-2xl font-bold text-green-600">
-												{{ userMetrics.tasks_count }}
-											</div>
-											<div class="text-sm text-gray-600 dark:text-gray-400">
-												Tâches totales
-											</div>
-										</div>
-
-										<div class="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-											<div class="text-2xl font-bold text-purple-600">
-												{{ userMetrics.completed_tasks_count }}
-											</div>
-											<div class="text-sm text-gray-600 dark:text-gray-400">
-												Tâches terminées
+									<div class="space-y-6">
+										<!-- Stats de base -->
+										<div>
+											<h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Activité générale</h4>
+											<div class="grid grid-cols-2 gap-4">
+												<div class="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+													<div class="text-2xl font-bold text-blue-600">{{ userMetrics.themes_count }}</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Thèmes créés</div>
+												</div>
+												<div class="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+													<div class="text-2xl font-bold text-green-600">{{ userMetrics.tasks_count }}</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Tâches totales</div>
+												</div>
+												<div class="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+													<div class="text-2xl font-bold text-purple-600">{{ userMetrics.completed_tasks_count }}</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Tâches terminées</div>
+												</div>
+												<div class="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+													<div class="text-2xl font-bold text-orange-600">{{ userMetrics.completion_rate_percentage }}%</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Taux de completion</div>
+												</div>
 											</div>
 										</div>
 
-										<div class="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-											<div class="text-2xl font-bold text-orange-600">
-												{{ userMetrics.themes_as_member }}
-											</div>
-											<div class="text-sm text-gray-600 dark:text-gray-400">
-												Thèmes membre
-											</div>
-										</div>
-
-										<div class="col-span-2 text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-											<div class="text-lg font-bold text-gray-700 dark:text-gray-300">
-												{{ userMetrics.account_age_days }} jours
-											</div>
-											<div class="text-sm text-gray-600 dark:text-gray-400">
-												Âge du compte
+										<!-- Collaboration -->
+										<div>
+											<h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Collaboration</h4>
+											<div class="grid grid-cols-2 gap-4">
+												<div class="text-center p-4 bg-cyan-50 dark:bg-cyan-900/20 rounded-lg">
+													<div class="text-2xl font-bold text-cyan-600">{{ userMetrics.themes_as_member }}</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Thèmes membre</div>
+												</div>
+												<div class="text-center p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+													<div class="text-2xl font-bold text-yellow-600">{{ userMetrics.pending_invitations }}</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Invitations en attente</div>
+												</div>
 											</div>
 										</div>
 
-										<div
-											class="col-span-2 text-center p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-											<div class="text-sm font-medium text-indigo-700 dark:text-indigo-300">
-												Dernière activité
+										<!-- Temps et activité -->
+										<div>
+											<h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Temps et activité</h4>
+											<div class="grid grid-cols-2 gap-4">
+												<div class="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+													<div class="text-lg font-bold text-gray-700 dark:text-gray-300">{{ userMetrics.account_age_days }}</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Jours d'ancienneté</div>
+												</div>
+												<div class="text-center p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+													<div class="text-lg font-bold text-indigo-600">{{ userMetrics.days_since_last_login ?? 'N/A' }}</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Jours depuis dernière connexion</div>
+												</div>
 											</div>
-											<div class="text-xs text-gray-600 dark:text-gray-400 mt-1">
-												{{ new Date(userMetrics.last_activity).toLocaleString('fr-FR') }}
+											<div class="mt-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+												<div class="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Ancienneté du compte</div>
+												<div class="text-xs text-gray-600 dark:text-gray-400">{{ userMetrics.account_age_human }}</div>
+											</div>
+											<div class="mt-2 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+												<div class="text-sm font-medium text-emerald-700 dark:text-emerald-300 mb-1">Dernière activité</div>
+												<div class="text-xs text-gray-600 dark:text-gray-400">{{ new Date(userMetrics.last_activity).toLocaleString('fr-FR') }}</div>
+											</div>
+										</div>
+
+										<!-- Activité récente -->
+										<div>
+											<h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Activité récente</h4>
+											<div class="grid grid-cols-3 gap-3">
+												<div class="text-center p-3 bg-rose-50 dark:bg-rose-900/20 rounded-lg">
+													<div class="text-lg font-bold text-rose-600">{{ userMetrics.recent_activity.tasks_last_7_days }}</div>
+													<div class="text-xs text-gray-600 dark:text-gray-400">Tâches 7j</div>
+												</div>
+												<div class="text-center p-3 bg-violet-50 dark:bg-violet-900/20 rounded-lg">
+													<div class="text-lg font-bold text-violet-600">{{ userMetrics.recent_activity.themes_last_7_days }}</div>
+													<div class="text-xs text-gray-600 dark:text-gray-400">Thèmes 7j</div>
+												</div>
+												<div class="text-center p-3 bg-teal-50 dark:bg-teal-900/20 rounded-lg">
+													<div class="text-lg font-bold text-teal-600">{{ userMetrics.recent_activity.active_days_last_30 }}</div>
+													<div class="text-xs text-gray-600 dark:text-gray-400">Jours actifs 30j</div>
+												</div>
+											</div>
+										</div>
+
+										<!-- Stats avancées -->
+										<div>
+											<h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Statistiques avancées</h4>
+											<div class="grid grid-cols-2 gap-4">
+												<div class="text-center p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+													<div class="text-lg font-bold text-amber-600">{{ userMetrics.average_tasks_per_theme.toFixed(1) }}</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Tâches par thème (moy.)</div>
+												</div>
+												<div class="text-center p-4 bg-lime-50 dark:bg-lime-900/20 rounded-lg">
+													<div class="text-lg font-bold text-lime-600">{{ userMetrics.validated_tasks_count }}</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Tâches validées</div>
+												</div>
+												<div class="text-center p-4 bg-stone-50 dark:bg-stone-800 rounded-lg">
+													<div class="text-lg font-bold text-stone-600">{{ userMetrics.archived_tasks_count }}</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Tâches archivées</div>
+												</div>
+											</div>
+										</div>
+
+										<!-- Statut du compte -->
+										<div>
+											<h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Statut du compte</h4>
+											<div class="grid grid-cols-2 gap-4">
+												<div class="p-4 border rounded-lg" :class="userMetrics.is_blocked ? 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20' : 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20'">
+													<div class="flex items-center">
+														<span class="material-symbols-rounded !text-lg mr-2" :class="userMetrics.is_blocked ? 'text-red-600' : 'text-green-600'">
+															{{ userMetrics.is_blocked ? 'block' : 'check_circle' }}
+														</span>
+														<span class="font-medium" :class="userMetrics.is_blocked ? 'text-red-800 dark:text-red-300' : 'text-green-800 dark:text-green-300'">
+															{{ userMetrics.is_blocked ? 'Compte bloqué' : 'Compte actif' }}
+														</span>
+													</div>
+													<div v-if="userMetrics.blocked_since" class="text-xs mt-1 text-red-600 dark:text-red-400">
+														Bloqué {{ userMetrics.blocked_since }}
+													</div>
+												</div>
+												<div class="p-4 border rounded-lg" :class="userMetrics.is_email_verified ? 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20' : 'border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20'">
+													<div class="flex items-center">
+														<span class="material-symbols-rounded !text-lg mr-2" :class="userMetrics.is_email_verified ? 'text-blue-600' : 'text-orange-600'">
+															{{ userMetrics.is_email_verified ? 'verified' : 'error' }}
+														</span>
+														<span class="font-medium" :class="userMetrics.is_email_verified ? 'text-blue-800 dark:text-blue-300' : 'text-orange-800 dark:text-orange-300'">
+															{{ userMetrics.is_email_verified ? 'Email vérifié' : 'Email non vérifié' }}
+														</span>
+													</div>
+													<div v-if="userMetrics.verified_since" class="text-xs mt-1 text-blue-600 dark:text-blue-400">
+														Vérifié {{ userMetrics.verified_since }}
+													</div>
+												</div>
 											</div>
 										</div>
 									</div>
@@ -853,7 +998,9 @@ onMounted(() => {
 						</div>
 
 						<div v-else class="text-center p-8">
-							<i class="pi pi-info-circle text-4xl text-gray-400 mb-4"></i>
+							<span class="material-symbols-rounded text-gray-400 !text-6xl mb-4">
+								people
+							</span>
 							<p class="text-gray-600 dark:text-gray-400">
 								Sélectionnez un utilisateur pour voir ses détails
 							</p>
