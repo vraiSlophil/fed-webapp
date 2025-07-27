@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import type {
 	User,
 	Role,
@@ -55,7 +55,20 @@ const editForm = ref({
 	avatar: null as File | null
 })
 
+const avatarPreview = ref<string | null>(null)
+
+// Ajouter ces nouvelles variables
+const deleteDialogVisible = ref(false)
+const userToDelete = ref<User | null>(null)
+
 const toast = useToast()
+
+// Modifier la fonction deleteUser pour inclure la confirmation
+const confirmDeleteUser = (user: User) => {
+	userToDelete.value = user
+	deleteDialogVisible.value = true
+}
+
 
 // Charger les utilisateurs
 const loadUsers = async () => {
@@ -117,19 +130,19 @@ const loadUserDetails = async (user: User) => {
 	}
 }
 
-// Charger les métriques d'un utilisateur
-const loadUserMetrics = async (userId: string) => {
-	try {
-		userMetrics.value = await useApiFetch(`/api/admin/users/${userId}/metrics`)
-	} catch (error: any) {
-		toast.add({
-			severity: 'error',
-			summary: 'Erreur',
-			life: 3000,
-			detail: error.message || 'Erreur lors du chargement des métriques'
-		})
-	}
-}
+// // Charger les métriques d'un utilisateur
+// const loadUserMetrics = async (userId: string) => {
+// 	try {
+// 		userMetrics.value = await useApiFetch(`/api/admin/users/${userId}/metrics`)
+// 	} catch (error: any) {
+// 		toast.add({
+// 			severity: 'error',
+// 			summary: 'Erreur',
+// 			life: 3000,
+// 			detail: error.message || 'Erreur lors du chargement des métriques'
+// 		})
+// 	}
+// }
 
 // Créer un utilisateur
 const createUser = async () => {
@@ -149,6 +162,7 @@ const createUser = async () => {
 		toast.add({
 			severity: 'success',
 			summary: 'Succès',
+			life: 3000,
 			detail: 'Utilisateur créé avec succès'
 		})
 
@@ -178,13 +192,14 @@ const updateUser = async () => {
 		})
 
 		await useApiFetch(`/api/admin/users/${selectedUser.value.user_id}`, {
-			method: HttpMethods.PUT,
+			method: HttpMethods.POST,
 			body: formData
 		})
 
 		toast.add({
 			severity: 'success',
 			summary: 'Succès',
+			life: 3000,
 			detail: 'Utilisateur modifié avec succès'
 		})
 
@@ -200,17 +215,20 @@ const updateUser = async () => {
 	}
 }
 
-// Supprimer un utilisateur
-const deleteUser = async (user: User) => {
+// Créer une nouvelle fonction pour effectuer la suppression après confirmation
+const handleDeleteUser = async () => {
+	if (!userToDelete.value) return
+
 	try {
-		await useApiFetch(`/api/admin/users/${user.user_id}`, {
+		await useApiFetch(`/api/admin/users/${userToDelete.value.user_id}`, {
 			method: HttpMethods.DELETE
 		})
 
 		toast.add({
 			severity: 'success',
 			summary: 'Succès',
-			detail: 'Utilisateur supprimé avec succès'
+			detail: 'Utilisateur supprimé avec succès',
+			life: 3000
 		})
 
 		await loadUsers()
@@ -221,8 +239,12 @@ const deleteUser = async (user: User) => {
 			life: 3000,
 			detail: error.message || 'Erreur lors de la suppression'
 		})
+	} finally {
+		deleteDialogVisible.value = false
+		userToDelete.value = null
 	}
 }
+
 
 // Bloquer un utilisateur
 const blockUser = async (user: User) => {
@@ -234,6 +256,7 @@ const blockUser = async (user: User) => {
 		toast.add({
 			severity: 'success',
 			summary: 'Succès',
+			life: 3000,
 			detail: 'Utilisateur bloqué avec succès'
 		})
 
@@ -258,6 +281,7 @@ const unblockUser = async (user: User) => {
 		toast.add({
 			severity: 'success',
 			summary: 'Succès',
+			life: 3000,
 			detail: 'Utilisateur débloqué avec succès'
 		})
 
@@ -272,6 +296,45 @@ const unblockUser = async (user: User) => {
 	}
 }
 
+// Fonction pour gérer le changement de fichier
+const handleFileChange = (event: Event, formType: 'create' | 'edit') => {
+	const target = event.target as HTMLInputElement
+
+	if (target.files && target.files.length > 0) {
+		const file = target.files[0]
+
+		// Vérifier que c'est bien une image
+		if (!file.type.startsWith('image/')) {
+			toast.add({
+				severity: 'error',
+				summary: 'Erreur',
+				detail: 'Le fichier doit être une image',
+				life: 3000
+			})
+			return
+		}
+
+		// Créer une URL pour la prévisualisation
+		avatarPreview.value = URL.createObjectURL(file)
+
+		// Mettre à jour le formulaire approprié
+		if (formType === 'create') {
+			createForm.value.avatar = file
+		} else {
+			editForm.value.avatar = file
+		}
+	}
+}
+
+// Pour nettoyer l'URL de prévisualisation quand on ferme le formulaire
+const cleanupPreview = () => {
+	if (avatarPreview.value) {
+		URL.revokeObjectURL(avatarPreview.value)
+		avatarPreview.value = null
+	}
+}
+
+
 // Utilitaires
 const resetCreateForm = () => {
 	createForm.value = {
@@ -284,6 +347,7 @@ const resetCreateForm = () => {
 		role_power: 1,
 		avatar: null
 	}
+	cleanupPreview()
 }
 
 const prepareEditForm = (user: User) => {
@@ -299,7 +363,15 @@ const prepareEditForm = (user: User) => {
 	}
 	selectedUser.value = user
 	showEditDialog.value = true
+
+	// Si l'utilisateur a déjà un avatar, l'utiliser comme prévisualisation
+	if (user.avatar_path) {
+		avatarPreview.value = user.avatar_path
+	} else {
+		avatarPreview.value = null
+	}
 }
+
 
 const getRoleLabel = (power: number) => {
 	const role = roles.value.find(r => r.power === power)
@@ -325,6 +397,14 @@ watch([searchQuery, selectedRole, selectedStatus], () => {
 		currentPage.value = 1
 		loadUsers()
 	}, 500)
+})
+
+watch(showCreateDialog, (newVal) => {
+	if (!newVal) cleanupPreview()
+})
+
+watch(showEditDialog, (newVal) => {
+	if (!newVal) cleanupPreview()
 })
 
 // Chargement initial
@@ -371,8 +451,8 @@ onMounted(() => {
 					<TabPanel :value="0">
 						<!-- Statistiques globales -->
 						<div
-							class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
 							:class="globalStats ? 'blur-none' : 'blur-sm'"
+							class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
 						>
 							<Card class="border-[1px] border-slate-200 dark:border-zinc-700">
 
@@ -495,18 +575,18 @@ onMounted(() => {
 										</span>
 										<InputText
 											v-model="searchQuery"
-											placeholder="Rechercher par nom, email..."
 											class="w-full h-11.5 pl-10 pr-4 py-2 text-sm flex items-center justify-between"
+											placeholder="Rechercher par nom, email..."
 										/>
 									</IconField>
 									<Select
 										v-model="selectedRole"
 										:options="roles"
+										class="flex-1 h-11.5"
 										option-label="name"
 										option-value="power"
 										placeholder="Filtrer par rôle"
 										show-clear
-										class="flex-1 h-11.5"
 									/>
 
 									<Select
@@ -515,17 +595,17 @@ onMounted(() => {
 											{ label: 'Actifs', value: 'active' },
 											{ label: 'Bloqués', value: 'blocked' }
 										]"
+										class="flex-1 h-11.5"
 										option-label="label"
 										option-value="value"
 										placeholder="Filtrer par statut"
 										show-clear
-										class="flex-1 h-11.5"
 									/>
 
 									<Button
-										@click="showCreateDialog = true"
 										class="flex-1 h-11.5"
 										severity="primary"
+										@click="showCreateDialog = true"
 									>
 										<span class="material-symbols-rounded mr-2">add</span>
 										Créer un utilisateur
@@ -547,11 +627,11 @@ onMounted(() => {
 								</div>
 								<DataTable
 									v-else
-									:value="users"
-									paginator
 									:rows="20"
 									:total-records="totalUsers"
+									:value="users"
 									lazy
+									paginator
 									@page="onPageChange"
 								>
 									<Column field="username" header="Nom d'utilisateur" sortable>
@@ -560,16 +640,16 @@ onMounted(() => {
 												<Avatar
 													v-if="slotProps.data.avatar_path"
 													:image="slotProps.data.avatar_path"
-													size="small"
-													shape="circle"
 													class="mr-2"
+													shape="circle"
+													size="small"
 												/>
 												<Avatar
 													v-else
 													:label="slotProps.data.username.charAt(0).toUpperCase()"
-													size="small"
-													shape="circle"
 													class="mr-2"
+													shape="circle"
+													size="small"
 												/>
 												<span class="font-medium">{{ slotProps.data.username }}</span>
 											</div>
@@ -593,8 +673,8 @@ onMounted(() => {
 									<Column field="role_power" header="Rôle">
 										<template #body="slotProps">
 											<Tag
-												:value="getRoleLabel(slotProps.data.role_power)"
 												:severity="slotProps.data.role_power >= 100 ? 'danger' : 'info'"
+												:value="getRoleLabel(slotProps.data.role_power)"
 											/>
 										</template>
 									</Column>
@@ -602,8 +682,8 @@ onMounted(() => {
 									<Column header="Statut">
 										<template #body="slotProps">
 											<Tag
-												:value="slotProps.data.blocked_at ? 'Bloqué' : 'Actif'"
 												:severity="slotProps.data.blocked_at ? 'danger' : 'success'"
+												:value="slotProps.data.blocked_at ? 'Bloqué' : 'Actif'"
 											/>
 										</template>
 									</Column>
@@ -618,11 +698,11 @@ onMounted(() => {
 										<template #body="slotProps">
 											<div class="flex gap-2">
 												<Button
-													size="small"
-													severity="info"
-													class="w-10 h-10 p-0"
-													@click="switchToUserDetails(slotProps.data)"
 													v-tooltip.bottom="'Voir les détails'"
+													class="w-10 h-10 p-0"
+													severity="info"
+													size="small"
+													@click="switchToUserDetails(slotProps.data)"
 
 												>
 												<span
@@ -631,50 +711,50 @@ onMounted(() => {
 													visibility
 												</span>
 												</Button>
+												<!--												<Button-->
+												<!--													size="small"-->
+												<!--													severity="secondary"-->
+												<!--													class="w-10 h-10 p-0"-->
+												<!--													@click="loadUserMetrics(slotProps.data.user_id)"-->
+												<!--													v-tooltip.bottom="'Voir les métriques'"-->
+												<!--												>-->
+												<!--													<span class="material-symbols-rounded text-sm">analytics</span>-->
+												<!--												</Button>-->
 												<Button
-													size="small"
-													severity="secondary"
-													class="w-10 h-10 p-0"
-													@click="loadUserMetrics(slotProps.data.user_id)"
-													v-tooltip.bottom="'Voir les métriques'"
-												>
-													<span class="material-symbols-rounded text-sm">analytics</span>
-												</Button>
-												<Button
-													size="small"
-													severity="warning"
-													class="w-10 h-10 p-0"
-													@click="prepareEditForm(slotProps.data)"
 													v-tooltip.bottom="'Modifier'"
+													class="w-10 h-10 p-0"
+													severity="warning"
+													size="small"
+													@click="prepareEditForm(slotProps.data)"
 												>
 													<span class="material-symbols-rounded text-sm">edit</span>
 												</Button>
 												<Button
 													v-if="!slotProps.data.blocked_at"
-													size="small"
-													severity="danger"
-													class="w-10 h-10 p-0"
-													@click="blockUser(slotProps.data)"
 													v-tooltip.bottom="'Bloquer'"
+													class="w-10 h-10 p-0"
+													severity="danger"
+													size="small"
+													@click="blockUser(slotProps.data)"
 												>
 													<span class="material-symbols-rounded text-sm">block</span>
 												</Button>
 												<Button
 													v-else
-													size="small"
-													severity="success"
-													class="w-10 h-10 p-0"
-													@click="unblockUser(slotProps.data)"
 													v-tooltip.bottom="'Débloquer'"
+													class="w-10 h-10 p-0"
+													severity="success"
+													size="small"
+													@click="unblockUser(slotProps.data)"
 												>
 													<span class="material-symbols-rounded text-sm">check_circle</span>
 												</Button>
 												<Button
-													size="small"
-													severity="danger"
-													class="w-10 h-10 p-0"
-													@click="deleteUser(slotProps.data)"
 													v-tooltip.bottom="'Supprimer'"
+													class="w-10 h-10 p-0"
+													severity="danger"
+													size="small"
+													@click="confirmDeleteUser(slotProps.data)"
 												>
 													<span class="material-symbols-rounded text-sm">delete</span>
 												</Button>
@@ -704,20 +784,21 @@ onMounted(() => {
 											<Avatar
 												v-if="selectedUser.avatar_path"
 												:image="selectedUser.avatar_path"
-												size="xlarge"
 												shape="circle"
+												size="xlarge"
 											/>
 											<Avatar
 												v-else
 												:label="selectedUser.username.charAt(0).toUpperCase()"
-												size="xlarge"
 												shape="circle"
+												size="xlarge"
 											/>
 										</div>
 
 										<div class="grid grid-cols-2 gap-4">
 											<div>
-												<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
 													ID Utilisateur
 												</label>
 												<div class="text-sm text-gray-600 dark:text-gray-400">
@@ -726,7 +807,8 @@ onMounted(() => {
 											</div>
 
 											<div>
-												<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
 													Nom d'utilisateur
 												</label>
 												<div class="text-sm text-gray-600 dark:text-gray-400">
@@ -735,7 +817,8 @@ onMounted(() => {
 											</div>
 
 											<div>
-												<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
 													Email
 												</label>
 												<div class="text-sm text-gray-600 dark:text-gray-400">
@@ -744,17 +827,19 @@ onMounted(() => {
 											</div>
 
 											<div>
-												<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
 													Email vérifié
 												</label>
 												<Tag
-													:value="selectedUser.email_verified_at ? 'Vérifié' : 'Non vérifié'"
 													:severity="selectedUser.email_verified_at ? 'success' : 'warning'"
+													:value="selectedUser.email_verified_at ? 'Vérifié' : 'Non vérifié'"
 												/>
 											</div>
 
 											<div>
-												<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
 													Prénom
 												</label>
 												<div class="text-sm text-gray-600 dark:text-gray-400">
@@ -763,7 +848,8 @@ onMounted(() => {
 											</div>
 
 											<div>
-												<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
 													Nom
 												</label>
 												<div class="text-sm text-gray-600 dark:text-gray-400">
@@ -772,36 +858,42 @@ onMounted(() => {
 											</div>
 
 											<div>
-												<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
 													Rôle
 												</label>
 												<Tag
-													:value="getRoleLabel(selectedUser.role_power)"
 													:severity="selectedUser.role_power >= 100 ? 'danger' : 'info'"
+													:value="getRoleLabel(selectedUser.role_power)"
 												/>
 											</div>
 
 											<div>
-												<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
 													Statut
 												</label>
 												<Tag
-													:value="selectedUser.blocked_at ? 'Bloqué' : 'Actif'"
 													:severity="selectedUser.blocked_at ? 'danger' : 'success'"
+													:value="selectedUser.blocked_at ? 'Bloqué' : 'Actif'"
 												/>
 											</div>
 
 											<div>
-												<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
 													Dernière connexion
 												</label>
 												<div class="text-sm text-gray-600 dark:text-gray-400">
-													{{ selectedUser.last_login_at ? new Date(selectedUser.last_login_at).toLocaleString('fr-FR') : 'Jamais' }}
+													{{
+														selectedUser.last_login_at ? new Date(selectedUser.last_login_at).toLocaleString('fr-FR') : 'Jamais'
+													}}
 												</div>
 											</div>
 
 											<div>
-												<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
 													IP dernière connexion
 												</label>
 												<div class="text-sm text-gray-600 dark:text-gray-400">
@@ -810,38 +902,50 @@ onMounted(() => {
 											</div>
 
 											<div>
-												<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
 													Email vérifié le
 												</label>
 												<div class="text-sm text-gray-600 dark:text-gray-400">
-													{{ selectedUser.email_verified_at ? new Date(selectedUser.email_verified_at).toLocaleString('fr-FR') : 'Non vérifié' }}
+													{{
+														selectedUser.email_verified_at ? new Date(selectedUser.email_verified_at).toLocaleString('fr-FR') : 'Non vérifié'
+													}}
 												</div>
 											</div>
 
 											<div>
-												<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
 													Bloqué le
 												</label>
 												<div class="text-sm text-gray-600 dark:text-gray-400">
-													{{ selectedUser.blocked_at ? new Date(selectedUser.blocked_at).toLocaleString('fr-FR') : '-' }}
+													{{
+														selectedUser.blocked_at ? new Date(selectedUser.blocked_at).toLocaleString('fr-FR') : '-'
+													}}
 												</div>
 											</div>
 
 											<div>
-												<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
 													Créé le
 												</label>
 												<div class="text-sm text-gray-600 dark:text-gray-400">
-													{{ selectedUser.created_at ? new Date(selectedUser.created_at).toLocaleString('fr-FR') : '-' }}
+													{{
+														selectedUser.created_at ? new Date(selectedUser.created_at).toLocaleString('fr-FR') : '-'
+													}}
 												</div>
 											</div>
 
 											<div>
-												<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
 													Dernière modification
 												</label>
 												<div class="text-sm text-gray-600 dark:text-gray-400">
-													{{ selectedUser.updated_at ? new Date(selectedUser.updated_at).toLocaleString('fr-FR') : '-' }}
+													{{
+														selectedUser.updated_at ? new Date(selectedUser.updated_at).toLocaleString('fr-FR') : '-'
+													}}
 												</div>
 											</div>
 										</div>
@@ -863,130 +967,218 @@ onMounted(() => {
 									<div class="space-y-6">
 										<!-- Stats de base -->
 										<div>
-											<h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Activité générale</h4>
+											<h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+												Activité générale</h4>
 											<div class="grid grid-cols-2 gap-4">
 												<div class="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-													<div class="text-2xl font-bold text-blue-600">{{ userMetrics.themes_count }}</div>
-													<div class="text-sm text-gray-600 dark:text-gray-400">Thèmes créés</div>
+													<div class="text-2xl font-bold text-blue-600">
+														{{ userMetrics.themes_count }}
+													</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Thèmes créés
+													</div>
 												</div>
-												<div class="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-													<div class="text-2xl font-bold text-green-600">{{ userMetrics.tasks_count }}</div>
-													<div class="text-sm text-gray-600 dark:text-gray-400">Tâches totales</div>
+												<div
+													class="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+													<div class="text-2xl font-bold text-green-600">
+														{{ userMetrics.tasks_count }}
+													</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Tâches
+														totales
+													</div>
 												</div>
-												<div class="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-													<div class="text-2xl font-bold text-purple-600">{{ userMetrics.completed_tasks_count }}</div>
-													<div class="text-sm text-gray-600 dark:text-gray-400">Tâches terminées</div>
+												<div
+													class="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+													<div class="text-2xl font-bold text-purple-600">
+														{{ userMetrics.completed_tasks_count }}
+													</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Tâches
+														terminées
+													</div>
 												</div>
-												<div class="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-													<div class="text-2xl font-bold text-orange-600">{{ userMetrics.completion_rate_percentage }}%</div>
-													<div class="text-sm text-gray-600 dark:text-gray-400">Taux de completion</div>
+												<div
+													class="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+													<div class="text-2xl font-bold text-orange-600">
+														{{ userMetrics.completion_rate_percentage }}%
+													</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Taux de
+														completion
+													</div>
 												</div>
 											</div>
 										</div>
 
 										<!-- Collaboration -->
 										<div>
-											<h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Collaboration</h4>
+											<h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+												Collaboration</h4>
 											<div class="grid grid-cols-2 gap-4">
 												<div class="text-center p-4 bg-cyan-50 dark:bg-cyan-900/20 rounded-lg">
-													<div class="text-2xl font-bold text-cyan-600">{{ userMetrics.themes_as_member }}</div>
-													<div class="text-sm text-gray-600 dark:text-gray-400">Thèmes membre</div>
+													<div class="text-2xl font-bold text-cyan-600">
+														{{ userMetrics.themes_as_member }}
+													</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Thèmes
+														membre
+													</div>
 												</div>
-												<div class="text-center p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-													<div class="text-2xl font-bold text-yellow-600">{{ userMetrics.pending_invitations }}</div>
-													<div class="text-sm text-gray-600 dark:text-gray-400">Invitations en attente</div>
+												<div
+													class="text-center p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+													<div class="text-2xl font-bold text-yellow-600">
+														{{ userMetrics.pending_invitations }}
+													</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Invitations en
+														attente
+													</div>
 												</div>
 											</div>
 										</div>
 
 										<!-- Temps et activité -->
 										<div>
-											<h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Temps et activité</h4>
+											<h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+												Temps et activité</h4>
 											<div class="grid grid-cols-2 gap-4">
 												<div class="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-													<div class="text-lg font-bold text-gray-700 dark:text-gray-300">{{ userMetrics.account_age_days }}</div>
-													<div class="text-sm text-gray-600 dark:text-gray-400">Jours d'ancienneté</div>
+													<div class="text-lg font-bold text-gray-700 dark:text-gray-300">
+														{{ userMetrics.account_age_days }}
+													</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Jours
+														d'ancienneté
+													</div>
 												</div>
-												<div class="text-center p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-													<div class="text-lg font-bold text-indigo-600">{{ userMetrics.days_since_last_login ?? 'N/A' }}</div>
-													<div class="text-sm text-gray-600 dark:text-gray-400">Jours depuis dernière connexion</div>
+												<div
+													class="text-center p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+													<div class="text-lg font-bold text-indigo-600">
+														{{ userMetrics.days_since_last_login ?? 'N/A' }}
+													</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Jours depuis
+														dernière connexion
+													</div>
 												</div>
 											</div>
 											<div class="mt-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
-												<div class="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Ancienneté du compte</div>
-												<div class="text-xs text-gray-600 dark:text-gray-400">{{ userMetrics.account_age_human }}</div>
+												<div
+													class="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+													Ancienneté du compte
+												</div>
+												<div class="text-xs text-gray-600 dark:text-gray-400">
+													{{ userMetrics.account_age_human }}
+												</div>
 											</div>
 											<div class="mt-2 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
-												<div class="text-sm font-medium text-emerald-700 dark:text-emerald-300 mb-1">Dernière activité</div>
-												<div class="text-xs text-gray-600 dark:text-gray-400">{{ new Date(userMetrics.last_activity).toLocaleString('fr-FR') }}</div>
+												<div
+													class="text-sm font-medium text-emerald-700 dark:text-emerald-300 mb-1">
+													Dernière activité
+												</div>
+												<div class="text-xs text-gray-600 dark:text-gray-400">
+													{{ new Date(userMetrics.last_activity).toLocaleString('fr-FR') }}
+												</div>
 											</div>
 										</div>
 
 										<!-- Activité récente -->
 										<div>
-											<h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Activité récente</h4>
+											<h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+												Activité récente</h4>
 											<div class="grid grid-cols-3 gap-3">
 												<div class="text-center p-3 bg-rose-50 dark:bg-rose-900/20 rounded-lg">
-													<div class="text-lg font-bold text-rose-600">{{ userMetrics.recent_activity.tasks_last_7_days }}</div>
-													<div class="text-xs text-gray-600 dark:text-gray-400">Tâches 7j</div>
+													<div class="text-lg font-bold text-rose-600">
+														{{ userMetrics.recent_activity.tasks_last_7_days }}
+													</div>
+													<div class="text-xs text-gray-600 dark:text-gray-400">Tâches 7j
+													</div>
 												</div>
-												<div class="text-center p-3 bg-violet-50 dark:bg-violet-900/20 rounded-lg">
-													<div class="text-lg font-bold text-violet-600">{{ userMetrics.recent_activity.themes_last_7_days }}</div>
-													<div class="text-xs text-gray-600 dark:text-gray-400">Thèmes 7j</div>
+												<div
+													class="text-center p-3 bg-violet-50 dark:bg-violet-900/20 rounded-lg">
+													<div class="text-lg font-bold text-violet-600">
+														{{ userMetrics.recent_activity.themes_last_7_days }}
+													</div>
+													<div class="text-xs text-gray-600 dark:text-gray-400">Thèmes 7j
+													</div>
 												</div>
 												<div class="text-center p-3 bg-teal-50 dark:bg-teal-900/20 rounded-lg">
-													<div class="text-lg font-bold text-teal-600">{{ userMetrics.recent_activity.active_days_last_30 }}</div>
-													<div class="text-xs text-gray-600 dark:text-gray-400">Jours actifs 30j</div>
+													<div class="text-lg font-bold text-teal-600">
+														{{ userMetrics.recent_activity.active_days_last_30 }}
+													</div>
+													<div class="text-xs text-gray-600 dark:text-gray-400">Jours actifs
+														30j
+													</div>
 												</div>
 											</div>
 										</div>
 
 										<!-- Stats avancées -->
 										<div>
-											<h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Statistiques avancées</h4>
+											<h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+												Statistiques avancées</h4>
 											<div class="grid grid-cols-2 gap-4">
-												<div class="text-center p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-													<div class="text-lg font-bold text-amber-600">{{ userMetrics.average_tasks_per_theme.toFixed(1) }}</div>
-													<div class="text-sm text-gray-600 dark:text-gray-400">Tâches par thème (moy.)</div>
+												<div
+													class="text-center p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+													<div class="text-lg font-bold text-amber-600">
+														{{ userMetrics.average_tasks_per_theme.toFixed(1) }}
+													</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Tâches par
+														thème (moy.)
+													</div>
 												</div>
 												<div class="text-center p-4 bg-lime-50 dark:bg-lime-900/20 rounded-lg">
-													<div class="text-lg font-bold text-lime-600">{{ userMetrics.validated_tasks_count }}</div>
-													<div class="text-sm text-gray-600 dark:text-gray-400">Tâches validées</div>
+													<div class="text-lg font-bold text-lime-600">
+														{{ userMetrics.validated_tasks_count }}
+													</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Tâches
+														validées
+													</div>
 												</div>
 												<div class="text-center p-4 bg-stone-50 dark:bg-stone-800 rounded-lg">
-													<div class="text-lg font-bold text-stone-600">{{ userMetrics.archived_tasks_count }}</div>
-													<div class="text-sm text-gray-600 dark:text-gray-400">Tâches archivées</div>
+													<div class="text-lg font-bold text-stone-600">
+														{{ userMetrics.archived_tasks_count }}
+													</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Tâches
+														archivées
+													</div>
 												</div>
 											</div>
 										</div>
 
 										<!-- Statut du compte -->
 										<div>
-											<h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Statut du compte</h4>
+											<h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+												Statut du compte</h4>
 											<div class="grid grid-cols-2 gap-4">
-												<div class="p-4 border rounded-lg" :class="userMetrics.is_blocked ? 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20' : 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20'">
+												<div :class="userMetrics.is_blocked ? 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20' : 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20'"
+													 class="p-4 border rounded-lg">
 													<div class="flex items-center">
-														<span class="material-symbols-rounded !text-lg mr-2" :class="userMetrics.is_blocked ? 'text-red-600' : 'text-green-600'">
+														<span :class="userMetrics.is_blocked ? 'text-red-600' : 'text-green-600'"
+															  class="material-symbols-rounded !text-lg mr-2">
 															{{ userMetrics.is_blocked ? 'block' : 'check_circle' }}
 														</span>
-														<span class="font-medium" :class="userMetrics.is_blocked ? 'text-red-800 dark:text-red-300' : 'text-green-800 dark:text-green-300'">
-															{{ userMetrics.is_blocked ? 'Compte bloqué' : 'Compte actif' }}
+														<span :class="userMetrics.is_blocked ? 'text-red-800 dark:text-red-300' : 'text-green-800 dark:text-green-300'"
+															  class="font-medium">
+															{{
+																userMetrics.is_blocked ? 'Compte bloqué' : 'Compte actif'
+															}}
 														</span>
 													</div>
-													<div v-if="userMetrics.blocked_since" class="text-xs mt-1 text-red-600 dark:text-red-400">
+													<div v-if="userMetrics.blocked_since"
+														 class="text-xs mt-1 text-red-600 dark:text-red-400">
 														Bloqué {{ userMetrics.blocked_since }}
 													</div>
 												</div>
-												<div class="p-4 border rounded-lg" :class="userMetrics.is_email_verified ? 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20' : 'border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20'">
+												<div :class="userMetrics.is_email_verified ? 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20' : 'border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20'"
+													 class="p-4 border rounded-lg">
 													<div class="flex items-center">
-														<span class="material-symbols-rounded !text-lg mr-2" :class="userMetrics.is_email_verified ? 'text-blue-600' : 'text-orange-600'">
+														<span :class="userMetrics.is_email_verified ? 'text-blue-600' : 'text-orange-600'"
+															  class="material-symbols-rounded !text-lg mr-2">
 															{{ userMetrics.is_email_verified ? 'verified' : 'error' }}
 														</span>
-														<span class="font-medium" :class="userMetrics.is_email_verified ? 'text-blue-800 dark:text-blue-300' : 'text-orange-800 dark:text-orange-300'">
-															{{ userMetrics.is_email_verified ? 'Email vérifié' : 'Email non vérifié' }}
+														<span :class="userMetrics.is_email_verified ? 'text-blue-800 dark:text-blue-300' : 'text-orange-800 dark:text-orange-300'"
+															  class="font-medium">
+															{{
+																userMetrics.is_email_verified ? 'Email vérifié' : 'Email non vérifié'
+															}}
 														</span>
 													</div>
-													<div v-if="userMetrics.verified_since" class="text-xs mt-1 text-blue-600 dark:text-blue-400">
+													<div v-if="userMetrics.verified_since"
+														 class="text-xs mt-1 text-blue-600 dark:text-blue-400">
 														Vérifié {{ userMetrics.verified_since }}
 													</div>
 												</div>
@@ -1013,19 +1205,58 @@ onMounted(() => {
 		<!-- Dialog de création -->
 		<Dialog
 			v-model:visible="showCreateDialog"
-			header="Créer un nouvel utilisateur"
 			:style="{ width: '32rem' }"
+			header="Créer un nouvel utilisateur"
 			modal
 		>
-			<form @submit.prevent="createUser" class="space-y-4">
+			<form class="space-y-4" @submit.prevent="createUser">
+				<div>
+					<div class="mb-2 w-min m-auto">
+						<Avatar
+							v-if="avatarPreview"
+							:image="avatarPreview"
+							shape="circle"
+							size="xlarge"
+						/>
+						<Avatar
+							v-else-if="createForm.username"
+							:label="createForm.username.charAt(0).toUpperCase()"
+							shape="circle"
+							size="xlarge"
+						/>
+						<Avatar
+							v-else
+							shape="circle"
+							size="xlarge"
+						>
+							<span class="material-symbols-rounded !text-4xl">
+								person
+							</span>
+						</Avatar>
+					</div>
+					<label class="block text-sm font-medium mb-2">Avatar</label>
+					<FileUpload
+						:auto="true"
+						:maxFileSize="2000000"
+						:showCancelButton="false"
+						:showUploadButton="false"
+						accept="image/*"
+						chooseLabel="Choisir un avatar"
+						class="w-full"
+						customUpload
+						mode="basic"
+						@select="(e) => handleFileChange({target: {files: e.files}}, 'create')"
+					/>
+				</div>
+
 				<div>
 					<label class="block text-sm font-medium mb-2">Nom d'utilisateur *</label>
-					<InputText v-model="createForm.username" required class="w-full"/>
+					<InputText v-model="createForm.username" class="w-full" required/>
 				</div>
 
 				<div>
 					<label class="block text-sm font-medium mb-2">Email *</label>
-					<InputText v-model="createForm.email" type="email" required class="w-full"/>
+					<InputText v-model="createForm.email" class="w-full" required type="email"/>
 				</div>
 
 				<div class="grid grid-cols-2 gap-4">
@@ -1044,32 +1275,22 @@ onMounted(() => {
 					<Select
 						v-model="createForm.role_power"
 						:options="roles"
+						class="w-full"
 						option-label="name"
 						option-value="power"
-						class="w-full"
 					/>
 				</div>
 
 				<div>
 					<label class="block text-sm font-medium mb-2">Mot de passe *</label>
-					<Password v-model="createForm.password" toggle-mask required class="w-full"/>
+					<Password v-model="createForm.password" :input-class="'w-full'" :pt="{root: 'w-full'}" required
+							  toggle-mask/>
 				</div>
 
 				<div>
 					<label class="block text-sm font-medium mb-2">Confirmer le mot de passe *</label>
-					<Password v-model="createForm.password_confirmation" toggle-mask required class="w-full"/>
-				</div>
-
-				<div>
-					<label class="block text-sm font-medium mb-2">Avatar</label>
-					<FileUpload
-						mode="basic"
-						choose-label="Choisir un fichier"
-						accept="image/*"
-						:max-file-size="2000000"
-						@select="createForm.avatar = $event.files[0]"
-						class="w-full"
-					/>
+					<Password v-model="createForm.password_confirmation" :input-class="'w-full'" :pt="{root: 'w-full'}" required
+							  toggle-mask/>
 				</div>
 
 				<div class="flex justify-end gap-2 pt-4">
@@ -1089,19 +1310,58 @@ onMounted(() => {
 		<!-- Dialog de modification -->
 		<Dialog
 			v-model:visible="showEditDialog"
-			header="Modifier l'utilisateur"
 			:style="{ width: '32rem' }"
+			header="Modifier l'utilisateur"
 			modal
 		>
-			<form @submit.prevent="updateUser" class="space-y-4">
+			<form class="space-y-4" @submit.prevent="updateUser">
+				<div>
+					<div class="mb-2 w-min m-auto">
+						<Avatar
+							v-if="avatarPreview"
+							:image="avatarPreview"
+							shape="circle"
+							size="xlarge"
+						/>
+						<Avatar
+							v-else-if="editForm.username"
+							:label="editForm.username.charAt(0).toUpperCase()"
+							shape="circle"
+							size="xlarge"
+						/>
+						<Avatar
+							v-else
+							shape="circle"
+							size="xlarge"
+						>
+							<span class="material-symbols-rounded !text-4xl">
+								person
+							</span>
+						</Avatar>
+					</div>
+					<label class="block text-sm font-medium mb-2">Avatar</label>
+					<FileUpload
+						:auto="true"
+						:maxFileSize="2000000"
+						:showCancelButton="false"
+						:showUploadButton="false"
+						accept="image/*"
+						chooseLabel="Choisir un avatar"
+						class="w-full"
+						customUpload
+						mode="basic"
+						@select="(e) => handleFileChange({target: {files: e.files}}, 'edit')"
+					/>
+				</div>
+
 				<div>
 					<label class="block text-sm font-medium mb-2">Nom d'utilisateur *</label>
-					<InputText v-model="editForm.username" required class="w-full"/>
+					<InputText v-model="editForm.username" class="w-full" required/>
 				</div>
 
 				<div>
 					<label class="block text-sm font-medium mb-2">Email *</label>
-					<InputText v-model="editForm.email" type="email" required class="w-full"/>
+					<InputText v-model="editForm.email" class="w-full" required type="email"/>
 				</div>
 
 				<div class="grid grid-cols-2 gap-4">
@@ -1120,32 +1380,21 @@ onMounted(() => {
 					<Select
 						v-model="editForm.role_power"
 						:options="roles"
+						class="w-full"
 						option-label="name"
 						option-value="power"
-						class="w-full"
 					/>
 				</div>
 
 				<div>
 					<label class="block text-sm font-medium mb-2">Nouveau mot de passe (optionnel)</label>
-					<Password v-model="editForm.password" toggle-mask class="w-full"/>
+					<Password v-model="editForm.password" :inputClass="'w-full'" :pt="{root: 'w-full'}" toggle-mask/>
 				</div>
 
 				<div v-if="editForm.password">
 					<label class="block text-sm font-medium mb-2">Confirmer le nouveau mot de passe</label>
-					<Password v-model="editForm.password_confirmation" toggle-mask class="w-full"/>
-				</div>
-
-				<div>
-					<label class="block text-sm font-medium mb-2">Nouvel avatar</label>
-					<FileUpload
-						mode="basic"
-						choose-label="Choisir un fichier"
-						accept="image/*"
-						:max-file-size="2000000"
-						@select="editForm.avatar = $event.files[0]"
-						class="w-full"
-					/>
+					<Password v-model="editForm.password_confirmation" :input-class="'w-full'" :pt="{root: 'w-full'}"
+							  toggle-mask/>
 				</div>
 
 				<div class="flex justify-end gap-2 pt-4">
@@ -1161,5 +1410,37 @@ onMounted(() => {
 				</div>
 			</form>
 		</Dialog>
+		<Dialog
+			v-model:visible="deleteDialogVisible"
+			:modal="true"
+			:style="{ width: '30rem' }"
+			header="Confirmer la suppression"
+		>
+			<div class="confirmation-content flex items-center gap-3 m-4">
+				<span class="material-symbols-rounded text-yellow-500 text-2xl">warning</span>
+				<span>
+					Êtes-vous sûr de vouloir supprimer l'utilisateur
+					<strong>{{ userToDelete?.username }}</strong> ?
+					<br>
+					<span class="text-red-500 text-sm mt-2 block">
+				  	Cette action est irréversible et supprimera toutes les données associées à cet utilisateur.
+					</span>
+      			</span>
+			</div>
+			<template #footer>
+				<Button
+					label="Annuler"
+					outlined
+					@click="deleteDialogVisible = false"
+				/>
+				<Button
+					:loading="loading"
+					label="Supprimer"
+					severity="danger"
+					@click="handleDeleteUser"
+				/>
+			</template>
+		</Dialog>
+
 	</div>
 </template>
