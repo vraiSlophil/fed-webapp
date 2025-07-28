@@ -1,4 +1,10 @@
 <script lang="ts" setup>
+
+// use admin.ts middleware
+definePageMeta({
+	middleware: 'admin'
+})
+
 import type {
 	User,
 	Role,
@@ -548,7 +554,7 @@ onMounted(() => {
 							<Card class="border-[1px] border-slate-200 dark:border-zinc-700">
 								<template #content>
 									<div class="flex items-center">
-										<span class="material-symbols-rounded !text-4xl text-pink-600 mr-3">
+										<span class="material-symbols-rounded !text-4xl text-pink-500 mr-3">
 											verified_user
 										</span>
 										<div>
@@ -568,21 +574,21 @@ onMounted(() => {
 						<Card class="mb-6 border-[1px] border-slate-200 dark:border-zinc-700">
 							<template #content>
 								<div class="flex flex-wrap items-center gap-4">
-									<IconField class="flex-1 relative max-w-lg min-w-sm">
-										<span
-											class="material-symbols-rounded text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2">
-										  	search
-										</span>
-										<InputText
-											v-model="searchQuery"
-											class="w-full h-11.5 pl-10 pr-4 py-2 text-sm flex items-center justify-between"
-											placeholder="Rechercher par nom, email..."
-										/>
-									</IconField>
+										<IconField class="flex-1 relative max-w-lg min-w-sm">
+											<span
+												class="material-symbols-rounded text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2">
+												search
+											</span>
+											<InputText
+												v-model="searchQuery"
+												class="w-full h-11.5 pl-10 pr-4 py-2 text-sm flex items-center justify-between"
+												placeholder="Rechercher par nom, email..."
+											/>
+										</IconField>
 									<Select
 										v-model="selectedRole"
 										:options="roles"
-										class="flex-1 h-11.5"
+										class="flex-1 h-11.5 flex justify-center items-center"
 										option-label="name"
 										option-value="power"
 										placeholder="Filtrer par rôle"
@@ -595,7 +601,7 @@ onMounted(() => {
 											{ label: 'Actifs', value: 'active' },
 											{ label: 'Bloqués', value: 'blocked' }
 										]"
-										class="flex-1 h-11.5"
+										class="flex-1 h-11.5 flex justify-center items-center"
 										option-label="label"
 										option-value="value"
 										placeholder="Filtrer par statut"
@@ -711,15 +717,15 @@ onMounted(() => {
 													visibility
 												</span>
 												</Button>
-												<!--												<Button-->
-												<!--													size="small"-->
-												<!--													severity="secondary"-->
-												<!--													class="w-10 h-10 p-0"-->
-												<!--													@click="loadUserMetrics(slotProps.data.user_id)"-->
-												<!--													v-tooltip.bottom="'Voir les métriques'"-->
-												<!--												>-->
-												<!--													<span class="material-symbols-rounded text-sm">analytics</span>-->
-												<!--												</Button>-->
+<!--												<Button-->
+<!--													size="small"-->
+<!--													severity="secondary"-->
+<!--													class="w-10 h-10 p-0"-->
+<!--													@click="loadUserMetrics(slotProps.data.user_id)"-->
+<!--													v-tooltip.bottom="'Voir les métriques'"-->
+<!--												>-->
+<!--													<span class="material-symbols-rounded text-sm">analytics</span>-->
+<!--												</Button>-->
 												<Button
 													v-tooltip.bottom="'Modifier'"
 													class="w-10 h-10 p-0"

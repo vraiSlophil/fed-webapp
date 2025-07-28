@@ -124,6 +124,21 @@ const handleLogout = async () => {
 						Admin
 					</NuxtLink>
 				</div>
+				<div
+					class="bg-black/10 dark:bg-white/10 p-6 rounded-xl shadow-lg"
+				>
+					<h2
+						class="text-xl font-bold mb-4"
+					>
+						Tests sur la page admin2
+					</h2>
+					<NuxtLink
+						class="text-blue-500 hover:underline"
+						to="/admin2"
+					>
+						Admin2
+					</NuxtLink>
+				</div>
 			</div>
 		</div>
 	</div>

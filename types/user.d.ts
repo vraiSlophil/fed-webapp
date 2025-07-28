@@ -28,6 +28,18 @@ export type Role = {
 export type UserResponse = {
     users: User[]
     pagination: Pagination
+    sorting: {
+        sort_by?: string
+        sort_direction?: 'asc' | 'desc'
+        available_sort_fields?: string[]
+    }
+    filters: {
+        search?: string
+        role?: number | null
+        status?: string
+        verified?: boolean
+        roles?: number[]
+    }
     roles: Role[]
     stats: UsersMetrics
 }
