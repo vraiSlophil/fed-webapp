@@ -1,34 +1,16 @@
-// Constants pour les configurations
-const ADMIN_ROUTES = ['/admin', '/admin/', '/admin2', '/admin2/']
-const ADMIN_ROLE_POWER_THRESHOLD = 50
-
-/**
- * Vérifie si le chemin correspond à une route d'administration
- */
-const isAdminRoutePath = (path: string): boolean => {
-    return ADMIN_ROUTES.some(route =>
-        path === route || path.startsWith(route + '/')
-    )
-}
-
 /**
  * Vérifie si l'utilisateur a les droits d'administration requis
+ * @param user L'utilisateur actuel
+ * @returns Booléen indiquant si l'utilisateur a des droits d'admin
  */
 const hasAdminRights = (user: any): boolean => {
+    const ADMIN_ROLE_POWER_THRESHOLD = 50
     return !!user?.role_power && user.role_power >= ADMIN_ROLE_POWER_THRESHOLD
 }
 
-export default defineNuxtRouteMiddleware(async (to) => {
+export default defineNuxtRouteMiddleware(async () => {
     const {isAuthenticated, user} = useAuth()
     const toast = useToast()
-
-    // Vérifier si la route demandée est une route d'administration
-    const isAdminRoute = isAdminRoutePath(to.path)
-
-    // Si ce n'est pas une route d'admin, on laisse passer
-    if (!isAdminRoute) {
-        return
-    }
 
     // Vérifier l'authentification
     if (!isAuthenticated.value) {

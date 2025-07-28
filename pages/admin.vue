@@ -772,7 +772,7 @@ onMounted(() => {
 						</Card>
 					</TabPanel>
 
-					<TabPanel :value="1">
+					<TabPanel :value="1" v-if="selectedUser">
 						<div v-if="selectedUser" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 							<!-- Informations de base -->
 							<Card class="border-[1px] border-slate-200 dark:border-zinc-700">
@@ -960,7 +960,7 @@ onMounted(() => {
 							</Card>
 
 							<!-- Métriques détaillées -->
-							<Card v-if="userMetrics" class="border-[1px] border-slate-200 dark:border-zinc-700">
+							<Card class="border-[1px] border-slate-200 dark:border-zinc-700">
 								<template #title>
 									<div class="flex items-center">
 										<span class="material-symbols-rounded mr-2 text-gray-600 dark:text-gray-300">

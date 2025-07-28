@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import type {User} from '~/types/user'
 
-// // Navigation guard pour admin seulement
-// definePageMeta({
-// 	middleware: 'admin'
-// })
+// Navigation guard pour admin seulement
+definePageMeta({
+	middleware: 'admin'
+})
 
 const activeTab = ref<number>(0)
 
@@ -372,6 +372,11 @@ const formatDateTime = (date: string | null) => {
 	})
 }
 
+const getRoleLabel = (power: number) => {
+	const role = roles.value.find(r => r.power === power)
+	return role?.name || `Rôle ${power}`
+}
+
 // Computed pour les statistiques
 const statsCards = computed(() => [{
 	title: 'Total Utilisateurs',
@@ -411,7 +416,7 @@ const userActions = (user: User) => [
 		tooltip: 'Voir les détails',
 		severity: 'info',
 		icon: 'visibility',
-		action: loadUserDetails
+		action: () => {activeTab.value = 1; loadUserDetails(user)}
 	},
 	{
 		name: 'edit',
@@ -523,7 +528,7 @@ const userActions = (user: User) => [
 										{label: 'Tous', value: ''},
 										{label: 'Actifs', value: 'active'},
 										{label: 'Bloqués', value: 'blocked'},
-										{label: 'Non vérifiés', value: 'unverified'}
+										// {label: 'Non vérifiés', value: 'unverified'}
 									]"
 								class="flex-1 h-11.5 flex justify-center items-center"
 								option-label="label"
@@ -556,22 +561,24 @@ const userActions = (user: User) => [
 						>
 							<Column field="avatar_path" header="Avatar" style="width: 80px">
 								<template #body="{ data }">
-									<img
+									<Avatar
 										v-if="data.avatar_path"
-										:alt="data.username"
-										:src="data.avatar_path"
-										class="w-8 h-8 rounded-full object-cover"
+										:image="data.avatar_path"
+										class="mr-2"
+										shape="circle"
+										size="small"
 									/>
-									<div
+									<Avatar
 										v-else
-										class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-bold"
-									>
-										{{ data.username.charAt(0).toUpperCase() }}
-									</div>
+										:label="data.username.charAt(0).toUpperCase()"
+										class="mr-2"
+										shape="circle"
+										size="small"
+									/>
 								</template>
 							</Column>
 
-							<Column field="username" header="Utilisateur" sortable>
+							<Column field="username" header="Utilisateur">
 								<!--								todo -->
 								<template #body="{ data }">
 									<div>
@@ -592,17 +599,17 @@ const userActions = (user: User) => [
 								</template>
 							</Column>
 
-							<Column field="role.name" header="Rôle" sortable>
+							<Column field="role.name" header="Rôle">
 								<!--								todo -->
 								<template #body="{ data }">
 									<Tag
 										:severity="data.role_power > 10 ? ( data.role_power > 100 ? 'danger' :'warning') : 'info'"
-										:value="data.role?.name || 'Utilisateur'"
+										:value="data.role.name.charAt(0).toUpperCase() + data.role.name.slice(1) || 'Utilisateur'"
 									/>
 								</template>
 							</Column>
 
-							<Column field="created_at" header="Inscription" sortable>
+							<Column field="created_at" header="Inscription">
 								<!--								todo -->
 								<template #body="{ data }">
 									{{ formatDate(data.created_at) }}
@@ -696,117 +703,433 @@ const userActions = (user: User) => [
 				<!-- Onglet Détails utilisateur -->
 				<TabPanel :disabled="!selectedUser" :value="1">
 					<div v-if="selectedUser" class="p-6">
+
+						<!-- Actions sur l'utilisateur -->
+						<div class="flex gap-2 mb-6">
+							<Button
+								v-for="action in userActions(selectedUser).slice(1)"
+								:key="action.name"
+								:severity="action.severity"
+								class="flex-1"
+								outlined
+								@click="action.action(selectedUser)"
+								:disabled="loading"
+								:tooltip="action.tooltip"
+							>
+								<span class="material-symbols-rounded mr-2">{{ action.icon }}</span>
+								{{ action.name.charAt(0).toUpperCase() + action.name.slice(1) }}
+							</Button>
+						</div>
+
 						<!-- Informations utilisateur -->
 						<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 							<!-- Profil utilisateur -->
-							<Card class="lg:col-span-1">
+							<Card class="lg:col-span-1 border-[1px] border-slate-200 dark:border-zinc-700">
 								<template #title>Profil</template>
 								<template #content>
-									<div class="flex flex-col items-center text-center">
-										<img
-											v-if="selectedUser.avatar_path"
-											:alt="selectedUser.username"
-											:src="selectedUser.avatar_path"
-											class="w-24 h-24 rounded-full object-cover mb-4"
-										/>
-										<div
-											v-else
-											class="w-24 h-24 rounded-full bg-blue-500 flex items-center justify-center text-white text-2xl font-bold mb-4"
-										>
-											{{ selectedUser.username.charAt(0).toUpperCase() }}
-										</div>
-										<h3 class="text-xl font-semibold">{{ selectedUser.username }}</h3>
-										<p class="text-gray-600">{{ selectedUser.email }}</p>
-										<div class="flex gap-2 mt-4">
-											<Tag
-												:severity="selectedUser.role_power > 1 ? 'warning' : 'info'"
-												:value="selectedUser.role?.name || 'Utilisateur'"
+									<div class="flex flex-col items-center text-start">
+										<div class="mb-8">
+											<Avatar
+												v-if="selectedUser.avatar_path"
+												:image="selectedUser.avatar_path"
+												class="mr-2"
+												shape="circle"
+												size="xlarge"
 											/>
-											<Tag
-												v-if="selectedUser.blocked_at"
-												severity="danger"
-												value="Bloqué"
-											/>
-											<Tag
-												v-else-if="selectedUser.email_verified_at"
-												severity="success"
-												value="Vérifié"
-											/>
-											<Tag
+											<Avatar
 												v-else
-												severity="warning"
-												value="Non vérifié"
+												:label="selectedUser.username.charAt(0).toUpperCase()"
+												class="mr-2"
+												shape="circle"
+												size="xlarge"
 											/>
+											<div
+												v-else
+												class="w-24 h-24 rounded-full bg-blue-500 flex items-center justify-center text-white text-2xl font-bold mb-4"
+											>
+												{{ selectedUser.username.charAt(0).toUpperCase() }}
+											</div>
+											<h3 class="text-xl font-semibold">{{ selectedUser.username }}</h3>
+											<p class="text-gray-600">{{ selectedUser.email }}</p>
+										</div>
+										<div class="grid grid-cols-2 gap-4">
+											<div>
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+													ID Utilisateur
+												</label>
+												<div class="text-sm text-gray-600 dark:text-gray-400">
+													{{ selectedUser.user_id }}
+												</div>
+											</div>
+
+											<div>
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+													Nom d'utilisateur
+												</label>
+												<div class="text-sm text-gray-600 dark:text-gray-400">
+													{{ selectedUser.username }}
+												</div>
+											</div>
+
+											<div>
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+													Email
+												</label>
+												<div class="text-sm text-gray-600 dark:text-gray-400">
+													{{ selectedUser.email }}
+												</div>
+											</div>
+
+											<div>
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+													Email vérifié
+												</label>
+												<Tag
+													:severity="selectedUser.email_verified_at ? 'success' : 'warning'"
+													:value="selectedUser.email_verified_at ? 'Vérifié' : 'Non vérifié'"
+												/>
+											</div>
+
+											<div>
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+													Prénom
+												</label>
+												<div class="text-sm text-gray-600 dark:text-gray-400">
+													{{ selectedUser.first_name || '-' }}
+												</div>
+											</div>
+
+											<div>
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+													Nom
+												</label>
+												<div class="text-sm text-gray-600 dark:text-gray-400">
+													{{ selectedUser.last_name || '-' }}
+												</div>
+											</div>
+
+											<div>
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+													Rôle
+												</label>
+												<Tag
+													:severity="selectedUser.role_power >= 100 ? 'danger' : 'info'"
+													:value="getRoleLabel(selectedUser.role_power)"
+												/>
+											</div>
+
+											<div>
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+													Statut
+												</label>
+												<Tag
+													:severity="selectedUser.blocked_at ? 'danger' : 'success'"
+													:value="selectedUser.blocked_at ? 'Bloqué' : 'Actif'"
+												/>
+											</div>
+
+											<div>
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+													Dernière connexion
+												</label>
+												<div class="text-sm text-gray-600 dark:text-gray-400">
+													{{
+														selectedUser.last_login_at ? new Date(selectedUser.last_login_at).toLocaleString('fr-FR') : 'Jamais'
+													}}
+												</div>
+											</div>
+
+											<div>
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+													IP dernière connexion
+												</label>
+												<div class="text-sm text-gray-600 dark:text-gray-400">
+													{{ selectedUser.last_login_ip || '-' }}
+												</div>
+											</div>
+
+											<div>
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+													Email vérifié le
+												</label>
+												<div class="text-sm text-gray-600 dark:text-gray-400">
+													{{
+														selectedUser.email_verified_at ? new Date(selectedUser.email_verified_at).toLocaleString('fr-FR') : 'Non vérifié'
+													}}
+												</div>
+											</div>
+
+											<div>
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+													Bloqué le
+												</label>
+												<div class="text-sm text-gray-600 dark:text-gray-400">
+													{{
+														selectedUser.blocked_at ? new Date(selectedUser.blocked_at).toLocaleString('fr-FR') : '-'
+													}}
+												</div>
+											</div>
+
+											<div>
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+													Créé le
+												</label>
+												<div class="text-sm text-gray-600 dark:text-gray-400">
+													{{
+														selectedUser.created_at ? new Date(selectedUser.created_at).toLocaleString('fr-FR') : '-'
+													}}
+												</div>
+											</div>
+
+											<div>
+												<label
+													class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+													Dernière modification
+												</label>
+												<div class="text-sm text-gray-600 dark:text-gray-400">
+													{{
+														selectedUser.updated_at ? new Date(selectedUser.updated_at).toLocaleString('fr-FR') : '-'
+													}}
+												</div>
+											</div>
 										</div>
 									</div>
 								</template>
 							</Card>
 
 							<!-- Métriques utilisateur -->
-							<Card class="lg:col-span-2">
-								<template #title>Statistiques</template>
-								<template #content>
-									<div v-if="userMetrics" class="grid grid-cols-2 md:grid-cols-4 gap-4">
-										<div class="text-center">
-											<div class="text-2xl font-bold text-blue-600">{{
-													userMetrics.themes_count
-												}}
-											</div>
-											<div class="text-sm text-gray-600">Thèmes</div>
-										</div>
-										<div class="text-center">
-											<div class="text-2xl font-bold text-green-600">{{
-													userMetrics.tasks_count
-												}}
-											</div>
-											<div class="text-sm text-gray-600">Tâches</div>
-										</div>
-										<div class="text-center">
-											<div class="text-2xl font-bold text-purple-600">
-												{{ userMetrics.completed_tasks_count }}
-											</div>
-											<div class="text-sm text-gray-600">Complétées</div>
-										</div>
-										<div class="text-center">
-											<div class="text-2xl font-bold text-orange-600">
-												{{ userMetrics.completion_rate_percentage }}%
-											</div>
-											<div class="text-sm text-gray-600">Taux de complétion</div>
-										</div>
+							<Card class="lg:col-span-2 border-[1px] border-slate-200 dark:border-zinc-700">
+								<template #title>
+									<div class="flex items-center">
+										<span class="material-symbols-rounded mr-2 text-gray-600 dark:text-gray-300">
+											analytics
+										</span>
+										Métriques et statistiques
 									</div>
-									<div v-else class="text-center text-gray-500">
-										Aucune métrique disponible
+								</template>
+								<template #content>
+									<div v-if="!userMetrics" class="text-center text-gray-500 dark:text-gray-400">
+										Chargement des métriques...
+									</div>
+									<div v-else class="flex flex-col gap-6">
+										<!-- Stats de base -->
+										<div>
+											<h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+												Activité générale</h4>
+											<div class="grid grid-cols-2 gap-4">
+												<div class="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+													<div class="text-2xl font-bold text-blue-600">
+														{{ userMetrics.themes_count }}
+													</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Thèmes créés
+													</div>
+												</div>
+												<div
+													class="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+													<div class="text-2xl font-bold text-green-600">
+														{{ userMetrics.tasks_count }}
+													</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Tâches
+														totales
+													</div>
+												</div>
+												<div
+													class="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+													<div class="text-2xl font-bold text-purple-600">
+														{{ userMetrics.completed_tasks_count }}
+													</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Tâches
+														terminées
+													</div>
+												</div>
+												<div
+													class="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+													<div class="text-2xl font-bold text-orange-600">
+														{{ userMetrics.completion_rate_percentage }}%
+													</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Taux de
+														completion
+													</div>
+												</div>
+											</div>
+										</div>
+
+										<!-- Collaboration -->
+										<div>
+											<h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+												Collaboration</h4>
+											<div class="grid grid-cols-2 gap-4">
+												<div class="text-center p-4 bg-cyan-50 dark:bg-cyan-900/20 rounded-lg">
+													<div class="text-2xl font-bold text-cyan-600">
+														{{ userMetrics.themes_as_member }}
+													</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Thèmes
+														membre
+													</div>
+												</div>
+												<div
+													class="text-center p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+													<div class="text-2xl font-bold text-yellow-600">
+														{{ userMetrics.pending_invitations }}
+													</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Invitations en
+														attente
+													</div>
+												</div>
+											</div>
+										</div>
+
+										<!-- Temps et activité -->
+										<div>
+											<h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+												Temps et activité</h4>
+											<div class="grid grid-cols-2 gap-4">
+												<div class="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+													<div
+														class="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+														Ancienneté du compte
+													</div>
+													<div class="text-xs text-gray-600 dark:text-gray-400">
+														{{ userMetrics.account_age_human }}
+													</div>
+												</div>
+												<div class="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+													<div
+														class="text-sm font-medium text-emerald-700 dark:text-emerald-300 mb-1">
+														Dernière activité
+													</div>
+													<div class="text-xs text-gray-600 dark:text-gray-400">
+														{{ new Date(userMetrics.last_activity).toLocaleString('fr-FR') }}
+													</div>
+												</div>
+											</div>
+										</div>
+
+										<!-- Activité récente -->
+										<div>
+											<h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+												Activité récente</h4>
+											<div class="grid grid-cols-3 gap-3">
+												<div class="text-center p-3 bg-rose-50 dark:bg-rose-900/20 rounded-lg">
+													<div class="text-lg font-bold text-rose-600">
+														{{ userMetrics.recent_activity.tasks_last_7_days }}
+													</div>
+													<div class="text-xs text-gray-600 dark:text-gray-400">Tâches 7j
+													</div>
+												</div>
+												<div
+													class="text-center p-3 bg-violet-50 dark:bg-violet-900/20 rounded-lg">
+													<div class="text-lg font-bold text-violet-600">
+														{{ userMetrics.recent_activity.themes_last_7_days }}
+													</div>
+													<div class="text-xs text-gray-600 dark:text-gray-400">Thèmes 7j
+													</div>
+												</div>
+												<div class="text-center p-3 bg-teal-50 dark:bg-teal-900/20 rounded-lg">
+													<div class="text-lg font-bold text-teal-600">
+														{{ userMetrics.recent_activity.active_days_last_30 }}
+													</div>
+													<div class="text-xs text-gray-600 dark:text-gray-400">Jours actifs
+														30j
+													</div>
+												</div>
+											</div>
+										</div>
+
+										<!-- Stats avancées -->
+										<div>
+											<h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+												Statistiques avancées</h4>
+											<div class="grid grid-cols-2 gap-4">
+												<div
+													class="text-center p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+													<div class="text-lg font-bold text-amber-600">
+														{{ userMetrics.average_tasks_per_theme.toFixed(1) }}
+													</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Tâches par
+														thème (moy.)
+													</div>
+												</div>
+												<div class="text-center p-4 bg-lime-50 dark:bg-lime-900/20 rounded-lg">
+													<div class="text-lg font-bold text-lime-600">
+														{{ userMetrics.validated_tasks_count }}
+													</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Tâches
+														validées
+													</div>
+												</div>
+												<div class="text-center p-4 bg-stone-50 dark:bg-stone-800 rounded-lg">
+													<div class="text-lg font-bold text-stone-600">
+														{{ userMetrics.archived_tasks_count }}
+													</div>
+													<div class="text-sm text-gray-600 dark:text-gray-400">Tâches
+														archivées
+													</div>
+												</div>
+											</div>
+										</div>
+
+										<!-- Statut du compte -->
+										<div>
+											<h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+												Statut du compte</h4>
+											<div class="grid grid-cols-2 gap-4">
+												<div :class="userMetrics.is_blocked ? 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20' : 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20'"
+													 class="p-4 border rounded-lg">
+													<div class="flex items-center">
+													<span :class="userMetrics.is_blocked ? 'text-red-600' : 'text-green-600'"
+														  class="material-symbols-rounded !text-lg mr-2">
+														{{ userMetrics.is_blocked ? 'block' : 'check_circle' }}
+													</span>
+														<span :class="userMetrics.is_blocked ? 'text-red-800 dark:text-red-300' : 'text-green-800 dark:text-green-300'"
+															  class="font-medium">
+														{{
+																userMetrics.is_blocked ? 'Compte bloqué' : 'Compte actif'
+															}}
+													</span>
+													</div>
+													<div v-if="userMetrics.blocked_since"
+														 class="text-xs mt-1 text-red-600 dark:text-red-400">
+														Bloqué {{ userMetrics.blocked_since }}
+													</div>
+												</div>
+												<div :class="userMetrics.is_email_verified ? 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20' : 'border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20'"
+													 class="p-4 border rounded-lg">
+													<div class="flex items-center">
+													<span :class="userMetrics.is_email_verified ? 'text-blue-600' : 'text-orange-600'"
+														  class="material-symbols-rounded !text-lg mr-2">
+														{{ userMetrics.is_email_verified ? 'verified' : 'error' }}
+													</span>
+														<span :class="userMetrics.is_email_verified ? 'text-blue-800 dark:text-blue-300' : 'text-orange-800 dark:text-orange-300'"
+															  class="font-medium">
+														{{
+																userMetrics.is_email_verified ? 'Email vérifié' : 'Email non vérifié'
+															}}
+													</span>
+													</div>
+													<div v-if="userMetrics.verified_since"
+														 class="text-xs mt-1 text-blue-600 dark:text-blue-400">
+														Vérifié {{ userMetrics.verified_since }}
+													</div>
+												</div>
+											</div>
+										</div>
 									</div>
 								</template>
 							</Card>
-						</div>
-
-						<!-- Actions sur l'utilisateur -->
-						<div class="flex gap-2 mt-6">
-							<Button
-								icon="pi pi-pencil"
-								label="Modifier"
-								@click="openEditDialog(selectedUser)"
-							/>
-							<Button
-								v-if="!selectedUser.email_verified_at"
-								class="p-button-success"
-								icon="pi pi-check-circle"
-								label="Vérifier email"
-								@click="handleVerifyUser(selectedUser)"
-							/>
-							<Button
-								:class="selectedUser.blocked_at ? 'p-button-success' : 'p-button-warning'"
-								:icon="selectedUser.blocked_at ? 'pi pi-unlock' : 'pi pi-lock'"
-								:label="selectedUser.blocked_at ? 'Débloquer' : 'Bloquer'"
-								@click="handleBlockUser(selectedUser)"
-							/>
-							<Button
-								class="p-button-danger"
-								icon="pi pi-trash"
-								label="Supprimer"
-								@click="handleConfirmDeleteUser(selectedUser)"
-							/>
 						</div>
 					</div>
 					<div v-else class="p-6 text-center text-gray-500">

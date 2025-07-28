@@ -52,7 +52,7 @@ export const useAdmin = () => {
                 }
             })
             globalStats.value = response.stats
-            totalUsers.value = response.stats.total_users
+            totalUsers.value = response.pagination.total
         } catch (error: any) {
             throw new Error(error.message || 'Erreur lors du chargement des utilisateurs')
         } finally {

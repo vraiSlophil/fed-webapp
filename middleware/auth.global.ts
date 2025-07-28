@@ -1,7 +1,7 @@
 import type {RouteLocationNormalized} from "#vue-router";
 import type {User} from "~/types/user";
 
-interface AuthState {
+    interface AuthState {
     isAuthenticated: Ref<boolean>
     user: Ref<User | null>
 }
