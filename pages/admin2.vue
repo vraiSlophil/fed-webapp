@@ -65,8 +65,36 @@ const {
 	setPage,
 	setSearchQuery,
 	setRoleFilter,
-	setStatusFilter
+	setStatusFilter,
+	sortBy,
+	sortDirection,
+	setSorting
 } = useAdmin()
+
+// Données fictives pour éviter le clip pendant le chargement
+const skeletonUsers = computed(() => {
+	if (!loading.value) return []
+
+	return Array.from({ length: 20 }, (_, index) => ({
+		user_id: `skeleton-${index}`,
+		username: `skeleton-user-${index}`,
+		email: `skeleton${index}@example.com`,
+		first_name: `Nom${index}`,
+		last_name: `Prénom${index}`,
+		role_power: 10,
+		created_at: new Date().toISOString(),
+		last_login_at: new Date().toISOString(),
+		email_verified_at: new Date().toISOString(),
+		blocked_at: null,
+		avatar_path: null,
+		role: { power: 10, name: 'user' }
+	}))
+})
+
+// Données à afficher dans le DataTable
+const displayUsers = computed(() => {
+	return loading.value ? skeletonUsers.value : users.value
+})
 
 // Charger les utilisateurs au montage
 onMounted(async () => {
@@ -144,26 +172,6 @@ const handleBlockUser = async (user: User) => {
 				life: 3000
 			})
 		}
-	} catch (error: any) {
-		toast.add({
-			severity: 'error',
-			summary: 'Erreur',
-			detail: error.message,
-			life: 3000
-		})
-	}
-}
-
-// Gestion de la vérification
-const handleVerifyUser = async (user: User) => {
-	try {
-		await verifyUser(user.user_id)
-		toast.add({
-			severity: 'success',
-			summary: 'Succès',
-			detail: 'Utilisateur vérifié avec succès',
-			life: 3000
-		})
 	} catch (error: any) {
 		toast.add({
 			severity: 'error',
@@ -280,6 +288,7 @@ const handleUpdateUser = async () => {
 // Gestion des filtres avec try/catch
 const handleSearch = async () => {
 	try {
+		setSearchQuery(searchQuery.value)
 		await fetchUsers()
 	} catch (error: any) {
 		toast.add({
@@ -289,6 +298,15 @@ const handleSearch = async () => {
 			life: 3000
 		})
 	}
+}
+
+let searchTimeout: ReturnType<typeof setTimeout> | null = null
+
+const debounceSearch = () => {
+	if (searchTimeout) {
+		clearTimeout(searchTimeout)
+	}
+	searchTimeout = setTimeout(handleSearch, 300)
 }
 
 const handleRoleFilter = async (roleId: number | null) => {
@@ -370,6 +388,21 @@ const formatDateTime = (date: string | null) => {
 		hour: '2-digit',
 		minute: '2-digit'
 	})
+}
+
+const handleSort = async (event: any) => {
+	try {
+		const direction = event.sortOrder === 1 ? 'asc' : 'desc'
+		setSorting(event.sortField, direction)
+		await fetchUsers()
+	} catch (error: any) {
+		toast.add({
+			severity: 'error',
+			summary: 'Erreur',
+			detail: error.message,
+			life: 3000
+		})
+	}
 }
 
 const getRoleLabel = (power: number) => {
@@ -510,6 +543,8 @@ const userActions = (user: User) => [
 									v-model="searchQuery"
 									class="w-full h-11.5 pl-10 pr-4 py-2 text-sm flex items-center justify-between"
 									placeholder="Rechercher par nom, email..."
+									@keyup.enter="handleSearch"
+									@input="debounceSearch"
 								/>
 							</IconField>
 							<Select
@@ -528,7 +563,7 @@ const userActions = (user: User) => [
 										{label: 'Tous', value: ''},
 										{label: 'Actifs', value: 'active'},
 										{label: 'Bloqués', value: 'blocked'},
-										// {label: 'Non vérifiés', value: 'unverified'}
+										{label: 'Non vérifiés', value: 'unverified'}
 									]"
 								class="flex-1 h-11.5 flex justify-center items-center"
 								option-label="label"
@@ -550,14 +585,18 @@ const userActions = (user: User) => [
 						<!-- Table des utilisateurs -->
 						<DataTable
 							:lazy="true"
-							:loading="loading"
 							:rows="20"
 							:total-records="totalUsers"
-							:value="users"
+							:value="displayUsers"
 							class="p-datatable-sm"
 							paginator
 							responsive-layout="scroll"
 							@page="handlePageChange($event.page + 1)"
+							@sort="handleSort"
+							sortMode="single"
+							:sortField="sortBy"
+							:sortOrder="sortDirection === 'asc' ? 1 : -1"
+							:class="loading ? 'blur-sm pointer-events-none' : 'blur-none pointer-events-auto'"
 						>
 							<Column field="avatar_path" header="Avatar" style="width: 80px">
 								<template #body="{ data }">
@@ -578,7 +617,7 @@ const userActions = (user: User) => [
 								</template>
 							</Column>
 
-							<Column field="username" header="Utilisateur">
+							<Column field="username" header="Utilisateur" sortable>
 								<!--								todo -->
 								<template #body="{ data }">
 									<div>
@@ -609,21 +648,21 @@ const userActions = (user: User) => [
 								</template>
 							</Column>
 
-							<Column field="created_at" header="Inscription">
+							<Column field="created_at" header="Inscription" sortable>
 								<!--								todo -->
 								<template #body="{ data }">
 									{{ formatDate(data.created_at) }}
 								</template>
 							</Column>
 
-							<Column field="last_login_at" header="Dernière connexion">
+							<Column field="last_login_at" header="Dernière connexion" sortable>
 								<!--								todo -->
 								<template #body="{ data }">
 									{{ formatDateTime(data.last_login_at) }}
 								</template>
 							</Column>
 
-							<Column field="email_verified_at" header="Statut">
+							<Column field="email_verified_at" header="Statut" sortable>
 								<template #body="{ data }">
 									<div class="flex gap-1">
 										<Tag
@@ -638,7 +677,7 @@ const userActions = (user: User) => [
 										/>
 										<Tag
 											v-else
-											severity="warning"
+											severity="info"
 											value="Non vérifié"
 										/>
 									</div>

@@ -23,6 +23,11 @@ export const useAdmin = () => {
     const searchQuery = ref('')
     const selectedRole = ref<number | null>(null)
     const selectedStatus = ref<string>('')
+    const selectedVerified = ref<boolean | null>(null)
+
+    // Tri
+    const sortBy = ref<string>('created_at')
+    const sortDirection = ref<'asc' | 'desc'>('desc')
 
     // Variables pour la suppression
     const userToDelete = ref<User | null>(null)
@@ -33,9 +38,11 @@ export const useAdmin = () => {
         try {
             const config = useRuntimeConfig()
             const params = new URLSearchParams()
-            if (searchQuery.value) params.append('search', searchQuery.value)
+            if (searchQuery.value.trim()) params.append('search', searchQuery.value.trim())
             if (selectedRole.value) params.append('role', selectedRole.value.toString())
             if (selectedStatus.value) params.append('status', selectedStatus.value)
+            params.append('sort_by', sortBy.value)
+            params.append('sort', sortDirection.value)
             params.append('page', currentPage.value.toString())
 
             const response = (await useApiFetch(`/api/admin/users?${params.toString()}`) as any).data as UserResponse
@@ -155,6 +162,8 @@ export const useAdmin = () => {
         searchQuery.value = ''
         selectedRole.value = null
         selectedStatus.value = ''
+        sortBy.value = 'created_at'
+        sortDirection.value = 'desc'
         currentPage.value = 1
     }
 
@@ -164,7 +173,7 @@ export const useAdmin = () => {
 
     const setSearchQuery = (query: string) => {
         searchQuery.value = query
-        currentPage.value = 1 // Reset à la première page lors d'une recherche
+        currentPage.value = 1
     }
 
     const setRoleFilter = (roleId: number | null) => {
@@ -177,26 +186,32 @@ export const useAdmin = () => {
         currentPage.value = 1
     }
 
+    const setSorting = (field: string, direction: 'asc' | 'desc') => {
+        sortBy.value = field
+        sortDirection.value = direction
+        currentPage.value = 1
+    }
+
     return {
         // États
-        users: readonly(users),
+        users,
+        roles,
         selectedUser: readonly(selectedUser),
         userMetrics: readonly(userMetrics),
-        roles: readonly(roles),
         globalStats: readonly(globalStats),
         loading: readonly(loading),
         totalUsers: readonly(totalUsers),
         currentPage: readonly(currentPage),
-        searchQuery: readonly(searchQuery),
+        searchQuery: searchQuery,
         selectedRole: readonly(selectedRole),
         selectedStatus: readonly(selectedStatus),
-        userToDelete: readonly(userToDelete),
+        sortBy: readonly(sortBy),
+        sortDirection: readonly(sortDirection),
+        userToDelete: userToDelete,
 
-        // Méthodes de récupération
+        // Méthodes
         fetchUsers,
         fetchUserDetails,
-
-        // Autres méthodes
         confirmDeleteUser,
         createUser,
         updateUser,
@@ -204,12 +219,11 @@ export const useAdmin = () => {
         blockUser,
         unblockUser,
         verifyUser,
-
-        // Méthodes utilitaires
         resetFilters,
         setPage,
         setSearchQuery,
         setRoleFilter,
-        setStatusFilter
+        setStatusFilter,
+        setSorting
     }
 }
