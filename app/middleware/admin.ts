@@ -1,3 +1,5 @@
+import {isServer} from "@primeuix/utils";
+
 /**
  * Vérifie si l'utilisateur a les droits d'administration requis
  * @param user L'utilisateur actuel
@@ -9,8 +11,16 @@ const hasAdminRights = (user: any): boolean => {
 }
 
 export default defineNuxtRouteMiddleware(async () => {
-    const {isAuthenticated, user} = useAuth()
+    const {initAuth, isAuthenticated, user} = useAuth()
     const toast = useToast()
+
+    if (isServer()) return
+
+    try {
+        await initAuth()
+    } catch (e) {
+        console.warn('Auth init failed', e)
+    }
 
     // Vérifier l'authentification
     if (!isAuthenticated.value) {

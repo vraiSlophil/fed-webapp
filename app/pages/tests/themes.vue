@@ -3,6 +3,12 @@ import {useVuelidate} from '@vuelidate/core'
 import {helpers, minLength, required} from '@vuelidate/validators'
 import {useThemes} from '~/composables/useThemes'
 
+// definePageMeta({
+// 	middleware: ["auth"]
+// 	// or middleware: 'auth'
+// })
+
+
 // État
 const formData = reactive({
 	title: '',
