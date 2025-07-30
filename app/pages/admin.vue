@@ -621,7 +621,7 @@ const userActions = (user: User) => [
 								v-model="selectedStatus"
 								:options="[
 										{label: 'Tous', value: ''},
-										{label: 'Actifs', value: 'active'},
+										{label: 'Vérifiés', value: 'active'},
 										{label: 'Bloqués', value: 'blocked'},
 										{label: 'Non vérifiés', value: 'unverified'}
 									]"

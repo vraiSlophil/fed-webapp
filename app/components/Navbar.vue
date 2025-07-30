@@ -3,7 +3,7 @@
 </script>
 
 <template>
-	<nav class="fixed top-4 left-4 z-99999 w-[calc(100%-2rem)] flex items-center justify-between p-4 backdrop-blur-xs rounded-xl border-[1px] border-gray-200/50 dark:border-gray-700/50">
+	<nav class="fixed top-4 left-4 z-1000 w-[calc(100%-2rem)] flex items-center justify-between p-4 backdrop-blur-xs rounded-xl border-[1px] border-gray-200/50 dark:border-gray-700/50">
 		<!-- Left Third -->
 		<div class="flex-1">
 			<slot name="left">
@@ -18,7 +18,12 @@
 		<div class="flex-1 text-center">
 			<slot name="center">
 				<!-- Code par défaut pour le logo -->
-				<div class="text-lg font-bold">Logo de l'application</div>
+				<div class="flex justify-center items-center">
+					<div class="bg-white rounded-full">
+						<img src="public/images/FED_icon_strict.svg" alt="FED Logo" class="w-8 h-8 m-2"/>
+					</div>
+					<span class="text-lg font-semibold ml-2">FED</span>
+				</div>
 			</slot>
 		</div>
 

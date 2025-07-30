@@ -175,20 +175,6 @@ watch(dropZoneVisible, (newVal) => {
 				/>
 			</template>
 		</Navbar>
-<!--		-->
-<!--		&lt;!&ndash; Header et boutons existants... &ndash;&gt;-->
-<!--		<div class="absolute top-4 left-1/2 -translate-x-1/2 z-50 w-min text-nowrap flex items-center justify-center">-->
-<!--			<span class="material-symbols-rounded text-blue-500 mr-2">arrow_back</span>-->
-<!--			<NuxtLink class="text-blue-500 hover:underline flex justify-center items-center" to="/">-->
-<!--				Retour à l'accueil-->
-<!--			</NuxtLink>-->
-<!--		</div>-->
-
-<!--		<Button @click="fetchThemesWithSavedPositions" :loading="loading" class="absolute top-4 -right-4 z-50">-->
-<!--			<span v-if="loading" class="material-symbols-rounded animate-spin w-min">progress_activity</span>-->
-<!--			<span v-else class="material-symbols-rounded w-min">refresh</span>-->
-<!--		</Button>-->
-
 		<!-- Zone principale -->
 		<div
 			class="absolute top-0 left-0 flex items-center justify-center h-full w-full m-0 overflow-hidden bg-white bg-[linear-gradient(rgba(128,128,128,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(128,128,128,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(128,128,128,0.1)_1px,transparent_1px),linear-gradient(rgba(128,128,128,0.1)_1px,transparent_1px)] bg-[size:20px_20px,100px_100px] dark:bg-black dark:bg-[linear-gradient(rgba(128,128,128,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(128,128,128,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(128,128,128,0.2)_1px,transparent_1px),linear-gradient(rgba(128,128,128,0.2)_1px,transparent_1px)] dark:bg-[size:20px_20px,100px_100px]"
@@ -196,24 +182,24 @@ watch(dropZoneVisible, (newVal) => {
 			@click="closeContextMenu"
 		>
 
-			<div class="fixed top-20 left-4 z-0 bg-black/80 text-white p-2 rounded text-xs">
-				<div>isDragging: {{ isDragging }}</div>
-				<div>draggedTheme: {{ draggedTheme?.title || 'null' }}</div>
-				<div>dropZoneVisible: {{ dropZoneVisible }}</div>
-				<div>isHovering: {{ isHovering }}</div>
-				<div>activeDropZone: {{ activeDropZone }}</div>
+<!--			<div class="fixed top-20 left-4 z-0 bg-black/80 text-white p-2 rounded text-xs">-->
+<!--				<div>isDragging: {{ isDragging }}</div>-->
+<!--				<div>draggedTheme: {{ draggedTheme?.title || 'null' }}</div>-->
+<!--				<div>dropZoneVisible: {{ dropZoneVisible }}</div>-->
+<!--				<div>isHovering: {{ isHovering }}</div>-->
+<!--				<div>activeDropZone: {{ activeDropZone }}</div>-->
 
-				<div>Context Menu Position: {{ contextMenuPosition }}</div>
-				<div>Context Menu Visible: {{ contextMenu?.visible }}</div>
-				<div>Context Menu Items: {{ contextMenuItems }}</div>
-				<div>Visible Themes Count: {{ visibleThemes.length }}</div>
-				<div>All Themes Count: {{ themes.length }}</div>
-				<div>Loading: {{ loading }}</div>
+<!--				<div>Context Menu Position: {{ contextMenuPosition }}</div>-->
+<!--				<div>Context Menu Visible: {{ contextMenu?.visible }}</div>-->
+<!--				<div>Context Menu Items: {{ contextMenuItems }}</div>-->
+<!--				<div>Visible Themes Count: {{ visibleThemes.length }}</div>-->
+<!--				<div>All Themes Count: {{ themes.length }}</div>-->
+<!--				<div>Loading: {{ loading }}</div>-->
 
-				<div>
-					{{ toRaw(themes) }}
-				</div>
-			</div>
+<!--				<div>-->
+<!--					{{ toRaw(themes) }}-->
+<!--				</div>-->
+<!--			</div>-->
 
 
 			<!-- Menu contextuel -->
