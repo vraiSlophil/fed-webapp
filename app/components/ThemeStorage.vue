@@ -1,9 +1,9 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import type {Theme} from '~/types/themes';
 import {useColors} from '~/composables/useColors';
 
 const props = defineProps<{
-  themelist: Theme[]
+	themelist: Theme[]
 }>();
 
 const emit = defineEmits(['reload']);
@@ -19,40 +19,40 @@ const storedThemesRef = ref();
 const storedThemes = computed(() => getStoredThemes(props.themelist));
 
 const togglePanel = (event: any) => {
-  // Basculer l'affichage du popover
-  storedThemesRef.value?.toggle(event);
+	// Basculer l'affichage du popover
+	storedThemesRef.value?.toggle(event);
 };
 
 const restoreTheme = (theme: Theme) => {
-  // Mettre stored à false
-  if (setThemeStored(props.themelist, theme.theme_id, false)) {
-    // Forcer le rechargement de l'affichage
-    emit('reload');
+	// Mettre stored à false
+	if (setThemeStored(props.themelist, theme.theme_id, false)) {
+		// Forcer le rechargement de l'affichage
+		emit('reload');
 
-    // Notification
-    toast.add({
-      severity: 'success',
-      summary: 'Thème restauré',
-      detail: `Le thème "${theme.title}" a été remis sur le tableau`,
-      life: 3000
-    });
-  }
+		// Notification
+		toast.add({
+			severity: 'success',
+			summary: 'Thème restauré',
+			detail: `Le thème "${theme.title}" a été remis sur le tableau`,
+			life: 3000
+		});
+	}
 };
 
 watch(storedThemes, () => {
 	// console.log('getStoredThemes in ThemeStorage');
 	// console.table(toRaw(storedThemes.value));
 
-}, { immediate: true });
+}, {immediate: true});
 
 </script>
 
 <template>
-	<div class="fixed bottom-4 right-4 z-50 flex flex-col items-end">
+	<div>
 		<!-- Bouton pour ouvrir/fermer -->
 		<Button
-			@click="togglePanel"
 			class="rounded-full p-3 flex items-center justify-center"
+			@click="togglePanel"
 		>
 			<span class="material-symbols-rounded">inventory_2</span>
 			<span v-if="storedThemes.length > 0" class="ml-1 text-xs font-bold">
@@ -78,19 +78,19 @@ watch(storedThemes, () => {
 				<li
 					v-for="theme in storedThemes"
 					:key="theme.theme_id"
-					class="rounded-lg overflow-hidden flex items-center justify-between p-2 pl-6 mt-4 w-64"
 					:style="{
 						backgroundColor: theme.color,
 						color: getTextColor(theme.color)
 				  	}"
+					class="rounded-lg overflow-hidden flex items-center justify-between p-2 pl-6 mt-4 w-64"
 				>
 					<span class="font-medium truncate">{{ theme.title }}</span>
 					<Button
-						@click="restoreTheme(theme)"
+						:style="{ color: getTextColor(theme.color) }"
 						class="p-2 rounded-full"
 						text
-						:style="{ color: getTextColor(theme.color) }"
 						title="Remettre sur le tableau"
+						@click="restoreTheme(theme)"
 					>
 						<span class="material-symbols-rounded">add</span>
 					</Button>

@@ -161,18 +161,33 @@ watch(dropZoneVisible, (newVal) => {
 
 <template>
 	<div @click="closeContextMenu" class="overflow-hidden w-screen h-screen">
-		<!-- Header et boutons existants... -->
-		<div class="absolute top-4 left-1/2 -translate-x-1/2 z-50 w-min text-nowrap flex items-center justify-center">
-			<span class="material-symbols-rounded text-blue-500 mr-2">arrow_back</span>
-			<NuxtLink class="text-blue-500 hover:underline flex justify-center items-center" to="/">
-				Retour à l'accueil
-			</NuxtLink>
-		</div>
+		<Navbar>
+			<template #right>
+				<Button @click="fetchThemesWithSavedPositions" :loading="loading">
+					<span v-if="loading" class="material-symbols-rounded animate-spin w-min">progress_activity</span>
+					<span v-else class="material-symbols-rounded w-min">refresh</span>
+				</Button>
+				<!-- Bouton de création de thème -->
+				<ThemeStorage
+					v-if="!isDragging && !createThemeDialogVisible"
+					:themelist="themes"
+					@reload="fetchThemesWithSavedPositions"
+				/>
+			</template>
+		</Navbar>
+<!--		-->
+<!--		&lt;!&ndash; Header et boutons existants... &ndash;&gt;-->
+<!--		<div class="absolute top-4 left-1/2 -translate-x-1/2 z-50 w-min text-nowrap flex items-center justify-center">-->
+<!--			<span class="material-symbols-rounded text-blue-500 mr-2">arrow_back</span>-->
+<!--			<NuxtLink class="text-blue-500 hover:underline flex justify-center items-center" to="/">-->
+<!--				Retour à l'accueil-->
+<!--			</NuxtLink>-->
+<!--		</div>-->
 
-		<Button @click="fetchThemesWithSavedPositions" :loading="loading" class="absolute top-4 -right-4 z-50">
-			<span v-if="loading" class="material-symbols-rounded animate-spin w-min">progress_activity</span>
-			<span v-else class="material-symbols-rounded w-min">refresh</span>
-		</Button>
+<!--		<Button @click="fetchThemesWithSavedPositions" :loading="loading" class="absolute top-4 -right-4 z-50">-->
+<!--			<span v-if="loading" class="material-symbols-rounded animate-spin w-min">progress_activity</span>-->
+<!--			<span v-else class="material-symbols-rounded w-min">refresh</span>-->
+<!--		</Button>-->
 
 		<!-- Zone principale -->
 		<div
@@ -215,14 +230,6 @@ watch(dropZoneVisible, (newVal) => {
 
 			<!-- Zone de drop -->
 			<ThemeDropZone @drop-theme="handleThemeStored"/>
-
-			<!-- Bouton de création de thème -->
-			<ThemeStorage
-				v-if="!isDragging && !createThemeDialogVisible"
-				class="absolute top-4 right-4 z-50"
-				:themelist="themes"
-				@reload="fetchThemesWithSavedPositions"
-			/>
 
 			<!-- États de chargement/vide -->
 			<div v-if="loading && !themes.length" class="text-center">

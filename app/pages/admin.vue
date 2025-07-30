@@ -75,7 +75,7 @@ const {
 const skeletonUsers = computed(() => {
 	if (!loading.value) return []
 
-	return Array.from({ length: 20 }, (_, index) => ({
+	return Array.from({length: 20}, (_, index) => ({
 		user_id: `skeleton-${index}`,
 		username: `skeleton-user-${index}`,
 		email: `skeleton${index}@example.com`,
@@ -87,7 +87,7 @@ const skeletonUsers = computed(() => {
 		email_verified_at: new Date().toISOString(),
 		blocked_at: null,
 		avatar_path: null,
-		role: { power: 10, name: 'user' }
+		role: {power: 10, name: 'user'}
 	}))
 })
 
@@ -417,32 +417,32 @@ const getRoleLabel = (power: number) => {
 
 // Fonction pour gérer le changement de fichier
 const handleFileChange = (event: Event & { target: HTMLInputElement }, formType: 'create' | 'edit') => {
-    const target = event.target
+	const target = event.target
 
-    if (target.files && target.files.length > 0) {
-        const file = target.files[0]
+	if (target.files && target.files.length > 0) {
+		const file = target.files[0]
 
-        // Vérifier que c'est bien une image
-        if (!file.type.startsWith('image/')) {
-            toast.add({
-                severity: 'error',
-                summary: 'Erreur',
-                detail: 'Le fichier doit être une image',
-                life: 3000
-            })
-            return
-        }
+		// Vérifier que c'est bien une image
+		if (!file.type.startsWith('image/')) {
+			toast.add({
+				severity: 'error',
+				summary: 'Erreur',
+				detail: 'Le fichier doit être une image',
+				life: 3000
+			})
+			return
+		}
 
-        // Créer une URL pour la prévisualisation
-        avatarPreview.value = URL.createObjectURL(file)
+		// Créer une URL pour la prévisualisation
+		avatarPreview.value = URL.createObjectURL(file)
 
-        // Mettre à jour le formulaire approprié
-        if (formType === 'create') {
-            createForm.value.avatar = file
-        } else {
-            editForm.value.avatar = file
-        }
-    }
+		// Mettre à jour le formulaire approprié
+		if (formType === 'create') {
+			createForm.value.avatar = file
+		} else {
+			editForm.value.avatar = file
+		}
+	}
 }
 
 // Pour nettoyer l'URL de prévisualisation quand on ferme le formulaire
@@ -492,7 +492,10 @@ const userActions = (user: User) => [
 		tooltip: 'Voir les détails',
 		severity: 'info',
 		icon: 'visibility',
-		action: () => {activeTab.value = 1; loadUserDetails(user)}
+		action: () => {
+			activeTab.value = 1;
+			loadUserDetails(user)
+		}
 	},
 	{
 		name: 'edit',
@@ -520,15 +523,15 @@ const userActions = (user: User) => [
 
 <template>
 	<div class="min-h-screen p-6 relative">
-<!--		&lt;!&ndash; Debug &ndash;&gt;-->
-<!--		<div-->
-<!--			class="top-2 right-2 absolute z-50 bg-black/80 text-white text-xs p-2 rounded-lg"-->
-<!--		>-->
-<!--			<div>-->
-<!--				selectedUser:-->
-<!--				<pre>{{ selectedUser }}</pre>-->
-<!--			</div>-->
-<!--		</div>-->
+		<!--		&lt;!&ndash; Debug &ndash;&gt;-->
+		<!--		<div-->
+		<!--			class="top-2 right-2 absolute z-50 bg-black/80 text-white text-xs p-2 rounded-lg"-->
+		<!--		>-->
+		<!--			<div>-->
+		<!--				selectedUser:-->
+		<!--				<pre>{{ selectedUser }}</pre>-->
+		<!--			</div>-->
+		<!--		</div>-->
 		<!-- Header -->
 		<div class="mb-8">
 			<div class="flex items-center justify-between">
@@ -554,10 +557,14 @@ const userActions = (user: User) => [
 			<Card
 				v-for="stat in statsCards"
 				:key="stat.title"
+				:pt="{
+					body: { style: 'height: 100%' },
+					content: { style: 'height: 100%' },
+				}"
 				class="border-[1px] border-slate-200 dark:border-zinc-700"
 			>
 				<template #content>
-					<div class="flex items-center justify-between">
+					<div class="flex items-center justify-between !min-h-full">
 						<div>
 							<p class="text-sm font-medium">{{ stat.title }}</p>
 							<p class="text-2xl font-bold">{{ stat.value }}</p>
@@ -586,17 +593,18 @@ const userActions = (user: User) => [
 			<!-- Onglet Utilisateurs -->
 			<TabPanels>
 				<TabPanel :value="0">
-					<div class="p-6">
+					<div class="p-6 overflow-scroll min-w-8xl">
 						<!-- Filtres et actions -->
 						<div class="flex flex-row gap-4 mb-6">
-							<IconField class="flex-1 relative max-w-lg min-w-sm">
-								<span class="material-symbols-rounded text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2">search</span>
+							<IconField class="flex-1 relative">
+								<span
+									class="material-symbols-rounded text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2">search</span>
 								<InputText
 									v-model="searchQuery"
 									class="w-full h-11.5 pl-10 pr-4 py-2 text-sm flex items-center justify-between"
 									placeholder="Rechercher par nom, email..."
-									@keyup.enter="handleSearch"
 									@input="debounceSearch"
+									@keyup.enter="handleSearch"
 								/>
 							</IconField>
 							<Select
@@ -636,21 +644,21 @@ const userActions = (user: User) => [
 
 						<!-- Table des utilisateurs -->
 						<DataTable
+							:class="loading ? 'blur-sm pointer-events-none' : 'blur-none pointer-events-auto'"
 							:lazy="true"
 							:rows="20"
+							:sortField="sortBy"
+							:sortOrder="sortDirection === 'asc' ? 1 : -1"
 							:total-records="totalUsers"
 							:value="displayUsers"
 							class="p-datatable-sm"
 							paginator
 							responsive-layout="scroll"
+							sortMode="single"
 							@page="handlePageChange($event.page + 1)"
 							@sort="handleSort"
-							sortMode="single"
-							:sortField="sortBy"
-							:sortOrder="sortDirection === 'asc' ? 1 : -1"
-							:class="loading ? 'blur-sm pointer-events-none' : 'blur-none pointer-events-auto'"
 						>
-							<Column field="avatar_path" header="Avatar" class="rounded-t-sm">
+							<Column class="rounded-t-sm" field="avatar_path" header="Avatar">
 								<template #body="{ data }">
 									<Avatar
 										v-if="data.avatar_path"
@@ -669,7 +677,7 @@ const userActions = (user: User) => [
 								</template>
 							</Column>
 
-							<Column field="username" header="Utilisateur" sortable class="rounded-t-sm">
+							<Column class="rounded-t-sm" field="username" header="Utilisateur" sortable>
 								<template #body="{ data }">
 									<div>
 										<div class="flex items-center gap-1">
@@ -689,7 +697,7 @@ const userActions = (user: User) => [
 								</template>
 							</Column>
 
-							<Column field="role.name" header="Rôle" class="rounded-t-sm">
+							<Column class="rounded-t-sm" field="role.name" header="Rôle">
 								<template #body="{ data }">
 									<Tag
 										:severity="data.role_power > 10 ? ( data.role_power > 100 ? 'danger' :'warning') : 'info'"
@@ -698,19 +706,19 @@ const userActions = (user: User) => [
 								</template>
 							</Column>
 
-							<Column field="created_at" header="Inscription" sortable class="rounded-t-sm">
+							<Column class="rounded-t-sm" field="created_at" header="Inscription" sortable>
 								<template #body="{ data }">
 									{{ formatDate(data.created_at) }}
 								</template>
 							</Column>
 
-							<Column field="last_login_at" header="Dernière connexion" sortable class="rounded-t-sm">
+							<Column class="rounded-t-sm" field="last_login_at" header="Dernière connexion" sortable>
 								<template #body="{ data }">
 									{{ formatDateTime(data.last_login_at) }}
 								</template>
 							</Column>
 
-							<Column field="email_verified_at" header="Statut" sortable class="rounded-t-sm">
+							<Column class="rounded-t-sm" field="email_verified_at" header="Statut" sortable>
 								<template #body="{ data }">
 									<div class="flex gap-1">
 										<Tag
@@ -732,7 +740,7 @@ const userActions = (user: User) => [
 								</template>
 							</Column>
 
-							<Column header="Actions" class="rounded-t-sm">
+							<Column class="rounded-t-sm" header="Actions">
 								<template #body="{ data }">
 									<div class="flex gap-2">
 										<Button
@@ -763,12 +771,12 @@ const userActions = (user: User) => [
 							<Button
 								v-for="action in userActions(selectedUser).slice(1)"
 								:key="action.name"
+								:disabled="loading"
 								:severity="action.severity"
+								:tooltip="action.tooltip"
 								class="flex-1"
 								outlined
 								@click="action.action(selectedUser)"
-								:disabled="loading"
-								:tooltip="action.tooltip"
 							>
 								<span class="material-symbols-rounded mr-2">{{ action.icon }}</span>
 								{{ action.name.charAt(0).toUpperCase() + action.name.slice(1) }}
@@ -1066,7 +1074,9 @@ const userActions = (user: User) => [
 														Dernière activité
 													</div>
 													<div class="text-xs text-gray-600 dark:text-gray-400">
-														{{ new Date(userMetrics.last_activity).toLocaleString('fr-FR') }}
+														{{
+															new Date(userMetrics.last_activity).toLocaleString('fr-FR')
+														}}
 													</div>
 												</div>
 											</div>
@@ -1141,15 +1151,18 @@ const userActions = (user: User) => [
 											<h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
 												Statut du compte</h4>
 											<div class="grid grid-cols-2 gap-4">
-												<div :class="userMetrics.is_blocked ? 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20' : 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20'"
-													 class="p-4 border rounded-lg">
+												<div
+													:class="userMetrics.is_blocked ? 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20' : 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20'"
+													class="p-4 border rounded-lg">
 													<div class="flex items-center">
-													<span :class="userMetrics.is_blocked ? 'text-red-600' : 'text-green-600'"
-														  class="material-symbols-rounded !text-lg mr-2">
+													<span
+														:class="userMetrics.is_blocked ? 'text-red-600' : 'text-green-600'"
+														class="material-symbols-rounded !text-lg mr-2">
 														{{ userMetrics.is_blocked ? 'block' : 'check_circle' }}
 													</span>
-														<span :class="userMetrics.is_blocked ? 'text-red-800 dark:text-red-300' : 'text-green-800 dark:text-green-300'"
-															  class="font-medium">
+														<span
+															:class="userMetrics.is_blocked ? 'text-red-800 dark:text-red-300' : 'text-green-800 dark:text-green-300'"
+															class="font-medium">
 														{{
 																userMetrics.is_blocked ? 'Compte bloqué' : 'Compte actif'
 															}}
@@ -1160,15 +1173,18 @@ const userActions = (user: User) => [
 														Bloqué {{ userMetrics.blocked_since }}
 													</div>
 												</div>
-												<div :class="userMetrics.is_email_verified ? 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20' : 'border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20'"
-													 class="p-4 border rounded-lg">
+												<div
+													:class="userMetrics.is_email_verified ? 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20' : 'border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20'"
+													class="p-4 border rounded-lg">
 													<div class="flex items-center">
-													<span :class="userMetrics.is_email_verified ? 'text-blue-600' : 'text-orange-600'"
-														  class="material-symbols-rounded !text-lg mr-2">
+													<span
+														:class="userMetrics.is_email_verified ? 'text-blue-600' : 'text-orange-600'"
+														class="material-symbols-rounded !text-lg mr-2">
 														{{ userMetrics.is_email_verified ? 'verified' : 'error' }}
 													</span>
-														<span :class="userMetrics.is_email_verified ? 'text-blue-800 dark:text-blue-300' : 'text-orange-800 dark:text-orange-300'"
-															  class="font-medium">
+														<span
+															:class="userMetrics.is_email_verified ? 'text-blue-800 dark:text-blue-300' : 'text-orange-800 dark:text-orange-300'"
+															class="font-medium">
 														{{
 																userMetrics.is_email_verified ? 'Email vérifié' : 'Email non vérifié'
 															}}
@@ -1279,7 +1295,8 @@ const userActions = (user: User) => [
 
 				<div>
 					<label class="block text-sm font-medium mb-2">Confirmer le mot de passe *</label>
-					<Password v-model="createForm.password_confirmation" :input-class="'w-full'" :pt="{root: 'w-full'}" required
+					<Password v-model="createForm.password_confirmation" :input-class="'w-full'" :pt="{root: 'w-full'}"
+							  required
 							  toggle-mask/>
 				</div>
 
@@ -1432,241 +1449,241 @@ const userActions = (user: User) => [
 			</template>
 		</Dialog>
 
-<!--		&lt;!&ndash; Dialog de création &ndash;&gt;-->
-<!--		<Dialog-->
-<!--			v-model:visible="showCreateDialog"-->
-<!--			class="w-full max-w-md"-->
-<!--			header="Créer un utilisateur"-->
-<!--			modal-->
-<!--		>-->
-<!--			<form class="space-y-4" @submit.prevent="handleCreateUser">-->
-<!--				<div>-->
-<!--					<label class="block text-sm font-medium mb-2">Nom d'utilisateur</label>-->
-<!--					<InputText-->
-<!--						v-model="createForm.username"-->
-<!--						class="w-full"-->
-<!--						required-->
-<!--					/>-->
-<!--				</div>-->
-<!--				<div>-->
-<!--					<label class="block text-sm font-medium mb-2">Email</label>-->
-<!--					<InputText-->
-<!--						v-model="createForm.email"-->
-<!--						class="w-full"-->
-<!--						required-->
-<!--						type="email"-->
-<!--					/>-->
-<!--				</div>-->
-<!--				<div>-->
-<!--					<label class="block text-sm font-medium mb-2">Mot de passe</label>-->
-<!--					<Password-->
-<!--						v-model="createForm.password"-->
-<!--						:input-class="'w-full'"-->
-<!--						class="w-full"-->
-<!--						required-->
-<!--						toggle-mask-->
-<!--					/>-->
-<!--				</div>-->
-<!--				<div>-->
-<!--					<label class="block text-sm font-medium mb-2">Confirmer le mot de passe</label>-->
-<!--					<Password-->
-<!--						v-model="createForm.password_confirmation"-->
-<!--						:input-class="'w-full'"-->
-<!--						class="w-full"-->
-<!--						required-->
-<!--						toggle-mask-->
-<!--					/>-->
-<!--				</div>-->
-<!--				<div>-->
-<!--					<label class="block text-sm font-medium mb-2">Prénom</label>-->
-<!--					<InputText-->
-<!--						v-model="createForm.first_name"-->
-<!--						class="w-full"-->
-<!--					/>-->
-<!--				</div>-->
-<!--				<div>-->
-<!--					<label class="block text-sm font-medium mb-2">Nom</label>-->
-<!--					<InputText-->
-<!--						v-model="createForm.last_name"-->
-<!--						class="w-full"-->
-<!--					/>-->
-<!--				</div>-->
-<!--				<div>-->
-<!--					<label class="block text-sm font-medium mb-2">Rôle</label>-->
-<!--					<Select-->
-<!--						v-model="createForm.role_power"-->
-<!--						:options="roles"-->
-<!--						class="w-full"-->
-<!--						option-label="name"-->
-<!--						option-value="power"-->
-<!--					/>-->
-<!--				</div>-->
-<!--				<div>-->
-<!--					<label class="block text-sm font-medium mb-2">Avatar</label>-->
-<!--					<FileUpload-->
-<!--						:auto="false"-->
-<!--						accept="image/*"-->
-<!--						choose-label="Choisir un avatar"-->
-<!--						mode="basic"-->
-<!--						name="avatar"-->
-<!--						@select="onAvatarSelect($event, 'create')"-->
-<!--					/>-->
-<!--					<img-->
-<!--						v-if="avatarPreview"-->
-<!--						:src="avatarPreview"-->
-<!--						alt="Aperçu"-->
-<!--						class="w-16 h-16 rounded-full object-cover mt-2"-->
-<!--					/>-->
-<!--				</div>-->
-<!--				<div class="flex justify-end gap-2 pt-4">-->
-<!--					<Button-->
-<!--						class="p-button-text"-->
-<!--						label="Annuler"-->
-<!--						type="button"-->
-<!--						@click="showCreateDialog = false; resetCreateForm()"-->
-<!--					/>-->
-<!--					<Button-->
-<!--						:loading="loading"-->
-<!--						label="Créer"-->
-<!--						type="submit"-->
-<!--					/>-->
-<!--				</div>-->
-<!--			</form>-->
-<!--		</Dialog>-->
+		<!--		&lt;!&ndash; Dialog de création &ndash;&gt;-->
+		<!--		<Dialog-->
+		<!--			v-model:visible="showCreateDialog"-->
+		<!--			class="w-full max-w-md"-->
+		<!--			header="Créer un utilisateur"-->
+		<!--			modal-->
+		<!--		>-->
+		<!--			<form class="space-y-4" @submit.prevent="handleCreateUser">-->
+		<!--				<div>-->
+		<!--					<label class="block text-sm font-medium mb-2">Nom d'utilisateur</label>-->
+		<!--					<InputText-->
+		<!--						v-model="createForm.username"-->
+		<!--						class="w-full"-->
+		<!--						required-->
+		<!--					/>-->
+		<!--				</div>-->
+		<!--				<div>-->
+		<!--					<label class="block text-sm font-medium mb-2">Email</label>-->
+		<!--					<InputText-->
+		<!--						v-model="createForm.email"-->
+		<!--						class="w-full"-->
+		<!--						required-->
+		<!--						type="email"-->
+		<!--					/>-->
+		<!--				</div>-->
+		<!--				<div>-->
+		<!--					<label class="block text-sm font-medium mb-2">Mot de passe</label>-->
+		<!--					<Password-->
+		<!--						v-model="createForm.password"-->
+		<!--						:input-class="'w-full'"-->
+		<!--						class="w-full"-->
+		<!--						required-->
+		<!--						toggle-mask-->
+		<!--					/>-->
+		<!--				</div>-->
+		<!--				<div>-->
+		<!--					<label class="block text-sm font-medium mb-2">Confirmer le mot de passe</label>-->
+		<!--					<Password-->
+		<!--						v-model="createForm.password_confirmation"-->
+		<!--						:input-class="'w-full'"-->
+		<!--						class="w-full"-->
+		<!--						required-->
+		<!--						toggle-mask-->
+		<!--					/>-->
+		<!--				</div>-->
+		<!--				<div>-->
+		<!--					<label class="block text-sm font-medium mb-2">Prénom</label>-->
+		<!--					<InputText-->
+		<!--						v-model="createForm.first_name"-->
+		<!--						class="w-full"-->
+		<!--					/>-->
+		<!--				</div>-->
+		<!--				<div>-->
+		<!--					<label class="block text-sm font-medium mb-2">Nom</label>-->
+		<!--					<InputText-->
+		<!--						v-model="createForm.last_name"-->
+		<!--						class="w-full"-->
+		<!--					/>-->
+		<!--				</div>-->
+		<!--				<div>-->
+		<!--					<label class="block text-sm font-medium mb-2">Rôle</label>-->
+		<!--					<Select-->
+		<!--						v-model="createForm.role_power"-->
+		<!--						:options="roles"-->
+		<!--						class="w-full"-->
+		<!--						option-label="name"-->
+		<!--						option-value="power"-->
+		<!--					/>-->
+		<!--				</div>-->
+		<!--				<div>-->
+		<!--					<label class="block text-sm font-medium mb-2">Avatar</label>-->
+		<!--					<FileUpload-->
+		<!--						:auto="false"-->
+		<!--						accept="image/*"-->
+		<!--						choose-label="Choisir un avatar"-->
+		<!--						mode="basic"-->
+		<!--						name="avatar"-->
+		<!--						@select="onAvatarSelect($event, 'create')"-->
+		<!--					/>-->
+		<!--					<img-->
+		<!--						v-if="avatarPreview"-->
+		<!--						:src="avatarPreview"-->
+		<!--						alt="Aperçu"-->
+		<!--						class="w-16 h-16 rounded-full object-cover mt-2"-->
+		<!--					/>-->
+		<!--				</div>-->
+		<!--				<div class="flex justify-end gap-2 pt-4">-->
+		<!--					<Button-->
+		<!--						class="p-button-text"-->
+		<!--						label="Annuler"-->
+		<!--						type="button"-->
+		<!--						@click="showCreateDialog = false; resetCreateForm()"-->
+		<!--					/>-->
+		<!--					<Button-->
+		<!--						:loading="loading"-->
+		<!--						label="Créer"-->
+		<!--						type="submit"-->
+		<!--					/>-->
+		<!--				</div>-->
+		<!--			</form>-->
+		<!--		</Dialog>-->
 
-<!--		&lt;!&ndash; Dialog de modification &ndash;&gt;-->
-<!--		<Dialog-->
-<!--			v-model:visible="showEditDialog"-->
-<!--			class="w-full max-w-md"-->
-<!--			header="Modifier l'utilisateur"-->
-<!--			modal-->
-<!--		>-->
-<!--			<form class="space-y-4" @submit.prevent="handleUpdateUser">-->
-<!--				<div>-->
-<!--					<label class="block text-sm font-medium mb-2">Nom d'utilisateur</label>-->
-<!--					<InputText-->
-<!--						v-model="editForm.username"-->
-<!--						class="w-full"-->
-<!--						required-->
-<!--					/>-->
-<!--				</div>-->
-<!--				<div>-->
-<!--					<label class="block text-sm font-medium mb-2">Email</label>-->
-<!--					<InputText-->
-<!--						v-model="editForm.email"-->
-<!--						class="w-full"-->
-<!--						required-->
-<!--						type="email"-->
-<!--					/>-->
-<!--				</div>-->
-<!--				<div>-->
-<!--					<label class="block text-sm font-medium mb-2">Nouveau mot de passe (optionnel)</label>-->
-<!--					<Password-->
-<!--						v-model="editForm.password"-->
-<!--						:input-class="'w-full'"-->
-<!--						class="w-full"-->
-<!--						toggle-mask-->
-<!--					/>-->
-<!--				</div>-->
-<!--				<div v-if="editForm.password">-->
-<!--					<label class="block text-sm font-medium mb-2">Confirmer le mot de passe</label>-->
-<!--					<Password-->
-<!--						v-model="editForm.password_confirmation"-->
-<!--						:input-class="'w-full'"-->
-<!--						class="w-full"-->
-<!--						toggle-mask-->
-<!--					/>-->
-<!--				</div>-->
-<!--				<div>-->
-<!--					<label class="block text-sm font-medium mb-2">Prénom</label>-->
-<!--					<InputText-->
-<!--						v-model="editForm.first_name"-->
-<!--						class="w-full"-->
-<!--					/>-->
-<!--				</div>-->
-<!--				<div>-->
-<!--					<label class="block text-sm font-medium mb-2">Nom</label>-->
-<!--					<InputText-->
-<!--						v-model="editForm.last_name"-->
-<!--						class="w-full"-->
-<!--					/>-->
-<!--				</div>-->
-<!--				<div>-->
-<!--					<label class="block text-sm font-medium mb-2">Rôle</label>-->
-<!--					<Select-->
-<!--						v-model="editForm.role_power"-->
-<!--						:options="roles"-->
-<!--						class="w-full"-->
-<!--						option-label="name"-->
-<!--						option-value="power"-->
-<!--					/>-->
-<!--				</div>-->
-<!--				<div>-->
-<!--					<label class="block text-sm font-medium mb-2">Nouvel avatar (optionnel)</label>-->
-<!--					<FileUpload-->
-<!--						:auto="false"-->
-<!--						accept="image/*"-->
-<!--						choose-label="Choisir un avatar"-->
-<!--						mode="basic"-->
-<!--						name="avatar"-->
-<!--						@select="onAvatarSelect($event, 'edit')"-->
-<!--					/>-->
-<!--					<img-->
-<!--						v-if="avatarPreview"-->
-<!--						:src="avatarPreview"-->
-<!--						alt="Aperçu"-->
-<!--						class="w-16 h-16 rounded-full object-cover mt-2"-->
-<!--					/>-->
-<!--				</div>-->
-<!--				<div class="flex justify-end gap-2 pt-4">-->
-<!--					<Button-->
-<!--						class="p-button-text"-->
-<!--						label="Annuler"-->
-<!--						type="button"-->
-<!--						@click="showEditDialog = false; resetEditForm()"-->
-<!--					/>-->
-<!--					<Button-->
-<!--						:loading="loading"-->
-<!--						label="Modifier"-->
-<!--						type="submit"-->
-<!--					/>-->
-<!--				</div>-->
-<!--			</form>-->
-<!--		</Dialog>-->
+		<!--		&lt;!&ndash; Dialog de modification &ndash;&gt;-->
+		<!--		<Dialog-->
+		<!--			v-model:visible="showEditDialog"-->
+		<!--			class="w-full max-w-md"-->
+		<!--			header="Modifier l'utilisateur"-->
+		<!--			modal-->
+		<!--		>-->
+		<!--			<form class="space-y-4" @submit.prevent="handleUpdateUser">-->
+		<!--				<div>-->
+		<!--					<label class="block text-sm font-medium mb-2">Nom d'utilisateur</label>-->
+		<!--					<InputText-->
+		<!--						v-model="editForm.username"-->
+		<!--						class="w-full"-->
+		<!--						required-->
+		<!--					/>-->
+		<!--				</div>-->
+		<!--				<div>-->
+		<!--					<label class="block text-sm font-medium mb-2">Email</label>-->
+		<!--					<InputText-->
+		<!--						v-model="editForm.email"-->
+		<!--						class="w-full"-->
+		<!--						required-->
+		<!--						type="email"-->
+		<!--					/>-->
+		<!--				</div>-->
+		<!--				<div>-->
+		<!--					<label class="block text-sm font-medium mb-2">Nouveau mot de passe (optionnel)</label>-->
+		<!--					<Password-->
+		<!--						v-model="editForm.password"-->
+		<!--						:input-class="'w-full'"-->
+		<!--						class="w-full"-->
+		<!--						toggle-mask-->
+		<!--					/>-->
+		<!--				</div>-->
+		<!--				<div v-if="editForm.password">-->
+		<!--					<label class="block text-sm font-medium mb-2">Confirmer le mot de passe</label>-->
+		<!--					<Password-->
+		<!--						v-model="editForm.password_confirmation"-->
+		<!--						:input-class="'w-full'"-->
+		<!--						class="w-full"-->
+		<!--						toggle-mask-->
+		<!--					/>-->
+		<!--				</div>-->
+		<!--				<div>-->
+		<!--					<label class="block text-sm font-medium mb-2">Prénom</label>-->
+		<!--					<InputText-->
+		<!--						v-model="editForm.first_name"-->
+		<!--						class="w-full"-->
+		<!--					/>-->
+		<!--				</div>-->
+		<!--				<div>-->
+		<!--					<label class="block text-sm font-medium mb-2">Nom</label>-->
+		<!--					<InputText-->
+		<!--						v-model="editForm.last_name"-->
+		<!--						class="w-full"-->
+		<!--					/>-->
+		<!--				</div>-->
+		<!--				<div>-->
+		<!--					<label class="block text-sm font-medium mb-2">Rôle</label>-->
+		<!--					<Select-->
+		<!--						v-model="editForm.role_power"-->
+		<!--						:options="roles"-->
+		<!--						class="w-full"-->
+		<!--						option-label="name"-->
+		<!--						option-value="power"-->
+		<!--					/>-->
+		<!--				</div>-->
+		<!--				<div>-->
+		<!--					<label class="block text-sm font-medium mb-2">Nouvel avatar (optionnel)</label>-->
+		<!--					<FileUpload-->
+		<!--						:auto="false"-->
+		<!--						accept="image/*"-->
+		<!--						choose-label="Choisir un avatar"-->
+		<!--						mode="basic"-->
+		<!--						name="avatar"-->
+		<!--						@select="onAvatarSelect($event, 'edit')"-->
+		<!--					/>-->
+		<!--					<img-->
+		<!--						v-if="avatarPreview"-->
+		<!--						:src="avatarPreview"-->
+		<!--						alt="Aperçu"-->
+		<!--						class="w-16 h-16 rounded-full object-cover mt-2"-->
+		<!--					/>-->
+		<!--				</div>-->
+		<!--				<div class="flex justify-end gap-2 pt-4">-->
+		<!--					<Button-->
+		<!--						class="p-button-text"-->
+		<!--						label="Annuler"-->
+		<!--						type="button"-->
+		<!--						@click="showEditDialog = false; resetEditForm()"-->
+		<!--					/>-->
+		<!--					<Button-->
+		<!--						:loading="loading"-->
+		<!--						label="Modifier"-->
+		<!--						type="submit"-->
+		<!--					/>-->
+		<!--				</div>-->
+		<!--			</form>-->
+		<!--		</Dialog>-->
 
-<!--		&lt;!&ndash; Dialog de confirmation de suppression &ndash;&gt;-->
-<!--		<Dialog-->
-<!--			v-model:visible="deleteDialogVisible"-->
-<!--			class="w-full max-w-md"-->
-<!--			header="Confirmer la suppression"-->
-<!--			modal-->
-<!--		>-->
-<!--			<div class="flex items-center space-x-3 mb-4">-->
-<!--				<span class="material-symbols-rounded text-red-500 text-3xl">warning</span>-->
-<!--				<div>-->
-<!--					<p class="font-medium">Êtes-vous sûr de vouloir supprimer cet utilisateur ?</p>-->
-<!--					<p class="text-sm text-gray-600 mt-1">-->
-<!--						Utilisateur : {{ userToDelete?.username }}-->
-<!--					</p>-->
-<!--					<p class="text-sm text-red-600 mt-1">-->
-<!--						Cette action est irréversible.-->
-<!--					</p>-->
-<!--				</div>-->
-<!--			</div>-->
-<!--			<div class="flex justify-end gap-2">-->
-<!--				<Button-->
-<!--					class="p-button-text"-->
-<!--					label="Annuler"-->
-<!--					@click="deleteDialogVisible = false"-->
-<!--				/>-->
-<!--				<Button-->
-<!--					:loading="loading"-->
-<!--					class="p-button-danger"-->
-<!--					label="Supprimer"-->
-<!--					@click="handleDeleteUser"-->
-<!--				/>-->
-<!--			</div>-->
-<!--		</Dialog>-->
+		<!--		&lt;!&ndash; Dialog de confirmation de suppression &ndash;&gt;-->
+		<!--		<Dialog-->
+		<!--			v-model:visible="deleteDialogVisible"-->
+		<!--			class="w-full max-w-md"-->
+		<!--			header="Confirmer la suppression"-->
+		<!--			modal-->
+		<!--		>-->
+		<!--			<div class="flex items-center space-x-3 mb-4">-->
+		<!--				<span class="material-symbols-rounded text-red-500 text-3xl">warning</span>-->
+		<!--				<div>-->
+		<!--					<p class="font-medium">Êtes-vous sûr de vouloir supprimer cet utilisateur ?</p>-->
+		<!--					<p class="text-sm text-gray-600 mt-1">-->
+		<!--						Utilisateur : {{ userToDelete?.username }}-->
+		<!--					</p>-->
+		<!--					<p class="text-sm text-red-600 mt-1">-->
+		<!--						Cette action est irréversible.-->
+		<!--					</p>-->
+		<!--				</div>-->
+		<!--			</div>-->
+		<!--			<div class="flex justify-end gap-2">-->
+		<!--				<Button-->
+		<!--					class="p-button-text"-->
+		<!--					label="Annuler"-->
+		<!--					@click="deleteDialogVisible = false"-->
+		<!--				/>-->
+		<!--				<Button-->
+		<!--					:loading="loading"-->
+		<!--					class="p-button-danger"-->
+		<!--					label="Supprimer"-->
+		<!--					@click="handleDeleteUser"-->
+		<!--				/>-->
+		<!--			</div>-->
+		<!--		</Dialog>-->
 	</div>
 </template>
 

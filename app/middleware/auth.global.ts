@@ -1,7 +1,9 @@
 import type {RouteLocationNormalized} from "#vue-router";
 import type {User} from "~/types/user";
+import {isServer} from "@primeuix/utils";
 
-    interface AuthState {
+interface AuthState {
+    initAuth: () => Promise<boolean>
     isAuthenticated: Ref<boolean>
     user: Ref<User | null>
 }
@@ -22,13 +24,22 @@ function isPublicRoute(path: string): boolean {
     )
 }
 
-export default defineNuxtRouteMiddleware(async (to: RouteLocationNormalized) => {
-    const {isAuthenticated, user} = useAuth() as AuthState
+export default defineNuxtRouteMiddleware(async (to, from) => {
+
+    const {initAuth, isAuthenticated, user} = useAuth() as AuthState
     const toast = useToast()
+
+    if (isServer()) return
 
     // Autoriser l'accès aux routes publiques
     if (isPublicRoute(to.path)) {
         return
+    }
+
+    try {
+        await initAuth()
+    } catch (e) {
+        console.warn('Auth init failed', e)
     }
 
     // Vérifier l'authentification pour les routes protégées
