@@ -3,6 +3,10 @@ import {ref, computed, watch} from 'vue'
 import {useAuth} from '~/composables/useAuth'
 import {HttpMethods} from '~/utils/httpMethods'
 
+const route = useRoute();
+const router = useRouter();
+const from = route.query.from as string ?? '';
+
 const {user, fetchUser} = useAuth()
 const toast = useToast()
 
@@ -125,21 +129,50 @@ const handleAvatarUpload = async (event: any) => {
 	}
 }
 
+const goBack = () => {
+	if (from) {
+		// Si on a un paramètre 'from', rediriger vers cette page
+		router.push(`/${from}`)
+	} else {
+		// Sinon, utiliser l'historique du navigateur ou rediriger vers l'accueil
+		if (window.history.length > 1) {
+			router.go(-1)
+		} else {
+			router.push('/')
+		}
+	}
+}
+
 const formatLastLogin = computed(() => {
 	if (!user.value?.last_login_at) return ''
-	return user.value.last_login_at.toLocaleString('fr-FR');
+	return new Date(user.value.last_login_at).toLocaleString('fr-FR', {
+	// 	date précise et lisible pour un humain
+
+		year: 'numeric',
+		month: 'short',
+		day: '2-digit',
+		hour: '2-digit',
+		minute: '2-digit',
+		second: '2-digit',
+		hour12: false
+
+	})
 })
 </script>
 
 <template>
 	<div class="flex min-h-screen items-center justify-center flex-col">
-		<div class="absolute top-4 left-1/2 -translate-x-1/2 z-50 w-min text-nowrap flex items-center justify-center">
-			<span class="material-symbols-rounded text-blue-500 mr-2">arrow_back</span>
-			<NuxtLink class="text-blue-500 hover:underline flex justify-center items-center" to="/">
-				Retour à l'accueil
-			</NuxtLink>
-		</div>
-		<div v-if="user" class="p-8 rounded shadow-md w-full max-w-lg space-y-8">
+		<Navbar>
+			<template #left>
+				<div class="flex justify-start items-center">
+					<span class="material-symbols-rounded text-blue-500 mr-2">arrow_back_ios_new</span>
+					<button @click="goBack" class="cursor-pointer text-blue-500 hover:underline flex justify-center items-center">
+						Retour
+					</button>
+				</div>
+			</template>
+		</Navbar>
+		<div v-if="user" class="w-full max-w-lg mt-12">
 			<h1 class="text-2xl font-bold text-center mb-4">Profil utilisateur</h1>
 			<div class="flex flex-col items-center space-y-2 mb-8">
 				<img v-if="avatarUrl" :src="getAvatarUrl" class="w-24 h-24 rounded-full object-cover border"

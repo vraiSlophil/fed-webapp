@@ -3,7 +3,6 @@ import {useVuelidate} from '@vuelidate/core'
 import {helpers, minLength, required} from '@vuelidate/validators'
 import {useThemes} from '~/composables/useThemes'
 import type {Theme} from "~/types/themes";
-import {useColors} from "~/composables/useColors";
 
 // États et validation (code existant...)
 const formData = reactive({
@@ -39,9 +38,6 @@ const {
 	setThemeStored,
 	getVisibleThemes
 } = useMovableThemes()
-const {isDragging, draggedTheme} = useDraggableThemes()
-const {dropZoneVisible, isHovering, activeDropZone} = useDropZoneInteraction()
-const {getTextColor} = useColors();
 
 // Utilisez themes.value (tableau simple) pour le computed
 const visibleThemes = computed(() => getVisibleThemes(themes.value));
@@ -53,8 +49,6 @@ const fetchThemesWithSavedPositions = async () => {
 }
 
 const handleThemeStored = (theme: Theme) => {
-	// console.log(`Thème rangé: %c${theme.title}`, `background-color: ${theme.color}; font-weight: bold; color: ${getTextColor(theme.color)}; font-size: 1.2em; padding: 5px 2px; border-radius: 4px;`)
-
 	// Mettre le thème en stored
 	setThemeStored(themes.value, theme.theme_id, true)
 
@@ -145,34 +139,24 @@ watch(() => formData.color, (newVal) => {
 	}
 })
 
-watch(isDragging, (newVal) => {
-	// console.log('Playground - isDragging changed:', newVal)
-})
-
-watch(draggedTheme, (newVal) => {
-	// console.log('Playground - draggedTheme changed:', newVal?.title || 'null')
-})
-
-watch(dropZoneVisible, (newVal) => {
-	// console.log('Playground - dropZoneVisible changed:', newVal)
-})
-
 </script>
 
 <template>
 	<div @click="closeContextMenu" class="overflow-hidden w-screen h-screen">
-		<Navbar>
-			<template #right>
-				<Button @click="fetchThemesWithSavedPositions" :loading="loading">
-					<span v-if="loading" class="material-symbols-rounded animate-spin w-min">progress_activity</span>
-					<span v-else class="material-symbols-rounded w-min">refresh</span>
-				</Button>
-				<!-- Bouton de création de thème -->
-				<ThemeStorage
-					v-if="!isDragging && !createThemeDialogVisible"
-					:themelist="themes"
-					@reload="fetchThemesWithSavedPositions"
-				/>
+		<Navbar
+			:left-back-button="false"
+		>
+			<template #left>
+				<div class="flex justify-start items-center gap-4 flex-row mx-1.5">
+					<ThemeStorage
+						:themelist="themes"
+						@reload="fetchThemesWithSavedPositions"
+					/>
+					<Button @click="fetchThemesWithSavedPositions" :loading="loading">
+						<span v-if="loading" class="material-symbols-rounded animate-spin w-min">progress_activity</span>
+						<span v-else class="material-symbols-rounded w-min">refresh</span>
+					</Button>
+				</div>
 			</template>
 		</Navbar>
 		<!-- Zone principale -->
@@ -251,7 +235,7 @@ watch(dropZoneVisible, (newVal) => {
 					<label class="block mb-1">Titre</label>
 					<InputText v-model="formData.title" class="w-full" placeholder="Nom du thème"
 							   :class="{ 'p-invalid': v$.title.$error }"/>
-					<small v-if="v$.title.$error" class="p-error">{{ v$.title.$errors[0].$message }}</small>
+					<small v-if="v$.title.$error" class="p-error">{{ v$.title.$errors[0]?.$message }}</small>
 				</div>
 				<div>
 					<label class="block mb-1">Couleur</label>
@@ -260,7 +244,7 @@ watch(dropZoneVisible, (newVal) => {
 						<InputText class="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded"
 								   v-model="formData.color" placeholder="#FBC531"/>
 					</div>
-					<small v-if="v$.color.$error" class="p-error">{{ v$.color.$errors[0].$message }}</small>
+					<small v-if="v$.color.$error" class="p-error">{{ v$.color.$errors[0]?.$message }}</small>
 				</div>
 			</form>
 			<template #footer>
