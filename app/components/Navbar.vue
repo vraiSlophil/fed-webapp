@@ -63,9 +63,8 @@ const avatarUrl = computed(() => {
 				<!--				NuxtLink to user page account -->
 				<div v-if="user">
 					<Button
-						severity="secondary"
+						severity="primary"
 						rounded
-						outlined
 						@click="navigateTo('/playground')"
 					>
 						Accéder à FED
