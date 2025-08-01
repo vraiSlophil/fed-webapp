@@ -39,6 +39,7 @@ const {
 	setThemeStored,
 	getVisibleThemes
 } = useMovableThemes()
+const route = useRoute();
 
 const avatarUrl = computed(() => {
 	if (!user.value || !user.value.avatar_path) return '';
@@ -48,6 +49,12 @@ const avatarUrl = computed(() => {
 
 // Utilisez themes.value (tableau simple) pour le computed
 const visibleThemes = computed(() => getVisibleThemes(themes.value));
+
+
+// Obtenir la route actuelle pour la passer en paramètre 'from'
+const currentRoute = computed(() => {
+	return route.name || ''
+});
 
 // Fonctions (code existant adapté...)
 const fetchThemesWithSavedPositions = async () => {
