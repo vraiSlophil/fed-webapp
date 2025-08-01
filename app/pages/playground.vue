@@ -31,6 +31,7 @@ const contextMenuPosition = ref({x: 0, y: 0})
 const toast = useToast()
 
 // Composables
+const {user} = useAuth()
 const {themes, loading, fetchThemes, createTheme} = useThemes()
 const {
 	applyPositionsToThemes,
@@ -38,6 +39,12 @@ const {
 	setThemeStored,
 	getVisibleThemes
 } = useMovableThemes()
+
+const avatarUrl = computed(() => {
+	if (!user.value || !user.value.avatar_path) return '';
+	const config = useRuntimeConfig();
+	return `${config.public.BACKEND_URL}/api/media/${user.value.avatar_path}`;
+});
 
 // Utilisez themes.value (tableau simple) pour le computed
 const visibleThemes = computed(() => getVisibleThemes(themes.value));
@@ -146,6 +153,32 @@ watch(() => formData.color, (newVal) => {
 		<Navbar
 			:left-back-button="false"
 		>
+			<template #right>
+				<Button
+					v-if="user"
+					:query="{ from: currentRoute }"
+					severity="secondary"
+					rounded
+					outlined
+					class="flex justify-end items-center text-zinc-700 dark:text-zinc-300 gap-4"
+					@click="navigateTo('/user')"
+				>
+					<Avatar
+						v-if="avatarUrl"
+						:image="avatarUrl"
+						class="border-[1px] border-zinc-500"
+						shape="circle"
+					/>
+					<Avatar
+						v-else
+						class="border-[1px] border-zinc-500"
+						shape="circle"
+					>
+						<span class="material-symbols-rounded">account_circle</span>
+					</Avatar>
+					{{ user && user.first_name && user.last_name ? user.first_name + ' ' + user.last_name : user?.username }}
+				</Button>
+			</template>
 			<template #left>
 				<div class="flex justify-start items-center gap-4 flex-row mx-1.5">
 					<ThemeStorage

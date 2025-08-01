@@ -7,7 +7,7 @@ const route = useRoute();
 const router = useRouter();
 const from = route.query.from as string ?? '';
 
-const {user, fetchUser} = useAuth()
+const {user, fetchUser, logout} = useAuth()
 const toast = useToast()
 
 const loading = ref(false)
@@ -45,6 +45,28 @@ const getAvatarUrl = computed(() => {
 	const config = useRuntimeConfig()
 	return `${config.public.BACKEND_URL}/api/media/${avatarUrl.value}`
 })
+
+const handleLogout = () => {
+	loading.value = true
+	logout().then(() => {
+		toast.add({
+			severity: 'success',
+			summary: 'Déconnexion réussie',
+			detail: 'Vous avez été déconnecté avec succès.',
+			life: 3000
+		})
+		navigateTo('/')
+	}).catch((error) => {
+		toast.add({
+			severity: 'error',
+			summary: 'Erreur de déconnexion',
+			detail: error?.message || 'Une erreur est survenue lors de la déconnexion.',
+			life: 4000
+		})
+	}).finally(() => {
+		loading.value = false
+	})
+}
 
 const handleProfileUpdate = async () => {
 	loading.value = true
@@ -132,13 +154,13 @@ const handleAvatarUpload = async (event: any) => {
 const goBack = () => {
 	if (from) {
 		// Si on a un paramètre 'from', rediriger vers cette page
-		router.push(`/${from}`)
+		navigateTo(`/${from}`)
 	} else {
 		// Sinon, utiliser l'historique du navigateur ou rediriger vers l'accueil
 		if (window.history.length > 1) {
 			router.go(-1)
 		} else {
-			router.push('/')
+			navigateTo('/')
 		}
 	}
 }
@@ -165,85 +187,134 @@ const formatLastLogin = computed(() => {
 		<Navbar>
 			<template #left>
 				<div class="flex justify-start items-center">
-					<span class="material-symbols-rounded text-blue-500 mr-2">arrow_back_ios_new</span>
-					<button @click="goBack" class="cursor-pointer text-blue-500 hover:underline flex justify-center items-center">
+					<Button
+						severity="secondary"
+						outlined
+						rounded
+						@click="goBack"
+					>
+						<span class="material-symbols-rounded">arrow_back_ios_new</span>
 						Retour
-					</button>
+					</Button>
 				</div>
 			</template>
+			<template #right>
+				<div></div>
+			</template>
 		</Navbar>
-		<div v-if="user" class="w-full max-w-lg mt-12">
+		<section v-if="user" class="w-screen max-w-5xl">
 			<h1 class="text-2xl font-bold text-center mb-4">Profil utilisateur</h1>
-			<div class="flex flex-col items-center space-y-2 mb-8">
-				<img v-if="avatarUrl" :src="getAvatarUrl" class="w-24 h-24 rounded-full object-cover border"
-					 alt="Avatar"/>
-				<div v-else
-					 class="w-24 h-24 rounded-full bg-blue-200 flex items-center justify-center text-3xl font-bold text-blue-700">
-					{{ (user.first_name || user.username || user.email).charAt(0).toUpperCase() }}
+			<div class="grid grid-cols-2 gap-6">
+				<div>
+					<div class="flex flex-col items-center space-y-2 mb-8">
+						<img v-if="avatarUrl" :src="getAvatarUrl" class="w-24 h-24 rounded-full object-cover border"
+							 alt="Avatar"/>
+						<div v-else
+							 class="w-24 h-24 rounded-full bg-blue-200 flex items-center justify-center text-3xl font-bold text-blue-700">
+							{{ (user.first_name || user.username || user.email).charAt(0).toUpperCase() }}
+						</div>
+						<FileUpload
+							severity="secondary"
+							mode="basic"
+							name="avatar"
+							accept="image/jpeg,image/png,image/jpg,image/gif"
+							:auto="true"
+							:customUpload="true"
+							:chooseLabel="avatarUploading ? 'Chargement...' : 'Changer d\'avatar'"
+							:disabled="avatarUploading"
+							@uploader="handleAvatarUpload"
+							class="p-button-outlined !w-full !rounded-full my-4"
+							:pt="{root: '!w-full'}"
+						/>
+					</div>
+					<form class="space-y-4" @submit.prevent="handleProfileUpdate">
+						<div class="grid grid-cols-2 gap-4">
+							<div>
+								<label class="block mb-1">Nom d'utilisateur</label>
+								<InputText v-model="profileForm.username" class="w-full !px-4 !rounded-full"/>
+							</div>
+							<div>
+								<label class="block mb-1">Email</label>
+								<InputText v-model="profileForm.email" class="w-full !px-4 !rounded-full"/>
+							</div>
+							<div>
+								<label class="block mb-1">Prénom</label>
+								<InputText v-model="profileForm.first_name" class="w-full !px-4 !rounded-full"/>
+							</div>
+							<div>
+								<label class="block mb-1">Nom</label>
+								<InputText v-model="profileForm.last_name" class="w-full !px-4 !rounded-full"/>
+							</div>
+						</div>
+						<Button
+							outlined
+							rounded
+							type="submit"
+							class="w-full"
+							:loading="loading"
+						>
+							<span v-if="!loading" class="material-symbols-rounded">save</span>
+							<span v-else class="material-symbols-rounded animate-spin">progress_activity</span>
+							Enregistrer les modifications
+						</Button>
+					</form>
 				</div>
-				<FileUpload
-					mode="basic"
-					name="avatar"
-					accept="image/jpeg,image/png,image/jpg,image/gif"
-					:auto="true"
-					:customUpload="true"
-					:chooseLabel="avatarUploading ? 'Chargement...' : 'Changer d\'avatar'"
-					:disabled="avatarUploading"
-					@uploader="handleAvatarUpload"
-					class="mt-2"
-				/>
+				<div>
+					<form class="space-y-4" @submit.prevent="handlePasswordUpdate">
+						<h2 class="text-lg font-semibold">Changer le mot de passe</h2>
+						<div>
+							<label class="block mb-1">Mot de passe actuel</label>
+							<Password v-model="passwordForm.current_password" class="w-full" :inputClass="'w-full !px-4 !rounded-full'" toggleMask/>
+						</div>
+						<div>
+							<label class="block mb-1">Nouveau mot de passe</label>
+							<Password v-model="passwordForm.password" class="w-full" :inputClass="'w-full !px-4 !rounded-full'" toggleMask/>
+						</div>
+						<div>
+							<label class="block mb-1">Confirmer le nouveau mot de passe</label>
+							<Password v-model="passwordForm.password_confirmation" class="w-full" :inputClass="'w-full !px-4 !rounded-full'" toggleMask/>
+						</div>
+						<Button
+							outlined
+							rounded
+							type="submit"
+							class="w-full"
+							:loading="loading"
+						>
+							<span v-if="!loading" class="material-symbols-rounded">lock_reset</span>
+							<span v-else class="material-symbols-rounded animate-spin">progress_activity</span>
+							Changer le mot de passe
+						</Button>
+					</form>
+					<div class="mt-8 text-sm text-gray-600 space-y-1">
+						<div v-if="user.last_login_at">
+							Dernière connexion : <span class="font-medium">{{ formatLastLogin }}</span>
+						</div>
+						<div v-if="user.last_login_ip">
+							IP de dernière connexion : <span class="font-mono">{{ user.last_login_ip }}</span>
+						</div>
+					</div>
+					<div class="w-full flex justify-center">
+						<Button
+							severity="secondary"
+							outlined
+							rounded
+							@click="handleLogout"
+							class="m-4"
+						>
+							<span class="material-symbols-rounded">
+								logout
+							</span>
+							Se déconnecter
+						</Button>
+					</div>
+				</div>
 			</div>
-			<form class="space-y-4" @submit.prevent="handleProfileUpdate">
-				<div class="grid grid-cols-2 gap-4">
-					<div>
-						<label class="block mb-1">Nom d'utilisateur</label>
-						<InputText v-model="profileForm.username" class="w-full"/>
-					</div>
-					<div>
-						<label class="block mb-1">Email</label>
-						<InputText v-model="profileForm.email" class="w-full"/>
-					</div>
-					<div>
-						<label class="block mb-1">Prénom</label>
-						<InputText v-model="profileForm.first_name" class="w-full"/>
-					</div>
-					<div>
-						<label class="block mb-1">Nom</label>
-						<InputText v-model="profileForm.last_name" class="w-full"/>
-					</div>
-				</div>
-				<Button type="submit" class="w-full" :loading="loading" label="Enregistrer les modifications"/>
-			</form>
-			<form class="space-y-4 mt-4 pt-4 border-t" @submit.prevent="handlePasswordUpdate">
-				<h2 class="text-lg font-semibold">Changer le mot de passe</h2>
-				<div>
-					<label class="block mb-1">Mot de passe actuel</label>
-					<Password v-model="passwordForm.current_password" class="w-full" :inputClass="'w-full'" toggleMask/>
-				</div>
-				<div>
-					<label class="block mb-1">Nouveau mot de passe</label>
-					<Password v-model="passwordForm.password" class="w-full" :inputClass="'w-full'" toggleMask/>
-				</div>
-				<div>
-					<label class="block mb-1">Confirmer le nouveau mot de passe</label>
-					<Password v-model="passwordForm.password_confirmation" class="w-full" :inputClass="'w-full'"
-							  toggleMask/>
-				</div>
-				<Button type="submit" class="w-full" :loading="loading" label="Changer le mot de passe"/>
-			</form>
-			<div class="mt-8 text-sm text-gray-600 space-y-1">
-				<div v-if="user.last_login_at">
-					Dernière connexion : <span class="font-medium">{{ formatLastLogin }}</span>
-				</div>
-				<div v-if="user.last_login_ip">
-					IP de dernière connexion : <span class="font-mono">{{ user.last_login_ip }}</span>
-				</div>
-			</div>
-		</div>
+		</section>
 		<div v-else>Chargement...</div>
 	</div>
 </template>
 
 <style scoped>
-/* PrimeVue + Tailwind intégration */
+
 </style>

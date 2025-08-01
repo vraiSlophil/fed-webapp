@@ -11,7 +11,7 @@ const props = defineProps({
 	}
 });
 
-const { user } = useAuth();
+const {user} = useAuth();
 const route = useRoute();
 
 // Obtenir la route actuelle pour la passer en paramètre 'from'
@@ -28,14 +28,15 @@ const avatarUrl = computed(() => {
 </script>
 
 <template>
-	<nav class="fixed top-4 left-4 z-1000 w-[calc(100%-2rem)] flex items-center justify-between p-4 backdrop-blur-xs shadow-[inset_0_0_3rem_#88888844] rounded-3xl border-[1px] border-gray-200/50 dark:border-gray-700/50">
+	<nav
+		class="fixed top-4 left-4 z-1000 w-[calc(100%-2rem)] flex items-center justify-between p-4 backdrop-blur-xs shadow-[inset_0_0_3rem_#88888844] rounded-3xl border-[1px] border-gray-200/10">
 		<!-- Left Third -->
 		<div class="flex-1 text-left">
 			<slot name="left">
 				<NuxtLink
 					v-if="leftBackButton"
+					class="w-min text-nowrap flex items-center justify-center hover:underline"
 					to="/"
-					class="w-min text-nowrap flex items-center justify-center text-blue-600 hover:text-blue-800 transition-colors duration-200"
 				>
 					<span class="material-symbols-rounded mr-2">arrow_back_ios_new</span>
 					Retour à l'accueil
@@ -47,9 +48,9 @@ const avatarUrl = computed(() => {
 		<div class="flex-1 text-center">
 			<slot name="center">
 				<!-- Code par défaut pour le logo -->
-				<NuxtLink to="/" class="flex justify-center items-center">
+				<NuxtLink class="flex justify-center items-center" to="/">
 					<div class="bg-white rounded-full">
-						<img src="public/images/FED_icon_strict.svg" alt="FED Logo" class="w-8 h-8 m-2"/>
+						<img alt="FED Logo" class="w-8 h-8 m-2" src="public/images/FED_icon_strict.svg"/>
 					</div>
 					<span class="text-lg font-semibold ml-2">FED</span>
 				</NuxtLink>
@@ -59,20 +60,29 @@ const avatarUrl = computed(() => {
 		<!-- Right Third -->
 		<div class="flex-1 text-right">
 			<slot name="right">
-<!--				NuxtLink to user page account -->
-				<NuxtLink
-					to="/user"
-					:query="{ from: currentRoute }"
-					class="flex justify-end items-center text-zinc-700 dark:text-zinc-300 gap-4"
-				>
-					{{ user && user.first_name && user.last_name ? user.first_name + ' ' + user.last_name : user?.username}}
-					<Avatar
-						:image="avatarUrl"
-						shape="circle"
-						size="large"
-						class="border-[1px] border-zinc-500"
-					/>
-				</NuxtLink>
+				<!--				NuxtLink to user page account -->
+				<div v-if="user">
+					<Button
+						severity="secondary"
+						rounded
+						outlined
+						@click="navigateTo('/playground')"
+					>
+						Accéder à FED
+					</Button>
+				</div>
+
+				<div v-else>
+					<Button
+						severity="secondary"
+						rounded
+						outlined
+						@click="navigateTo('/login')"
+					>
+						<span class="material-symbols-rounded">login</span>
+						Connexion / Inscription
+					</Button>
+				</div>
 			</slot>
 		</div>
 	</nav>
