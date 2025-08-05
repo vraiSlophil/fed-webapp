@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import type {Theme} from '~/types/themes'
 import type {ThemeMember, ThemeMemberPermissions} from '~/types/themeMembers'
 import {useThemeMembers} from '~/composables/useThemeMembers'
@@ -270,9 +270,9 @@ const getDisplayName = (member: ThemeMember) => {
 <template>
 	<Dialog
 		:visible="visible"
-		@update:visible="emit('update:visible', $event)"
-		class="w-3/4 md:w-2/3 lg:w-1/2 xl:w-1/3"
+		class="w-xl"
 		modal
+		@update:visible="emit('update:visible', $event)"
 	>
 		<template #header>
 			<div class="flex items-center justify-between mb-4">
@@ -310,28 +310,33 @@ const getDisplayName = (member: ThemeMember) => {
 							<Divider v-if="members.indexOf(member) > 0"/>
 							<div class="flex items-center justify-between py-3">
 								<div class="flex items-center gap-3">
-									<div
-										class="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center overflow-hidden">
-										<img
+									<div>
+										<Avatar
 											v-if="member.avatar_path"
-											:src="member.avatar_path"
-											:alt="member.username"
-											class="w-full h-full object-cover"
+											:image="member.avatar_path"
+											class="border-[1px] border-zinc-500"
+											shape="circle"
 										/>
-										<span v-else class="material-symbols-rounded">person</span>
+										<Avatar
+											v-else
+											class="border-[1px] border-zinc-500"
+											shape="circle"
+										>
+											<span class="material-symbols-rounded">person</span>
+										</Avatar>
 									</div>
 									<div class="flex-1 flex items-center justify-between gap-3">
 										<div
 											class="flex flex-col gap-1 max-w-42 overflow-hidden text-ellipsis flex-nowrap">
 											<div
-												class="font-medium overflow-hidden text-ellipsis whitespace-nowrap"
 												:title="getDisplayName(member)"
+												class="font-medium overflow-hidden text-ellipsis whitespace-nowrap"
 											>
 												{{ getDisplayName(member) }}
 											</div>
 											<div
-												class="text-sm text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap"
 												:title="member.email"
+												class="text-sm text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap"
 											>
 												{{ member.email }}
 											</div>
@@ -348,46 +353,50 @@ const getDisplayName = (member: ThemeMember) => {
 								</div>
 
 								<!-- Actions -->
-								<div v-if="member.status !== 'owner'" class="flex items-center gap-1">
+								<div v-if="member.status !== 'owner'" class="flex items-center gap-1 ml-1">
 									<Button
-										@click="startEditPermissions(member)"
+										class="w-10 h-10"
+										outlined
+										rounded
 										text
-										size="small"
-										class="p-2"
 										title="Modifier les permissions"
+										@click="startEditPermissions(member)"
 									>
 										<span class="material-symbols-rounded text-sm">edit</span>
 									</Button>
 
 									<Button
 										v-if="member.status === 'active'"
-										@click="confirmDeactivation(member)"
+										class="w-10 h-10"
+										outlined
+										rounded
 										text
-										size="small"
-										class="p-2"
 										title="Désactiver"
+										@click="confirmDeactivation(member)"
 									>
 										<span class="material-symbols-rounded text-sm">block</span>
 									</Button>
 
 									<Button
 										v-if="member.status === 'revoked'"
-										@click="handleReactivate(member)"
-										text
-										size="small"
-										class="p-2"
-										title="Réactiver"
 										:loading="loading"
+										class="w-10 h-10"
+										outlined
+										rounded
+										text
+										title="Réactiver"
+										@click="handleReactivate(member)"
 									>
 										<span class="material-symbols-rounded text-sm">check_circle</span>
 									</Button>
 
 									<Button
-										@click="confirmDeletion(member)"
+										class="w-10 h-10"
+										outlined
+										rounded
 										text
-										size="small"
-										class="p-2 text-red-500 hover:text-red-600"
 										title="Supprimer"
+										@click="confirmDeletion(member)"
 									>
 										<span class="material-symbols-rounded text-sm">delete</span>
 									</Button>
@@ -400,14 +409,15 @@ const getDisplayName = (member: ThemeMember) => {
 					<!-- Barre de recherche -->
 					<div>
 						<IconField class="mb-4 relative flex items-center justify-start">
-							<span class="material-symbols-rounded text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2">
+							<span
+								class="material-symbols-rounded text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2">
 								search
 							</span>
 							<InputText
 								v-model="searchQuery"
-								placeholder="Rechercher un utilisateur..."
-								class="w-full pl-10"
 								:loading="searchLoading"
+								class="w-full pl-10 !rounded-full"
+								placeholder="Rechercher un utilisateur..."
 							/>
 						</IconField>
 
@@ -425,15 +435,20 @@ const getDisplayName = (member: ThemeMember) => {
 								<Divider v-if="searchResults.indexOf(user) > 0"/>
 								<div class="flex items-center justify-between py-3">
 									<div class="flex items-center gap-3">
-										<div
-											class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center overflow-hidden">
-											<img
+										<div>
+											<Avatar
 												v-if="user.avatar_path"
-												:src="user.avatar_path"
-												:alt="user.username"
-												class="w-full h-full object-cover"
+												:image="user.avatar_path"
+												class="border-[1px] border-zinc-500"
+												shape="circle"
 											/>
-											<span v-else class="material-symbols-rounded text-sm">person</span>
+											<Avatar
+												v-else
+												class="border-[1px] border-zinc-500"
+												shape="circle"
+											>
+												<span class="material-symbols-rounded">account_circle</span>
+											</Avatar>
 										</div>
 										<div>
 											<div class="font-medium">{{ user.username }}</div>
@@ -442,10 +457,10 @@ const getDisplayName = (member: ThemeMember) => {
 									</div>
 									<div>
 										<Button
-											@click="selectUserForInvite(user)"
-											severity="primary"
-											size="small"
 											class="p-2"
+											outlined
+											rounded
+											@click="selectUserForInvite(user)"
 										>
 											Inviter
 										</Button>
@@ -461,33 +476,33 @@ const getDisplayName = (member: ThemeMember) => {
 		<!-- Composant pour l'invitation -->
 		<ThemeMemberPermissionsEditor
 			v-model:visible="showInvitePermissions"
+			:loading="loading"
+			:permission-presets="permissionPresets"
+			:user="selectedUser"
 			mode="invite"
 			title="Inviter un membre"
-			:user="selectedUser"
-			:permission-presets="permissionPresets"
-			:loading="loading"
-			@confirm="confirmInvite"
 			@cancel="cancelInvite"
+			@confirm="confirmInvite"
 		/>
 
 		<!-- Composant pour l'édition des permissions -->
 		<ThemeMemberPermissionsEditor
 			v-model:visible="showEditPermissions"
-			mode="edit"
-			:title="editingMember ? `Permissions de ${getDisplayName(editingMember)}` : 'Permissions'"
+			:loading="loading"
 			:member="editingMember"
 			:permission-presets="permissionPresets"
-			:loading="loading"
-			@confirm="confirmEditPermissions"
+			:title="editingMember ? `Permissions de ${getDisplayName(editingMember)}` : 'Permissions'"
+			mode="edit"
 			@cancel="cancelEditPermissions"
+			@confirm="confirmEditPermissions"
 		/>
 
 		<!-- Confirmation de désactivation -->
 		<Dialog
 			v-model:visible="showDeactivateConfirm"
-			modal
-			header="Confirmer la désactivation"
 			class="w-96"
+			header="Confirmer la désactivation"
+			modal
 		>
 			<div v-if="memberToDeactivate">
 				<p class="mb-4">
@@ -496,18 +511,19 @@ const getDisplayName = (member: ThemeMember) => {
 				</p>
 				<div class="flex gap-2 justify-end">
 					<Button
-						@click="showDeactivateConfirm = false"
-						outlined
-						size="small"
 						:disabled="loading"
+						rounded
+						text
+						severity="danger"
+						@click="showDeactivateConfirm = false"
 					>
 						Annuler
 					</Button>
 					<Button
-						@click="handleDeactivate"
-						severity="warning"
-						size="small"
 						:loading="loading"
+						outlined
+						rounded
+						@click="handleDeactivate"
 					>
 						Désactiver
 					</Button>
@@ -518,9 +534,9 @@ const getDisplayName = (member: ThemeMember) => {
 		<!-- Confirmation de suppression -->
 		<Dialog
 			v-model:visible="showDeleteConfirm"
-			modal
-			header="Confirmer la suppression"
 			class="w-96"
+			header="Confirmer la suppression"
+			modal
 		>
 			<div v-if="memberToDelete">
 				<p class="mb-4">
@@ -529,18 +545,20 @@ const getDisplayName = (member: ThemeMember) => {
 				</p>
 				<div class="flex gap-2 justify-end">
 					<Button
-						@click="showDeleteConfirm = false"
-						outlined
-						size="small"
 						:disabled="loading"
+
+						text
+						rounded
+						@click="showDeleteConfirm = false"
 					>
 						Annuler
 					</Button>
 					<Button
-						@click="handleDelete"
-						severity="danger"
-						size="small"
 						:loading="loading"
+						severity="danger"
+						rounded
+						outlined
+						@click="handleDelete"
 					>
 						Supprimer
 					</Button>

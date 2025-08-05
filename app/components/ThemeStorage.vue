@@ -53,12 +53,12 @@ watch(storedThemes, () => {
 		<Button
 			outlined
 			rounded
-			:disabled="loading"
-			class="w-10 h-10"
+			class="w-10 h-10 relative !overflow-visible"
 			@click="togglePanel"
 		>
 			<span class="material-symbols-rounded">inventory_2</span>
-			<span v-if="storedThemes.length > 0" class="ml-1 text-xs font-bold">
+
+			<span v-if="storedThemes.length > 0" class="pointer-events-none text-xs bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center absolute -top-1 -right-1">
 				{{ storedThemes.length }}
 			</span>
 		</Button>

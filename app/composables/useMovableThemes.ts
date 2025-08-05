@@ -81,6 +81,7 @@ export const useMovableThemes = () => {
         // Mettre à jour l'état local
         const themeIndex = themes.value.findIndex(t => t.theme_id === themeId)
         if (themeIndex !== -1) {
+            if (!themes.value[themeIndex]) return false
             themes.value[themeIndex].position = updatedPosition
         }
 
@@ -93,6 +94,7 @@ export const useMovableThemes = () => {
     const setThemeStored = (themes: Theme[], themeId: string, stored: boolean) => {
         const themeIndex = themes.findIndex(t => t.theme_id === themeId)
         if (themeIndex !== -1) {
+            if (!themes[themeIndex]) return false
             // Mettre à jour l'état local
             themes[themeIndex].stored = stored
 

@@ -116,7 +116,7 @@ const goBack = () => {
 								class="border-[1px] border-zinc-500"
 								shape="circle"
 							>
-								<span class="material-symbols-rounded">account_circle</span>
+								<span class="material-symbols-rounded">person</span>
 							</Avatar>
 							{{
 								user && user.first_name && user.last_name ? user.first_name + ' ' + user.last_name : user?.username

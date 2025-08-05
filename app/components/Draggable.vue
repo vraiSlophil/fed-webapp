@@ -321,8 +321,6 @@ const handleDrop = (e: DragEvent) => {
 	<div
 		ref="draggableElement"
 		:style="draggableStyles"
-
-
 		@mousedown="(e) => {
 			if (!shouldIgnoreDrag(e)) {
 				e.preventDefault();
@@ -338,7 +336,7 @@ const handleDrop = (e: DragEvent) => {
 		<slot></slot>
 		<div
 			v-if="resizableX || resizableY"
-			class="absolute -bottom-1 -right-1 w-3 h-3 cursor-se-resize opacity-0 group-hover:opacity-100 transition-all duration-200"
+			class="absolute bottom-0 right-0 w-3 h-3 cursor-se-resize opacity-0 group-hover:opacity-100 transition-all duration-200"
 			:class="{'opacity-100': isResizing, 'opacity-0': !isResizing}"
 			ref="resizeHandle"
 			@mousedown.prevent.stop="handleResizeStart"

@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import type {Theme} from '~/types/themes'
 import TaskList from "~/components/TaskList.vue";
 import {useColors} from "~/composables/useColors";
@@ -168,37 +168,29 @@ watch(
 
 <template>
 	<div
-		class="flex items-center justify-between w-full p-4 rounded-t-lg transition-all duration-200 min-w-100 hover:shadow-lg"
 		:class="{
-				'rounded-b-lg': !isThemeOpen,
+				'rounded-b-4xl': !isThemeOpen,
 				'rounded-b-none': isThemeOpen
 			}"
 		:style="{
 				backgroundColor: `${editedColor}`,
 				color: textColor
 			}"
+		class="w-full min-h-16 flex items-center justify-between p-4 rounded-t-4xl transition-all duration-200 min-w-100 hover:shadow-lg"
 	>
 		<div>
 			<Button
-				@click="openTheme"
-				class="cursor-pointer flex justify-center items-center align p-2 rounded-full"
-				title="Ouvrir"
-				text
-				size="small"
 				:style="{
 						color: textColor,
 					}"
+				class="h-10 w-10 cursor-pointer flex justify-center items-center align p-2"
+				rounded
+				text
+				title="Ouvrir"
+				@click="openTheme"
 			>
-					<span
-						v-if="isThemeOpen"
-						class="material-symbols-rounded">
-						keyboard_arrow_up
-					</span>
-				<span
-					v-else
-					class="material-symbols-rounded">
-						keyboard_arrow_down
-					</span>
+				<span v-if="isThemeOpen" class="material-symbols-rounded">keyboard_arrow_up</span>
+				<span v-else class="material-symbols-rounded">keyboard_arrow_down</span>
 			</Button>
 
 		</div>
@@ -211,11 +203,11 @@ watch(
 		<div v-else class="flex items-center gap-3 flex-grow">
 			<input
 				v-model="editedTitle"
-				class="font-medium flex-grow px-3 py-1 mx-3 rounded-md focus:outline-none"
 				:style="{
 						color: textColor,
 						backgroundColor: textColor + '1A'
 					}"
+				class="font-medium flex-grow px-3 py-1 mx-3 !rounded-full focus:outline-none"
 				placeholder="Nom du thème"
 				@keyup.enter="confirmEdit"
 				@keyup.esc="cancelEdit"
@@ -229,14 +221,14 @@ watch(
 				<!-- Bouton Modifier - affiché uniquement si l'utilisateur a le droit de modifier -->
 				<Button
 					v-if="canUpdateTheme"
-					@click="startEdit"
-					class="cursor-pointer flex justify-center items-center align p-2 rounded-full"
-					title="Modifier"
-					text
-					size="small"
 					:style="{
 							color: textColor,
 						}"
+					class="h-10 w-10 cursor-pointer flex justify-center items-center align p-2 rounded-full"
+					rounded
+					text
+					title="Modifier"
+					@click="startEdit"
 				>
 					<span class="material-symbols-rounded">edit</span>
 				</Button>
@@ -244,14 +236,14 @@ watch(
 				<!-- Bouton Quitter - affiché uniquement si l'utilisateur est invité -->
 				<Button
 					v-if="!isOwner && !isEditing"
-					@click="confirmLeave(theme)"
-					class="cursor-pointer flex justify-center items-center p-2 rounded-full"
-					title="Quitter le thème"
-					text
-					size="small"
 					:style="{
 							color: textColor,
 						}"
+					class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
+					rounded
+					text
+					title="Quitter le thème"
+					@click="confirmLeave(theme)"
 				>
 					<span class="material-symbols-rounded">chip_extraction</span>
 				</Button>
@@ -259,14 +251,14 @@ watch(
 				<!-- Bouton Supprimer - affiché uniquement si l'utilisateur est propriétaire -->
 				<Button
 					v-if="isOwner"
-					@click="confirmDelete(theme)"
-					class="cursor-pointer flex justify-center items-center p-2 rounded-full"
-					title="Supprimer"
-					text
-					size="small"
 					:style="{
 							color: textColor,
 						}"
+					class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
+					rounded
+					text
+					title="Supprimer"
+					@click="confirmDelete(theme)"
 				>
 					<span class="material-symbols-rounded">delete</span>
 				</Button>
@@ -274,22 +266,22 @@ watch(
 				<!-- Bouton Partager - affiché uniquement si l'utilisateur est propriétaire -->
 				<Button
 					v-if="isOwner"
-					@click="membersPopoverVisible = true"
-					class="cursor-pointer flex justify-center items-center p-2 rounded-full"
-					title="Partager"
-					text
-					size="small"
 					:style="{
 							color: textColor,
 						}"
+					class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
+					rounded
+					text
+					title="Partager"
+					@click="membersPopoverVisible = true"
 				>
 					<span class="material-symbols-rounded">person_add</span>
 				</Button>
 
 				<LazyThemeMembersMenu
 					v-if="isOwner"
-					:visible="membersPopoverVisible"
 					:theme="theme"
+					:visible="membersPopoverVisible"
 					@update:visible="membersPopoverVisible = $event"
 				/>
 			</template>
@@ -299,14 +291,14 @@ watch(
 				<!-- Bouton pour le sélecteur de couleur avec Popover -->
 				<div>
 					<Button
-						@click="colorPopoverRef.show($event)"
-						class="cursor-pointer flex justify-center items-center p-2 rounded-full"
-						title="Changer la couleur"
-						text
-						size="small"
 						:style="{
 								color: textColor,
 							}"
+						class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
+						rounded
+						text
+						title="Changer la couleur"
+						@click="colorPopoverRef.show($event)"
 					>
 						<span class="material-symbols-rounded">palette</span>
 					</Button>
@@ -333,26 +325,26 @@ watch(
 				</div>
 
 				<Button
-					@click="confirmEdit"
-					class="cursor-pointer flex justify-center items-center p-2 rounded-full"
-					title="Confirmer"
-					text
-					size="small"
 					:style="{
 							color: textColor,
 						}"
+					class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
+					rounded
+					text
+					title="Confirmer"
+					@click="confirmEdit"
 				>
 					<span class="material-symbols-rounded">check</span>
 				</Button>
 				<Button
-					@click="cancelEdit"
-					class="cursor-pointer flex justify-center items-center p-2 rounded-full"
-					title="Annuler"
-					text
-					size="small"
 					:style="{
 							color: textColor,
 						}"
+					class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
+					rounded
+					text
+					title="Annuler"
+					@click="cancelEdit"
 				>
 					<span class="material-symbols-rounded">close</span>
 				</Button>
@@ -362,28 +354,28 @@ watch(
 		<!-- Sélecteur de couleur (caché par défaut) -->
 		<input
 			ref="colorPickerRef"
-			type="color"
 			v-model="editedColor"
 			class="hidden"
+			type="color"
 		/>
 	</div>
 	<div
 		v-if="isThemeOpen"
-		class="bg-white/10 dark:bg-gray/10 backdrop-blur-xs min-h-42 w-full rounded-b-lg"
+		class="bg-white/10 dark:bg-gray/10 backdrop-blur-xs min-h-42 w-full rounded-b-4xl overflow-hidden"
 		data-no-drag
 	>
 		<TaskList
-			:theme="theme"
 			:isThemeOpen="isThemeOpen"
+			:theme="theme"
 			class="cursor-auto"
 		/>
 	</div>
 
 	<Dialog
 		v-model:visible="deleteDialogVisible"
-		header="Confirmer la suppression"
-		:style="{ width: '30rem' }"
 		:modal="true"
+		:style="{ width: '30rem' }"
+		header="Confirmer la suppression"
 	>
 		<div class="confirmation-content flex items-center gap-3 m-4">
 			<span class="material-symbols-rounded text-yellow-500 text-2xl">warning</span>
@@ -392,23 +384,26 @@ watch(
 		<template #footer>
 			<Button
 				label="Non"
-				outlined
+				text
+				rounded
 				@click="deleteDialogVisible = false"
 			/>
 			<Button
+				:loading="loading"
 				label="Oui"
 				severity="danger"
+				rounded
+				outlined
 				@click="handleDeleteTheme"
-				:loading="loading"
 			/>
 		</template>
 	</Dialog>
 
 	<Dialog
 		v-model:visible="leaveDialogVisible"
-		header="Confirmer la sortie"
-		:style="{ width: '30rem' }"
 		:modal="true"
+		:style="{ width: '30rem' }"
+		header="Confirmer la sortie"
 	>
 		<div class="confirmation-content flex items-center gap-3 m-4">
 			<span class="material-symbols-rounded text-yellow-500 text-2xl">warning</span>
@@ -417,14 +412,17 @@ watch(
 		<template #footer>
 			<Button
 				label="Non"
-				outlined
+				text
+				rounded
 				@click="leaveDialogVisible = false"
 			/>
 			<Button
+				:loading="loading"
 				label="Oui"
 				severity="danger"
+				rounded
+				outlined
 				@click="handleLeaveTheme"
-				:loading="loading"
 			/>
 		</template>
 	</Dialog>
