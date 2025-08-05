@@ -1,22 +1,29 @@
 <script lang="ts" setup>
-
 const props = defineProps({
 	leftBackButton: {
 		type: Boolean,
 		default: false
 	},
+	rightLoginButton: {
+		type: Boolean,
+		default: true
+	},
 	from: {
 		type: String,
-		default: undefined
+		default: ''
 	}
 });
 
 const {user} = useAuth();
 const route = useRoute();
+const router = useRouter();
 
-// Obtenir la route actuelle pour la passer en paramètre 'from'
+const effectiveFrom = computed(() => {
+	return props.from || (route.query.from as string) || '';
+});
+
 const currentRoute = computed(() => {
-	return props.from || route.name || ''
+	return effectiveFrom.value || route.name || '';
 });
 
 const avatarUrl = computed(() => {
@@ -25,22 +32,39 @@ const avatarUrl = computed(() => {
 	return `${config.public.BACKEND_URL}/api/media/${user.value.avatar_path}`;
 });
 
+const goBack = () => {
+	if (effectiveFrom.value) {
+		// Si on a un paramètre 'from', rediriger vers cette page
+		navigateTo(`/${effectiveFrom.value}`)
+	} else {
+		// Sinon, utiliser l'historique du navigateur ou rediriger vers l'accueil
+		if (window.history.length > 1) {
+			router.go(-1)
+		} else {
+			navigateTo('/')
+		}
+	}
+}
+
 </script>
 
 <template>
 	<nav
-		class="fixed top-4 left-4 z-1000 w-[calc(100%-2rem)] flex items-center justify-between p-4 backdrop-blur-xs shadow-[inset_0_0_3rem_#88888844] rounded-3xl border-[1px] border-gray-200/10">
+		class="fixed top-4 left-4 z-1000 w-[calc(100%-2rem)] flex items-center justify-between py-4 px-5 backdrop-blur-xs shadow-[inset_0_0_3rem_#88888844] rounded-full border-[1px] border-gray-200/10">
 		<!-- Left Third -->
 		<div class="flex-1 text-left">
 			<slot name="left">
-				<NuxtLink
-					v-if="leftBackButton"
-					class="w-min text-nowrap flex items-center justify-center hover:underline"
-					to="/"
-				>
-					<span class="material-symbols-rounded mr-2">arrow_back_ios_new</span>
-					Retour à l'accueil
-				</NuxtLink>
+				<div v-if="props.leftBackButton" class="flex justify-start items-center">
+					<Button
+						severity="secondary"
+						outlined
+						rounded
+						@click="goBack"
+					>
+						<span class="material-symbols-rounded">arrow_back_ios_new</span>
+						Retour
+					</Button>
+				</div>
 			</slot>
 		</div>
 
@@ -60,27 +84,57 @@ const avatarUrl = computed(() => {
 		<!-- Right Third -->
 		<div class="flex-1 text-right">
 			<slot name="right">
-				<!--				NuxtLink to user page account -->
-				<div v-if="user">
-					<Button
-						severity="primary"
-						rounded
-						@click="navigateTo('/playground')"
-					>
-						Accéder à FED
-					</Button>
-				</div>
+				<div v-if="props.rightLoginButton">
+					<div v-if="user && route.name !== 'playground'">
+						<Button
+							severity="primary"
+							rounded
+							@click="navigateTo('/playground')"
+						>
+							Accéder à FED
+						</Button>
+					</div>
 
-				<div v-else>
-					<Button
-						severity="secondary"
-						rounded
-						outlined
-						@click="navigateTo('/login')"
-					>
-						<span class="material-symbols-rounded">login</span>
-						Connexion / Inscription
-					</Button>
+					<div v-else-if="user && route.name === 'playground'">
+						<Button
+							v-if="user"
+							:query="{ from: currentRoute }"
+							severity="secondary"
+							rounded
+							outlined
+							class="flex justify-end items-center text-zinc-700 dark:text-zinc-300 gap-4"
+							@click="navigateTo('/user')"
+						>
+							<Avatar
+								v-if="avatarUrl"
+								:image="avatarUrl"
+								class="border-[1px] border-zinc-500"
+								shape="circle"
+							/>
+							<Avatar
+								v-else
+								class="border-[1px] border-zinc-500"
+								shape="circle"
+							>
+								<span class="material-symbols-rounded">account_circle</span>
+							</Avatar>
+							{{
+								user && user.first_name && user.last_name ? user.first_name + ' ' + user.last_name : user?.username
+							}}
+						</Button>
+					</div>
+
+					<div v-else>
+						<Button
+							severity="secondary"
+							rounded
+							outlined
+							@click="navigateTo('/login')"
+						>
+							<span class="material-symbols-rounded">login</span>
+							Connexion / Inscription
+						</Button>
+					</div>
 				</div>
 			</slot>
 		</div>

@@ -3,10 +3,6 @@ import {ref, computed, watch} from 'vue'
 import {useAuth} from '~/composables/useAuth'
 import {HttpMethods} from '~/utils/httpMethods'
 
-const route = useRoute();
-const router = useRouter();
-const from = route.query.from as string ?? '';
-
 const {user, fetchUser, logout} = useAuth()
 const toast = useToast()
 
@@ -151,20 +147,6 @@ const handleAvatarUpload = async (event: any) => {
 	}
 }
 
-const goBack = () => {
-	if (from) {
-		// Si on a un paramètre 'from', rediriger vers cette page
-		navigateTo(`/${from}`)
-	} else {
-		// Sinon, utiliser l'historique du navigateur ou rediriger vers l'accueil
-		if (window.history.length > 1) {
-			router.go(-1)
-		} else {
-			navigateTo('/')
-		}
-	}
-}
-
 const formatLastLogin = computed(() => {
 	if (!user.value?.last_login_at) return ''
 	return new Date(user.value.last_login_at).toLocaleString('fr-FR', {
@@ -184,23 +166,10 @@ const formatLastLogin = computed(() => {
 
 <template>
 	<div class="flex min-h-screen items-center justify-center flex-col">
-		<Navbar>
-			<template #left>
-				<div class="flex justify-start items-center">
-					<Button
-						severity="secondary"
-						outlined
-						rounded
-						@click="goBack"
-					>
-						<span class="material-symbols-rounded">arrow_back_ios_new</span>
-						Retour
-					</Button>
-				</div>
-			</template>
-			<template #right>
-				<div></div>
-			</template>
+		<Navbar
+			:left-back-button="true"
+			:right-login-button="false"
+		>
 		</Navbar>
 		<section v-if="user" class="w-screen max-w-5xl">
 			<h1 class="text-2xl font-bold text-center mb-4">Profil utilisateur</h1>
@@ -235,7 +204,7 @@ const formatLastLogin = computed(() => {
 							</div>
 							<div>
 								<label class="block mb-1">Email</label>
-								<InputText v-model="profileForm.email" class="w-full !px-4 !rounded-full"/>
+								<InputText v-model="profileForm.email" type="email" class="w-full !px-4 !rounded-full"/>
 							</div>
 							<div>
 								<label class="block mb-1">Prénom</label>

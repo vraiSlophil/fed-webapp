@@ -51,7 +51,10 @@ watch(storedThemes, () => {
 	<div>
 		<!-- Bouton pour ouvrir/fermer -->
 		<Button
-			class="rounded-full p-3 flex items-center justify-center"
+			outlined
+			rounded
+			:disabled="loading"
+			class="w-10 h-10"
 			@click="togglePanel"
 		>
 			<span class="material-symbols-rounded">inventory_2</span>

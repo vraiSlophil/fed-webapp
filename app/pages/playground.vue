@@ -159,40 +159,21 @@ watch(() => formData.color, (newVal) => {
 	<div @click="closeContextMenu" class="overflow-hidden w-screen h-screen">
 		<Navbar
 			:left-back-button="false"
+			:right-login-button="true"
 		>
-			<template #right>
-				<Button
-					v-if="user"
-					:query="{ from: currentRoute }"
-					severity="secondary"
-					rounded
-					outlined
-					class="flex justify-end items-center text-zinc-700 dark:text-zinc-300 gap-4"
-					@click="navigateTo('/user')"
-				>
-					<Avatar
-						v-if="avatarUrl"
-						:image="avatarUrl"
-						class="border-[1px] border-zinc-500"
-						shape="circle"
-					/>
-					<Avatar
-						v-else
-						class="border-[1px] border-zinc-500"
-						shape="circle"
-					>
-						<span class="material-symbols-rounded">account_circle</span>
-					</Avatar>
-					{{ user && user.first_name && user.last_name ? user.first_name + ' ' + user.last_name : user?.username }}
-				</Button>
-			</template>
 			<template #left>
 				<div class="flex justify-start items-center gap-4 flex-row mx-1.5">
 					<ThemeStorage
 						:themelist="themes"
 						@reload="fetchThemesWithSavedPositions"
 					/>
-					<Button @click="fetchThemesWithSavedPositions" :loading="loading">
+					<Button
+						outlined
+						rounded
+						:disabled="loading"
+						class="w-10 h-10"
+						@click="fetchThemesWithSavedPositions"
+					>
 						<span v-if="loading" class="material-symbols-rounded animate-spin w-min">progress_activity</span>
 						<span v-else class="material-symbols-rounded w-min">refresh</span>
 					</Button>

@@ -34,32 +34,35 @@ const submit = async () => {
 </script>
 
 <template>
-	<div class="flex min-h-screen items-center justify-center flex-col">
-		<div class="absolute top-4 left-1/2 -translate-x-1/2 z-50 w-min text-nowrap flex items-center justify-center">
-			<span class="material-symbols-rounded text-blue-500 mr-2">arrow_back</span>
-			<NuxtLink class="text-blue-500 hover:underline flex justify-center items-center" to="/">
-				Retour à l'accueil
-			</NuxtLink>
-		</div>
+	<div>
+		<Navbar
+			:left-back-button="true"
+			:right-login-button="false"
+		/>
 		<form
-			class="p-8 rounded shadow-md w-full max-w-sm space-y-6"
+			class="w-full max-w-sm min-h-screen flex items-center justify-center flex-col m-auto space-y-6"
 			@submit.prevent="submit"
 		>
 			<h1 class="text-2xl font-bold text-center mb-4">Mot de passe oublié</h1>
-			<div>
+			<div class="w-full">
 				<InputText
 					v-model="email"
 					type="email"
 					placeholder="Votre email"
-					class="w-full"
+					class="w-full !px-4 !rounded-full"
 				/>
 			</div>
 			<Button
+				outlined
+				rounded
 				type="submit"
+				:disabled="!email || loading"
 				class="w-full"
-				:loading="loading"
-				label="Envoyer le lien de réinitialisation"
-			/>
+			>
+				<span v-if="!loading" class="material-symbols-rounded">send</span>
+				<span v-else class="material-symbols-rounded animate-spin">progress_activity</span>
+				Envoyer le lien de réinitialisation
+			</Button>
 		</form>
 	</div>
 </template>

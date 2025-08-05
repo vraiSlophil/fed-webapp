@@ -6,8 +6,10 @@ const password_confirmation = ref<string>('')
 
 const toast = useToast()
 const {register} = useAuth()
+const loading = ref(false)
 
 const handleRegister = async () => {
+	loading.value = true
 	try {
 		await register(username.value, email.value, password.value, password_confirmation.value)
 		toast.add({
@@ -25,60 +27,63 @@ const handleRegister = async () => {
 			detail: backendMessage,
 			life: 3000
 		})
+	} finally {
+		loading.value = false
 	}
 }
 </script>
 
 <template>
-	<div class="flex min-h-screen items-center justify-center flex-col">
-		<div class="absolute top-4 left-1/2 -translate-x-1/2 z-50 w-min text-nowrap flex items-center justify-center">
-			<span class="material-symbols-rounded text-blue-500 mr-2">arrow_back</span>
-			<NuxtLink class="text-blue-500 hover:underline flex justify-center items-center" to="/">
-				Retour à l'accueil
-			</NuxtLink>
-		</div>
+	<div>
+		<Navbar
+			:left-back-button="true"
+			:right-login-button="false"
+		/>
+
 		<form
-			class="p-8 rounded shadow-md w-full max-w-sm space-y-6"
+			class="min-h-screen w-full max-w-sm flex items-center justify-center flex-col m-auto space-y-6"
 			@submit.prevent="handleRegister"
 		>
 			<h1 class="text-2xl font-bold text-center mb-4">Inscription</h1>
-			<div>
+			<div class="w-full">
 				<InputText
 					v-model="username"
-					type="text"
 					placeholder="Nom d'utilisateur"
-					class="w-full"
+					class="w-full !px-4 !rounded-full"
 				/>
+
 			</div>
-			<div>
+			<div class="w-full">
+
 				<InputText
 					v-model="email"
-					type="email"
 					placeholder="Email"
-					class="w-full"
+					class="w-full !px-4 !rounded-full"
 				/>
 			</div>
-			<div>
+			<div class="w-full">
+
 				<Password
 					v-model="password"
 					placeholder="Mot de passe"
 					class="w-full"
-					:inputClass="'w-full'"
+					:inputClass="'w-full !px-4 !rounded-full'"
 					toggleMask
 				/>
 			</div>
-			<div>
-				<Password
+			<div class="w-full">
+
+			<Password
 					v-model="password_confirmation"
 					placeholder="Confirmer le mot de passe"
 					class="w-full"
-					:inputClass="'w-full'"
+					:inputClass="'w-full !px-4 !rounded-full'"
 					toggleMask
 				/>
 			</div>
-			<div class="flex justify-between items-center">
+			<div class="flex justify-between items-center w-full">
 				<NuxtLink
-					class="text-blue-500 hover:underline"
+					class="p-button p-component p-button-info p-button-text !rounded-full"
 					to="/login"
 				>
 					Déjà inscrit ? Connectez-vous
@@ -86,8 +91,13 @@ const handleRegister = async () => {
 			</div>
 			<Button
 				type="submit"
+				outlined
+				rounded
+				:disabled="!username || !email || !password || !password_confirmation || loading"
 				class="w-full"
 			>
+				<span v-if="!loading" class="material-symbols-rounded">login</span>
+				<span v-else class="material-symbols-rounded animate-spin">progress_activity</span>
 				S'inscrire
 			</Button>
 		</form>
