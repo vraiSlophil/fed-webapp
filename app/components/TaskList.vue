@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import type {Theme} from '~/types/themes'
 import type {Task} from '~/types/task'
 import {useTasks} from '~/composables/useTasks'
@@ -49,6 +49,8 @@ const currentArchivedFilter = ref(false)
 
 // Affichage détaillé des statistiques
 const showDetailedStats = ref(false)
+
+const filtersVisibility = ref(false)
 
 // Charger les tâches au montage et quand le thème change
 onMounted(() => {
@@ -226,96 +228,105 @@ const toggleDetailedStats = () => {
 	showDetailedStats.value = !showDetailedStats.value
 }
 
+const toggleFiltersVisibility = () => {
+	filtersVisibility.value = !filtersVisibility.value
+}
+
 </script>
 
 <template>
 	<div class="h-full flex flex-col rounded-b-lg">
 		<!-- Barre d'outils -->
-		<div
-			class="flex items-center justify-center flex-col p-4 gap-3"
-		>
-			<div
-				class="flex items-center justify-start w-full gap-2 flex-wrap"
-			>
-				<!-- Barre de recherche -->
-				<IconField class="flex-1 relative max-w-lg min-w-sm">
-					<span
-						class="material-symbols-rounded text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2">
-					  search
-					</span>
+		<div class="flex justify-start px-4 my-2">
+			<div class="w-full max-w-lg flex items-center justify-start gap-2 relative">
+				<IconField class="flex-1 relative">
+					<span class="material-symbols-rounded text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2">search</span>
 					<InputText
 						v-model="searchQuery"
-						@input="handleSearch"
+						class="w-full h-10 flex items-center justify-between pl-10 pr-4 py-2 text-sm !rounded-full"
 						placeholder="Rechercher une tâche..."
-						class="w-full pl-10 pr-4 py-2 text-sm flex items-center justify-between"
+						@input="handleSearch"
 					/>
 				</IconField>
-				<div class="relative">
-					<Select
-						v-model="currentStatusFilter"
-						:options="statusOptions"
-						optionLabel="label"
-						class="w-36 flex items-center justify-between"
+				<div class="">
+					<Button
+						outlined
+						rounded
+						severity="secondary"
+						class="w-10 h-10"
+						@click="toggleFiltersVisibility"
 					>
-						<template #option="slotProps">
-							<div class="flex items-center gap-2">
-								<span class="material-symbols-rounded text-sm text-gray-400">{{
-										slotProps.option.icon
-									}}</span>
-								{{ slotProps.option.label }}
-							</div>
-						</template>
-						<template #value="slotProps">
-							<div class="flex items-center gap-2 ">
+						<span v-if="!filtersVisibility" class="material-symbols-rounded">settings</span>
+						<span v-else class="material-symbols-rounded">close</span>
+					</Button>
+					<div
+						class="mr-10 p-2 absolute -top-2 right-0 flex justify-center items-center flex-nowrap gap-2 rounded-full bg-white/20 dark:bg-black/20 animation-all duration-200"
+						:class="filtersVisibility ? 'opacity-100 pointer-event-default' : 'opacity-0 pointer-events-none'"
+					>
+						<Select
+							v-model="currentStatusFilter"
+							:options="statusOptions"
+							class="w-36 h-10 flex items-center justify-between !rounded-full"
+							optionLabel="label"
+						>
+							<template #option="slotProps">
+								<div class="flex items-center gap-2">
+									<span class="material-symbols-rounded text-sm text-gray-400">{{
+											slotProps.option.icon
+										}}</span>
+									{{ slotProps.option.label }}
+								</div>
+							</template>
+							<template #value="slotProps">
+								<div class="flex items-center gap-2 ">
 								<span class="material-symbols-rounded text-sm text-gray-400">
 								  {{ (currentStatusFilter as any)?.icon || statusOptions[0].icon }}
 								</span>
-								<span>
+									<span>
 									{{ (currentStatusFilter as any)?.label || statusOptions[0].label }}
 								</span>
-							</div>
-						</template>
-					</Select>
-				</div>
-				<button
-					@click="toggleSortOrder"
-					class="flex items-center justify-center h-10.5 w-10.5 rounded-md border-[1px] cursor-pointer text-gray-400 transition-all duration-200
-					bg-white border-slate-300 hover:border-slate-400
-					dark:bg-zinc-950 dark:border-zinc-600 dark:hover:border-zinc-500"
-				>
-					<span class="material-symbols-rounded text-sm">{{ getCurrentSortOption().icon }}</span>
-				</button>
+								</div>
+							</template>
+						</Select>
+						<button
+							class="p-inputtext flex items-center justify-center h-10 w-10 cursor-pointer !text-gray-400 !rounded-full"
+							@click="toggleSortOrder"
+						>
+							<span class="material-symbols-rounded text-sm">{{ getCurrentSortOption().icon }}</span>
+						</button>
 
-				<button
-					@click="toggleArchivedFilter"
-					class="flex items-center justify-center h-10.5 w-10.5 rounded-md border-[1px] cursor-pointer text-gray-400 transition-all duration-200
-					bg-white border-slate-300 hover:border-slate-400
-					dark:bg-zinc-950 dark:border-zinc-600 dark:hover:border-zinc-500"
-				>
-					<span class="material-symbols-rounded text-sm">{{ getCurrentArchiveOption().icon }}</span>
-				</button>
+						<button
+							class="p-inputtext flex items-center justify-center h-10 w-10 cursor-pointer !text-gray-400 !rounded-full"
+							@click="toggleArchivedFilter"
+						>
+							<span class="material-symbols-rounded text-sm">{{ getCurrentArchiveOption().icon }}</span>
+						</button>
+					</div>
+				</div>
 			</div>
 		</div>
 
 		<!-- Formulaire de création de tâche (seulement pour les tâches actives) -->
 		<div v-if="(!currentArchivedFilter && canAddTask) || isOwner" class="px-4">
-			<div class="flex gap-2">
+			<div class="max-w-lg flex gap-2">
 				<InputText
 					v-model="newTaskTitle"
-					@keyup.enter="handleCreateTask"
-					placeholder="Ajouter une nouvelle tâche..."
-					class="flex-1 min-w-sm max-w-lg"
-					autofocus
 					:disabled="isCreatingTask"
+					autofocus
+					class="flex-1 h-10 !rounded-full !px-4"
+					placeholder="Ajouter une nouvelle tâche..."
+					@keyup.enter="handleCreateTask"
 				/>
 				<Button
-					@click="handleCreateTask"
-					:loading="isCreatingTask"
 					:disabled="!newTaskTitle.trim()"
-					size="small"
-					class="px-4"
+					:loading="isCreatingTask"
+					outlined
+					rounded
+					class="h-10 w-10"
+					@click="handleCreateTask"
 				>
-					<span class="material-symbols-rounded">add</span>
+					<span v-if="!isCreatingTask" class="material-symbols-rounded">add</span>
+					<span v-else class="material-symbols-rounded animate-spin">progress_activity</span>
 				</Button>
 			</div>
 		</div>
@@ -326,11 +337,11 @@ const toggleDetailedStats = () => {
 			<!-- Statistiques -->
 			<div
 				v-if="(themeStats) && !currentArchivedFilter"
-				class="p-4 border-b border-gray-300 dark:border-gray-700 transition-all"
 				:style="{
 				filter: statsLoading ? 'blur(4px) brightness(0.5)' : 'none',
 
 			}"
+				class="p-4 border-b border-gray-300 dark:border-gray-700 transition-all"
 			>
 				<!-- Affichage des statistiques de base -->
 				<div class="space-y-3">
@@ -342,17 +353,17 @@ const toggleDetailedStats = () => {
 							}} active{{ themeStats.active > 1 ? 's' : '' }}</span>
 							<span>{{ themeStats.done }} terminée{{ themeStats.done > 1 ? 's' : '' }}</span>
 							<Tag
-								severity="secondary"
 								:style="{ backgroundColor: props.theme.color + '44', color: textColor }"
+								severity="secondary"
 							>
 								{{ themeStats.completion_rate }}% terminé
 							</Tag>
 						</div>
 						<Button
-							@click="toggleDetailedStats"
+							:aria-label="showDetailedStats ? 'Masquer les détails' : 'Afficher les détails'"
 							:severity="'secondary'"
 							text
-							:aria-label="showDetailedStats ? 'Masquer les détails' : 'Afficher les détails'"
+							@click="toggleDetailedStats"
 						>
 						<span class="material-symbols-rounded text-sm">
 							{{ showDetailedStats ? 'expand_less' : 'expand_more' }}
@@ -363,11 +374,11 @@ const toggleDetailedStats = () => {
 					<!-- Barre de progression -->
 					<div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
 						<div
-							class="h-2 rounded-full transition-all duration-300"
 							:style="{
 							width: themeStats.completion_rate + '%',
 							backgroundColor: props.theme.color
 						}"
+							class="h-2 rounded-full transition-all duration-300"
 						></div>
 					</div>
 
@@ -466,10 +477,10 @@ const toggleDetailedStats = () => {
 						:key="task.task_id"
 						:task="task"
 						:theme="theme"
-						@updated="handleTaskUpdated"
-						@deleted="handleTaskDeleted"
 						@archived="handleTaskArchived"
+						@deleted="handleTaskDeleted"
 						@restored="handleTaskRestored"
+						@updated="handleTaskUpdated"
 					/>
 				</div>
 			</div>
@@ -477,9 +488,9 @@ const toggleDetailedStats = () => {
 			<!-- Pagination -->
 			<div v-if="pagination.last_page > 1" class="p-4 border-t dark:border-gray-700">
 				<Paginator
+					:first="(pagination.current_page - 1) * pagination.per_page"
 					:rows="pagination.per_page"
 					:totalRecords="pagination.total"
-					:first="(pagination.current_page - 1) * pagination.per_page"
 					@page="setPage($event.page + 1); loadTasks()"
 				/>
 			</div>
