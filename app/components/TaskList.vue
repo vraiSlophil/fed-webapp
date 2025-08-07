@@ -236,78 +236,80 @@ const toggleFiltersVisibility = () => {
 
 <template>
 	<div class="h-full flex flex-col rounded-b-lg">
-		<!-- Barre d'outils -->
-		<div class="flex justify-start px-4 my-2">
-			<div class="w-full max-w-lg flex items-center justify-start gap-2 relative">
-				<IconField class="flex-1 relative">
-					<span class="material-symbols-rounded text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2">search</span>
-					<InputText
-						v-model="searchQuery"
-						class="w-full h-10 flex items-center justify-between pl-10 pr-4 py-2 text-sm !rounded-full"
-						placeholder="Rechercher une tâche..."
-						@input="handleSearch"
-					/>
-				</IconField>
-				<div class="">
-					<Button
-						outlined
-						rounded
-						severity="secondary"
-						class="w-10 h-10"
-						@click="toggleFiltersVisibility"
-					>
-						<span v-if="!filtersVisibility" class="material-symbols-rounded">settings</span>
-						<span v-else class="material-symbols-rounded">close</span>
-					</Button>
-					<div
-						class="mr-10 p-2 absolute -top-2 right-0 flex justify-center items-center flex-nowrap gap-2 rounded-full bg-white/20 dark:bg-black/20 animation-all duration-200"
-						:class="filtersVisibility ? 'opacity-100 pointer-event-default' : 'opacity-0 pointer-events-none'"
-					>
-						<Select
-							v-model="currentStatusFilter"
-							:options="statusOptions"
-							class="w-36 h-10 flex items-center justify-between !rounded-full"
-							optionLabel="label"
+		<div class="flex flex-col gap-1 p-4 border-b border-gray-300 dark:border-gray-700 transition-all">
+			<!-- Barre d'outils -->
+			<div class="flex justify-start">
+				<div class="w-full max-w-lg flex items-center justify-start gap-2 relative">
+					<IconField class="flex-1 relative">
+						<span class="material-symbols-rounded text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2">search</span>
+						<InputText
+							v-model="searchQuery"
+							class="w-full h-10 flex items-center justify-between pl-10 pr-4 py-2 text-sm !rounded-full"
+							placeholder="Rechercher une tâche..."
+							@input="handleSearch"
+						/>
+					</IconField>
+					<div class="">
+						<Button
+							outlined
+							rounded
+							severity="secondary"
+							class="w-10 h-10"
+							@click="toggleFiltersVisibility"
 						>
-							<template #option="slotProps">
-								<div class="flex items-center gap-2">
+							<span v-if="!filtersVisibility" class="material-symbols-rounded">settings</span>
+							<span v-else class="material-symbols-rounded">close</span>
+						</Button>
+						<div
+							class="mr-10 p-2 absolute -top-2 right-0 flex justify-center items-center flex-nowrap gap-2 rounded-full bg-white/60 dark:bg-black/60 animation-all duration-200"
+							:class="filtersVisibility ? 'opacity-100 pointer-event-default' : 'opacity-0 pointer-events-none'"
+						>
+							<Select
+								v-model="currentStatusFilter"
+								:options="statusOptions"
+								class="w-36 h-10 flex items-center justify-between !rounded-full"
+								optionLabel="label"
+							>
+								<template #option="slotProps">
+									<div class="flex items-center gap-2">
 									<span class="material-symbols-rounded text-sm text-gray-400">{{
 											slotProps.option.icon
 										}}</span>
-									{{ slotProps.option.label }}
-								</div>
-							</template>
-							<template #value="slotProps">
-								<div class="flex items-center gap-2 ">
+										{{ slotProps.option.label }}
+									</div>
+								</template>
+								<template #value="slotProps">
+									<div class="flex items-center gap-2 ">
 								<span class="material-symbols-rounded text-sm text-gray-400">
 								  {{ (currentStatusFilter as any)?.icon || statusOptions[0].icon }}
 								</span>
-									<span>
+										<span>
 									{{ (currentStatusFilter as any)?.label || statusOptions[0].label }}
 								</span>
-								</div>
-							</template>
-						</Select>
-						<button
-							class="p-inputtext flex items-center justify-center h-10 w-10 cursor-pointer !text-gray-400 !rounded-full"
-							@click="toggleSortOrder"
-						>
-							<span class="material-symbols-rounded text-sm">{{ getCurrentSortOption().icon }}</span>
-						</button>
+									</div>
+								</template>
+							</Select>
+							<button
+								class="p-inputtext flex items-center justify-center h-10 w-10 cursor-pointer !text-gray-400 !rounded-full"
+								@click="toggleSortOrder"
+							>
+								<span class="material-symbols-rounded text-sm">{{ getCurrentSortOption().icon }}</span>
+							</button>
 
-						<button
-							class="p-inputtext flex items-center justify-center h-10 w-10 cursor-pointer !text-gray-400 !rounded-full"
-							@click="toggleArchivedFilter"
-						>
-							<span class="material-symbols-rounded text-sm">{{ getCurrentArchiveOption().icon }}</span>
-						</button>
+							<button
+								class="p-inputtext flex items-center justify-center h-10 w-10 cursor-pointer !text-gray-400 !rounded-full"
+								@click="toggleArchivedFilter"
+							>
+								<span class="material-symbols-rounded text-sm">{{ getCurrentArchiveOption().icon }}</span>
+							</button>
+						</div>
 					</div>
 				</div>
 			</div>
-		</div>
 
-		<!-- Formulaire de création de tâche (seulement pour les tâches actives) -->
-		<div v-if="(!currentArchivedFilter && canAddTask) || isOwner" class="px-4">
+			<!-- Formulaire de création de tâche (seulement pour les tâches actives) -->
+			<div v-if="(!currentArchivedFilter && canAddTask) || isOwner" class="px-4">
+			</div>
 			<div class="max-w-lg flex gap-2">
 				<InputText
 					v-model="newTaskTitle"
@@ -385,7 +387,7 @@ const toggleFiltersVisibility = () => {
 					<!-- Statistiques détaillées (conditionnelles) -->
 					<div v-if="showDetailedStats" class="pt-3 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
 						<!-- Statistiques par statut -->
-						<div class="bg-white/10 dark:bg-gray/10 rounded-lg p-3 space-y-2">
+						<div class="bg-white/10 dark:bg-white/10 rounded-lg p-3 space-y-2">
 							<h4 class="font-semibold text-gray-700 dark:text-gray-300">Par statut</h4>
 							<div class="flex items-center justify-between">
 							<span class="flex items-center gap-1">
@@ -486,12 +488,13 @@ const toggleFiltersVisibility = () => {
 			</div>
 
 			<!-- Pagination -->
-			<div v-if="pagination.last_page > 1" class="p-4 border-t dark:border-gray-700">
+			<div v-if="pagination.last_page > 1" class="p-4 border-t border-gray-300 dark:border-gray-700">
 				<Paginator
 					:first="(pagination.current_page - 1) * pagination.per_page"
 					:rows="pagination.per_page"
 					:totalRecords="pagination.total"
 					@page="setPage($event.page + 1); loadTasks()"
+					:pt="{root: '!rounded-full !bg-white/10 h-10 !p-0'}"
 				/>
 			</div>
 		</div>
