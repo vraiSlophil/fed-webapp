@@ -1,5 +1,5 @@
 import { useApiFetch } from './useApiFetch'
-import type { Theme } from '~/types/themes'
+import type { Theme } from '~/types/theme'
 
 export const useThemes = () => {
     const themes = ref<Theme[]>([])

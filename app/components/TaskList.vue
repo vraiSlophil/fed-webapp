@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type {Theme} from '~/types/themes'
+import type {Theme} from '~/types/theme'
 import type {Task} from '~/types/task'
 import {useTasks} from '~/composables/useTasks'
 import {useThemeStats} from '~/composables/useThemeStats'

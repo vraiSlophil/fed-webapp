@@ -2,7 +2,7 @@
 import { ref, nextTick } from 'vue'
 import type { Task } from '~/types/task'
 import { useTask } from '~/composables/useTask'
-import type {Theme} from "~/types/themes";
+import type {Theme} from "~/types/theme";
 
 const props = defineProps<{
 	task: Task

@@ -1,4 +1,4 @@
-import type {Theme} from "~/types/themes";
+import type {Theme} from "~/types/theme";
 
 // Variables globales partagées (singleton)
 const isHovering = ref(false)

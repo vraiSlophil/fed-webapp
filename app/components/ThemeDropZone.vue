@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type {Theme} from "~/types/themes";
+import type {Theme} from "~/types/theme";
 
 const emit = defineEmits(['drop-theme'])
 

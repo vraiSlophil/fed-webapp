@@ -1,6 +1,6 @@
 import { useApiFetch } from './useApiFetch'
 import { HttpMethods } from '~/utils/httpMethods'
-import type {ThemeStats} from "~/types/themes";
+import type {ThemeStats} from "~/types/theme";
 
 export const useThemeStats = () => {
     const stats = ref<ThemeStats | null>(null)

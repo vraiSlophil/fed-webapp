@@ -1,5 +1,5 @@
 // composables/useMovableThemes.ts
-import type {Theme} from "~/types/themes";
+import type {Theme} from "~/types/theme";
 
 export const useMovableThemes = () => {
     const highestZIndex = ref(1)

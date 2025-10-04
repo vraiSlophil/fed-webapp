@@ -1,4 +1,4 @@
-import type { Theme } from '~/types/themes'
+import type { Theme } from '~/types/theme'
 import type { ThemeMemberPermissions } from '~/types/themeMembers'
 
 export const useThemePermissions = (theme: Ref<Theme> | ComputedRef<Theme>) => {

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type {Theme} from '~/types/themes'
+import type {Theme} from '~/types/theme'
 import type {ThemeMember, ThemeMemberPermissions} from '~/types/themeMembers'
 import {useThemeMembers} from '~/composables/useThemeMembers'
 

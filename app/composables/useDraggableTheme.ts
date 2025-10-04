@@ -1,4 +1,4 @@
-import type {Theme} from "~/types/themes";
+import type {Theme} from "~/types/theme";
 
 // Variables globales pour être partagées entre toutes les instances
 const isDragging = ref(false)

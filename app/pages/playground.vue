@@ -2,7 +2,7 @@
 import {useVuelidate} from '@vuelidate/core'
 import {helpers, minLength, required} from '@vuelidate/validators'
 import {useThemes} from '~/composables/useThemes'
-import type {Theme} from "~/types/themes";
+import type {Theme} from "~/types/theme";
 
 // États et validation (code existant...)
 const formData = reactive({
