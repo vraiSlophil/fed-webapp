@@ -1,8 +1,10 @@
-// composables/useMovableThemes.ts
 import type {Theme} from "~/types/theme";
 
 export const useMovableThemes = () => {
     const highestZIndex = ref(1)
+
+    // Récupérer la ref partagée depuis usePlaygrounds
+    const {currentPlayground} = usePlaygrounds()
 
     // Fonction pour charger les positions depuis localStorage
     const loadPositionsFromLocalStorage = () => {
@@ -35,40 +37,44 @@ export const useMovableThemes = () => {
     }
 
     // Appliquer les positions sauvegardées aux thèmes
-    const applyPositionsToThemes = (themes: Theme[]) => {
+    const applyPositionsToThemes = () => {
+        if (!currentPlayground.value?.themes) return
+
         const savedPositions = loadPositionsFromLocalStorage()
 
-        // Mettre à jour les thèmes avec leurs positions sauvegardées
-        const updatedThemes = themes.map(theme => {
-            const savedPosition = savedPositions[theme.theme_id] || {}
+        currentPlayground.value.themes = currentPlayground.value.themes.map((theme: Theme) => {
+            const savedPosition = savedPositions[theme.theme_id]
             return {
                 ...theme,
-                position: savedPosition || theme.position || {
-                    x: savedPosition.x || 100,
-                    y: savedPosition.y || 100,
-                    width: savedPosition.width || 475,
-                    zIndex: savedPosition.zIndex || 1
-                },
-                stored: savedPosition.stored || false
+                position: savedPosition ? {
+                    x: savedPosition.x,
+                    y: savedPosition.y,
+                    width: savedPosition.width,
+                    zIndex: savedPosition.zIndex
+                } : (theme.position || {
+                    x: 100,
+                    y: 100,
+                    width: 475,
+                    zIndex: 1
+                }),
+                stored: savedPosition?.stored || false
             }
         })
 
-        // Mettre à jour le zIndex le plus élevé
         highestZIndex.value = Math.max(
-            ...updatedThemes.map(theme => theme.position?.zIndex || 0),
-            highestZIndex.value
+            ...currentPlayground.value.themes.map((theme: Theme) => theme.position?.zIndex || 0),
+            1
         )
-
-        return updatedThemes
     }
 
-    // Gérer les changements de position des thèmes
-    const handlePositionChange = (themes: Ref<Theme[]>, themeId: string, position: {
+    const handlePositionChange = (themeId: string, position: {
         x: number,
         y: number,
         width: number,
         zIndex: number
     }) => {
+        if (!currentPlayground.value?.themes) return false
+
         // Incrémenter le z-index
         highestZIndex.value += 1
 
@@ -78,11 +84,10 @@ export const useMovableThemes = () => {
             zIndex: highestZIndex.value
         }
 
-        // Mettre à jour l'état local
-        const themeIndex = themes.value.findIndex(t => t.theme_id === themeId)
+        // Mettre à jour directement dans la ref partagée
+        const themeIndex = currentPlayground.value.themes.findIndex((t: Theme) => t.theme_id === themeId)
         if (themeIndex !== -1) {
-            if (!themes.value[themeIndex]) return false
-            themes.value[themeIndex].position = updatedPosition
+            currentPlayground.value.themes[themeIndex].position = updatedPosition
         }
 
         // Sauvegarder dans localStorage
@@ -98,7 +103,6 @@ export const useMovableThemes = () => {
             // Mettre à jour l'état local
             themes[themeIndex].stored = stored
 
-            // Sauvegarder dans localStorage
             const position = themes[themeIndex].position || {x: 100, y: 100, width: 475, zIndex: 1}
             savePositionToLocalStorage(themeId, position, stored)
 
@@ -107,14 +111,10 @@ export const useMovableThemes = () => {
         return false
     }
 
-    // Méthode pour récupérer les thèmes rangés
     const getStoredThemes = (themes: Theme[]) => {
-        // console.log('getStoredThemes in useMovableThemes')
-        // console.table(toRaw(themes))
         return themes ? themes.filter(theme => theme.stored === true) : []
     }
 
-    // Méthode pour récupérer les thèmes non rangés (visibles)
     const getVisibleThemes = (themes: Theme[]) => {
         return themes ? themes.filter(theme => !theme.stored) : []
     }

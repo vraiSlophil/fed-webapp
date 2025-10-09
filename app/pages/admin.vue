@@ -806,7 +806,7 @@ const userActions = (user: User) => [
 												size="xlarge"
 											/>
 											<div
-												v-else
+												v-if="!selectedUser.username || selectedUser.avatar_path"
 												class="w-24 h-24 rounded-full bg-blue-500 flex items-center justify-center text-white text-2xl font-bold mb-4"
 											>
 												{{ selectedUser.username.charAt(0).toUpperCase() }}

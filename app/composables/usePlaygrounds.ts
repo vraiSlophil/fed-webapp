@@ -1,20 +1,26 @@
 import {ref} from 'vue'
 import {useApiFetch} from './useApiFetch'
-import type {Playground} from '~/types/playground'
+import type {Playground, PlaygroundCompleteData} from '~/types/playground'
+
+const playgrounds = ref<Playground[]>([])
+const currentPlayground = ref<PlaygroundCompleteData | null>(null)
+const loading = ref(false)
+const error = ref<string | null>(null)
 
 export const usePlaygrounds = () => {
-    const playgrounds = ref<Playground[]>([])
-    const currentPlayground = ref<Playground | null>(null)
-    const loading = ref(false)
-    const error = ref<string | null>(null)
 
     // Liste tous les playgrounds
     const fetchPlaygrounds = async () => {
         loading.value = true
         error.value = null
         try {
-            const res = await useApiFetch('/playgrounds', {method: 'GET'})
+            const res = await useApiFetch('/api/playgrounds', {method: 'GET'})
             playgrounds.value = res.data.playgrounds
+
+            // const defaultPlayground: Playground | undefined = playgrounds.value.find(p => p.is_default)
+            // if (!currentPlayground.value && defaultPlayground) {
+            //     await fetchPlayground(defaultPlayground.playground_id)
+            // }
         } catch (e: any) {
             error.value = e.message || 'Erreur lors du chargement des playgrounds'
         } finally {
@@ -23,13 +29,13 @@ export const usePlaygrounds = () => {
     }
 
     // Crée un nouveau playground
-    const createPlayground = async (payload: Partial<Playground>) => {
+    const createPlayground = async (payload: Playground) => {
         loading.value = true
         error.value = null
         try {
-            const res = await useApiFetch('/playgrounds', {
+            const res = await useApiFetch('/api/playgrounds', {
                 method: 'POST',
-                body: payload
+                body: JSON.stringify(payload)
             })
             return res.data.playground
         } catch (e: any) {
@@ -40,13 +46,13 @@ export const usePlaygrounds = () => {
         }
     }
 
-    // Détail d’un playground
+    // Détail d'un playground avec toutes ses données
     const fetchPlayground = async (playgroundId: string) => {
         loading.value = true
         error.value = null
         try {
-            const res = await useApiFetch(`/playgrounds/${playgroundId}`, {method: 'GET'})
-            currentPlayground.value = res.data.playground
+            const res = await useApiFetch(`/api/playgrounds/${playgroundId}`, {method: 'GET'})
+            currentPlayground.value = res.data
             return res.data
         } catch (e: any) {
             error.value = e.message || 'Erreur lors du chargement'
@@ -61,10 +67,13 @@ export const usePlaygrounds = () => {
         loading.value = true
         error.value = null
         try {
-            const res = await useApiFetch(`/playgrounds/${playgroundId}`, {
+            const res = await useApiFetch(`/api/playgrounds/${playgroundId}`, {
                 method: 'PUT',
-                body: payload
+                body: JSON.stringify(payload)
             })
+            if (currentPlayground.value) {
+                currentPlayground.value.playground = res.data.playground
+            }
             return res.data.playground
         } catch (e: any) {
             error.value = e.message || 'Erreur lors de la mise à jour'
@@ -74,12 +83,25 @@ export const usePlaygrounds = () => {
         }
     }
 
+    // Met à jour un thème dans le playground courant
+    const updateThemeInPlayground = (themeId: string, updates: Partial<any>) => {
+        if (!currentPlayground.value?.themes) return
+
+        const themeIndex = currentPlayground.value.themes.findIndex((t: any) => t.theme_id === themeId)
+        if (themeIndex !== -1) {
+            currentPlayground.value.themes[themeIndex] = {
+                ...currentPlayground.value.themes[themeIndex],
+                ...updates
+            }
+        }
+    }
+
     // Supprime un playground
     const deletePlayground = async (playgroundId: string) => {
         loading.value = true
         error.value = null
         try {
-            await useApiFetch(`/playgrounds/${playgroundId}`, {method: 'DELETE'})
+            await useApiFetch(`/api/playgrounds/${playgroundId}`, {method: 'DELETE'})
         } catch (e: any) {
             error.value = e.message || 'Erreur lors de la suppression'
             throw e
@@ -93,7 +115,7 @@ export const usePlaygrounds = () => {
         loading.value = true
         error.value = null
         try {
-            const res = await useApiFetch(`/playgrounds/${playgroundId}/set-default`, {method: 'POST'})
+            const res = await useApiFetch(`/api/playgrounds/${playgroundId}/set-default`, {method: 'POST'})
             return res.data.playground
         } catch (e: any) {
             error.value = e.message || 'Erreur lors de la mise par défaut'
@@ -103,12 +125,12 @@ export const usePlaygrounds = () => {
         }
     }
 
-    // Récupère les stats d’un playground
+    // Récupère les stats d'un playground
     const fetchPlaygroundStats = async (playgroundId: string) => {
         loading.value = true
         error.value = null
         try {
-            const res = await useApiFetch(`/playgrounds/${playgroundId}/stats`, {method: 'GET'})
+            const res = await useApiFetch(`/api/playgrounds/${playgroundId}/stats`, {method: 'GET'})
             return res.data
         } catch (e: any) {
             error.value = e.message || 'Erreur lors du chargement des stats'
@@ -127,6 +149,7 @@ export const usePlaygrounds = () => {
         createPlayground,
         fetchPlayground,
         updatePlayground,
+        updateThemeInPlayground,
         deletePlayground,
         setDefaultPlayground,
         fetchPlaygroundStats

@@ -14,7 +14,7 @@ const props = defineProps({
 	}
 });
 
-const {user} = useAuth();
+const {user, loading} = useAuth();
 const route = useRoute();
 const router = useRouter();
 
@@ -85,7 +85,11 @@ const goBack = () => {
 		<div class="flex-1 text-right">
 			<slot name="right">
 				<div v-if="props.rightLoginButton">
-					<div v-if="user && route.name !== 'playground'">
+					<Button v-if="loading" severity="secondary" rounded outlined disabled>
+						<span class="material-symbols-rounded animate-spin">progress_activity</span>
+						Chargement...
+					</Button>
+					<div v-else-if="user && route.name !== 'playground'">
 						<Button
 							severity="primary"
 							rounded
@@ -94,7 +98,6 @@ const goBack = () => {
 							Accéder à FED
 						</Button>
 					</div>
-
 					<div v-else-if="user && route.name === 'playground'">
 						<Button
 							v-if="user"

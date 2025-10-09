@@ -3,9 +3,11 @@ import type {ThemeMemberPermissions} from "~/types/themeMembers";
 export type Theme = {
     theme_id: string
     owner_id: string
+    playground_id?: string;
     target_playground_id?: string;
     title: string
     color: string
+    tasks_count?: number;
     created_at?: string
     updated_at?: string
     permissions?: {
