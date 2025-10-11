@@ -11,6 +11,15 @@ export type Playground = {
     updated_at?: string
 }
 
+export type CreatePlaygroundPayload = {
+    name: string
+    slug?: string | null
+    icon?: string | null
+    color?: string | null
+    background_color?: string | null
+    is_default?: boolean
+}
+
 export type PlaygroundStats = {
     themes: {
         total: number

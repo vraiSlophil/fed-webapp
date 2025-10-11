@@ -211,6 +211,7 @@ watch(() => formData.color, (newVal) => {
 							  class="material-symbols-rounded animate-spin w-min">progress_activity</span>
 						<span v-else class="material-symbols-rounded w-min">refresh</span>
 					</Button>
+					<PlaygroundMenu/>
 				</div>
 			</template>
 		</Navbar>
@@ -222,23 +223,20 @@ watch(() => formData.color, (newVal) => {
 			@contextmenu.prevent="onContextMenu"
 		>
 
-			<div class="fixed top-28 left-4 z-0 w-7xl bg-black/60 text-white p-2 rounded text-xs">
-				<div>Context Menu Position: {{ contextMenuPosition }}</div>
-				<div>Context Menu Visible: {{ contextMenu?.visible }}</div>
-				<div>Context Menu Items: {{ contextMenuItems }}</div>
-				<div>Visible Themes Count: {{ visibleThemes.length }}</div>
-				<div>All Themes Count: {{ themes.length }}</div>
-
-				<div>Themes: {{ toRaw(themes) }}</div>
-
-				<div>Playgrounds: {{ toRaw(playgrounds) }}</div>
-				<div>Current Playground: {{ currentPlayground }}</div>
-
-				<div>Visible Themes: {{ visibleThemes.length }}</div>
-				<div>All Themes: {{ themes.length }}</div>
-				<div>Loading: {{ loading }}</div>
-				<div>Current Playground: {{ currentPlayground?.playground.name }}</div>
-			</div>
+<pre class="fixed top-28 left-1/40 z-1 w-19/20 max-h-200 overflow-y-scroll bg-black/60 text-white p-2 rounded text-xs">
+Context Menu Position: {{ contextMenuPosition }}
+Context Menu Visible: {{ contextMenu?.visible }}
+Context Menu Items: {{ contextMenuItems }}
+Visible Themes Count: {{ visibleThemes.length }}
+All Themes Count: {{ themes.length }}
+Themes: {{ toRaw(themes) }}
+Playgrounds: {{ toRaw(playgrounds) }}
+Current Playground: {{ currentPlayground }}
+Visible Themes: {{ visibleThemes.length }}
+All Themes: {{ themes.length }}
+Loading: {{ loading }}
+Current Playground: {{ currentPlayground?.playground.name }}
+</pre>
 
 			<Menu ref="contextMenu" :model="contextMenuItems" :style="{ top: `${contextMenuPosition.y}px`, left: `${contextMenuPosition.x}px` }" class="!absolute !w-min !min-w-min"
 				  popup>
