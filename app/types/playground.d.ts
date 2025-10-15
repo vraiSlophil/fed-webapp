@@ -13,11 +13,11 @@ export type Playground = {
 
 export type CreatePlaygroundPayload = {
     name: string
-    slug?: string | null
-    icon?: string | null
-    color?: string | null
-    background_color?: string | null
-    is_default?: boolean
+    slug: string | null
+    icon: string | null
+    color: string | null
+    background_color: string | null
+    is_default: boolean
 }
 
 export type PlaygroundStats = {

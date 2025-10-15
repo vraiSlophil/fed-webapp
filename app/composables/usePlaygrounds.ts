@@ -1,6 +1,6 @@
 import {ref} from 'vue'
 import {useApiFetch} from './useApiFetch'
-import type {Playground, PlaygroundCompleteData} from '~/types/playground'
+import type {CreatePlaygroundPayload, Playground, PlaygroundCompleteData} from '~/types/playground'
 
 const playgrounds = ref<Playground[]>([])
 const currentPlayground = ref<PlaygroundCompleteData | null>(null)
@@ -29,7 +29,7 @@ export const usePlaygrounds = () => {
     }
 
     // Crée un nouveau playground
-    const createPlayground = async (payload: Playground) => {
+    const createPlayground = async (payload: CreatePlaygroundPayload) => {
         loading.value = true
         error.value = null
         try {

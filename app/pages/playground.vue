@@ -217,8 +217,8 @@ watch(() => formData.color, (newVal) => {
 		</Navbar>
 
 		<div
-			:class="'absolute top-0 left-0 flex items-center justify-center h-full w-full m-0 overflow-hidden bg-white dark:bg-black bg-[size:20px_20px,100px_100px]'"
-			:style="`background-image: linear-gradient(${(currentPlayground?.playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px), linear-gradient(90deg, ${(currentPlayground?.playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px), linear-gradient(90deg, ${(currentPlayground?.playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px), linear-gradient(${(currentPlayground?.playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px);`"
+			:class="'absolute top-0 left-0 flex items-center justify-center h-full w-full m-0 overflow-hidden bg-[size:20px_20px,100px_100px] bg-white dark:bg-black'"
+			:style="`background-color: ${ currentPlayground?.playground.background_color ?? 'none' };` + `background-image: linear-gradient(${(currentPlayground?.playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px), linear-gradient(90deg, ${(currentPlayground?.playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px), linear-gradient(90deg, ${(currentPlayground?.playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px), linear-gradient(${(currentPlayground?.playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px);`"
 			@click="closeContextMenu"
 			@contextmenu.prevent="onContextMenu"
 		>
