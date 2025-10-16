@@ -125,7 +125,7 @@ const resetForm = () => {
 	v$.value.$reset()
 }
 
-const submitForm = async () => {
+const handleNewTheme = async () => {
 	const isValid = await v$.value.$validate()
 	if (!isValid) return
 
@@ -275,7 +275,7 @@ Current Playground: {{ currentPlayground?.playground.name }}
 
 		<Dialog v-model:visible="createThemeDialogVisible" :closable="true" :modal="true"
 				header="Créer un nouveau thème">
-			<form class="space-y-4" @submit.prevent="submitForm">
+			<form class="space-y-4" @submit.prevent="handleNewTheme">
 				<h2 class="text-lg font-semibold">Créer un nouveau thème</h2>
 				<div>
 					<label class="block mb-1">Titre</label>
@@ -295,7 +295,7 @@ Current Playground: {{ currentPlayground?.playground.name }}
 			</form>
 			<template #footer>
 				<Button class="p-button-text" label="Annuler" @click="showCreateThemeDialog(false)"/>
-				<Button :loading="loading" label="Créer" @click="submitForm"/>
+				<Button :loading="loading" label="Créer" @click="handleNewTheme"/>
 			</template>
 		</Dialog>
 	</div>
