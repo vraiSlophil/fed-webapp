@@ -1,5 +1,5 @@
-import { useApiFetch } from './useApiFetch'
-import type { Theme } from '~/types/theme'
+import {useApiFetch} from './useApiFetch'
+import type {CreateThemePayload, Theme} from '~/types/theme'
 
 export const useThemes = () => {
     const themes = ref<Theme[]>([])
@@ -40,7 +40,7 @@ export const useThemes = () => {
         }
     }
 
-    const createTheme = async (themeData: { title: string; color: string }) => {
+    const createTheme = async (themeData: CreateThemePayload) => {
         loading.value = true
 
         try {

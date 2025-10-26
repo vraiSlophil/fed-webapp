@@ -43,3 +43,9 @@ export type ThemeStats = {
         color: string
     }
 }
+
+export type CreateThemePayload = {
+    title: string
+    color: string
+    playground_id: string
+}

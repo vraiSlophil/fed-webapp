@@ -1,32 +1,8 @@
 <script lang="ts" setup>
 import {useVuelidate} from '@vuelidate/core'
 import {helpers, minLength, required} from '@vuelidate/validators'
-import type {Theme} from "~/types/theme";
+import type {CreateThemePayload, Theme} from "~/types/theme";
 import {usePlaygrounds} from "~/composables/usePlaygrounds";
-
-// États et validation
-const formData = reactive({
-	title: '',
-	color: '#FBC531'
-})
-
-const rules = computed(() => ({
-	title: {
-		required: helpers.withMessage('Le titre est requis', required),
-		minLength: helpers.withMessage('Le titre doit contenir au moins 3 caractères', minLength(3))
-	},
-	color: {
-		required: helpers.withMessage('La couleur est requise', required),
-		validHex: helpers.withMessage('Format hexadécimal invalide (ex: #FF5733)', (value: string) => {
-			return /^#[0-9A-F]{6}$/i.test(value)
-		})
-	}
-}))
-
-const v$ = useVuelidate(rules, formData)
-const createThemeDialogVisible = ref(false)
-const contextMenu = ref()
-const contextMenuPosition = ref({x: 0, y: 0})
 
 const toast = useToast()
 
@@ -48,6 +24,31 @@ const {
 	fetchPlayground
 } = usePlaygrounds()
 const route = useRoute()
+
+// États et validation
+const formData = reactive<CreateThemePayload>({
+	title: '',
+	color: '#FBC531',
+	playground_id: ''
+})
+
+const rules = computed(() => ({
+	title: {
+		required: helpers.withMessage('Le titre est requis', required),
+		minLength: helpers.withMessage('Le titre doit contenir au moins 3 caractères', minLength(3))
+	},
+	color: {
+		required: helpers.withMessage('La couleur est requise', required),
+		validHex: helpers.withMessage('Format hexadécimal invalide (ex: #FF5733)', (value: string) => {
+			return /^#[0-9A-F]{6}$/i.test(value)
+		})
+	}
+}))
+
+const v$ = useVuelidate(rules, formData)
+const createThemeDialogVisible = ref(false)
+const contextMenu = ref()
+const contextMenuPosition = ref({x: 0, y: 0})
 
 // const currentPlaygroundCompleteData = ref<PlaygroundCompleteData | null>(null)
 const isCurrentPlaygroundInitialized = ref(false)
@@ -130,6 +131,7 @@ const handleNewTheme = async () => {
 	if (!isValid) return
 
 	try {
+		formData.playground_id = currentPlayground.value?.playground.playground_id || ''
 		await createTheme(formData)
 		showCreateThemeDialog(false)
 		await reloadCurrentPlayground()

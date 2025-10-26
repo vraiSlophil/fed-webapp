@@ -77,6 +77,23 @@ const handleCreatePlayground = async () => {
 	}
 };
 
+const handleLoadPlaygroud = async (playgroundId: string) => {
+	try {
+		// currentPlayground.value = await fetchPlayground(playgroundId);
+		await fetchPlayground(playgroundId);
+		toast.add({severity: 'success', summary: 'Succès', detail: 'Playground chargé avec succès.', life: 3000});
+		dialogVisible.value = false;
+	} catch (e) {
+		toast.add({
+			severity: 'error',
+			summary: 'Erreur',
+			detail: 'Une erreur est survenue lors du chargement du playground.',
+			life: 3000
+		});
+		console.error(e);
+	}
+};
+
 // watch(() => newPlaygroundData.color, (newColor) => {
 // 	if (newColor) newPlaygroundData.color = checkColor(newColor);
 //
@@ -141,7 +158,7 @@ watch(() => newPlaygroundData.name, (newName: string) => {
 					outlined
 					rounded
 					title="Charger le Playground"
-					@click="() => fetchPlayground(playground.playground_id)"
+					@click="() => handleLoadPlaygroud(playground.playground_id)"
 				>
 					<span class="material-symbols-rounded">login</span>
 				</Button>
