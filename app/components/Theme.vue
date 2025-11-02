@@ -144,14 +144,12 @@ const confirmEdit = () => {
 	isEditing.value = false
 }
 
-// Annuler l'édition
 const cancelEdit = () => {
 	editedTitle.value = props.theme.title
 	editedColor.value = props.theme.color
 	isEditing.value = false
 }
 
-// Exemple d'utilisation dans votre composant
 const textColor = computed(() => {
 	return getTextColor(editedColor.value)
 })

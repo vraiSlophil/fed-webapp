@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 
 import type {CreatePlaygroundPayload} from "~/types/playground";
+import {useColors} from "~/composables/useColors";
 
 const {
 	playgrounds,
@@ -16,6 +17,7 @@ const {
 	setDefaultPlayground,
 	fetchPlaygroundStats
 } = usePlaygrounds();
+const {getLuminance, getTextColor} = useColors();
 const toast = useToast();
 
 const dialogVisible = ref(false);
@@ -123,68 +125,101 @@ watch(() => newPlaygroundData.name, (newName: string) => {
 			select_window_2
 		</span>
 	</Button>
-	{{ dialogVisible }}
 	<Dialog
 		v-model:visible="dialogVisible"
-		class="grid-cols-2"
+		:pt="{
+			content: {
+				style: {
+					// flex avec flex wrap pour que les playgrounds s'affichent en grille
+					display: 'grid',
+					gridTemplateColumns: 'repeat(2, 1fr)',
+					gap: '1rem',
+				}
+			}
+		}"
 	>
+		<!--			:style="{borderColor: playground.color + '66' || '#00000066'}"-->
+		<!--			class="flex justify-between items-center mb-4 p-4 gap-4 border-[1px] rounded-full"-->
 		<div
 			v-for="playground in playgrounds"
 			:key="playground.playground_id"
-			:style="{borderColor: playground.color + '66' || '#00000066'}"
-			class="flex justify-between items-center mb-4 p-4 gap-4 border-[1px] rounded-full"
+			class="flex justify-between items-center flex-col w-min p-2 gap-4 border-[1px] border-gray-500/30 rounded-2xl"
 		>
-			<div class="flex items-center gap-4">
-				<span class="material-symbols-rounded">{{ playground.icon }}</span>
-				<div class="flex flex-col">
-					<span class="font-medium">{{ playground.name }}</span>
-					<span class="text-sm text-gray-500">Thèmes : {{ playground.themes_count }}</span>
+			<div
+				:class="'aspect-32/9 w-96 rounded-xl flex items-center justify-center overflow-hidden bg-[size:10px_10px,50px_50px] bg-white dark:bg-black'"
+				:style="`background-color: ${ playground.background_color ?? 'none' };` + `background-image: linear-gradient(${(playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px), linear-gradient(90deg, ${(playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px), linear-gradient(90deg, ${(playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px), linear-gradient(${(playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px);`"
+			>
+				<div
+					:style="{
+						color: getTextColor(playground.background_color || '#000000'),
+					}"
+					class="flex items-center gap-4"
+				>
+					<span class="material-symbols-rounded">{{ playground.icon }}</span>
+					<div class="flex flex-col">
+						<span class="font-medium">{{ playground.name }}</span>
+					</div>
 				</div>
 			</div>
-			<div class="flex items-center gap-2">
-				<Button
-					:disabled="playground.is_default"
-					class="w-10 h-10"
-					outlined
-					rounded
-					title="Définir comme Playground par défaut"
-					@click="() => setDefaultPlayground(playground.playground_id)"
-				>
-					<span class="material-symbols-rounded">check_circle</span>
-				</Button>
-				<Button
-					:disabled="(currentPlayground && currentPlayground.playground.playground_id === playground.playground_id) as boolean"
-					class="w-10 h-10"
-					outlined
-					rounded
-					title="Charger le Playground"
-					@click="() => handleLoadPlaygroud(playground.playground_id)"
-				>
-					<span class="material-symbols-rounded">login</span>
-				</Button>
-				<Button
-					:disabled="playground.is_default"
-					class="w-10 h-10"
-					outlined
-					rounded
-					title="Supprimer le Playground"
-					@click="() => deletePlayground(playground.playground_id)"
-				>
-					<span class="material-symbols-rounded">delete</span>
-				</Button>
-
+			<div>
+				<div class="flex items-center gap-2">
+					<span class="text-sm text-gray-500">Thème{{(playground.themes_count! > 1 ? 's' : '') + ' : ' + playground.themes_count }}</span>
+					<Button
+						:disabled="playground.is_default"
+						class="w-10 h-10"
+						outlined
+						rounded
+						title="Définir comme Playground par défaut"
+						@click="() => setDefaultPlayground(playground.playground_id)"
+					>
+						<span class="material-symbols-rounded">check_circle</span>
+					</Button>
+					<Button
+						:disabled="(currentPlayground && currentPlayground.playground.playground_id === playground.playground_id) as boolean"
+						class="w-10 h-10"
+						outlined
+						rounded
+						title="Charger le Playground"
+						@click="() => handleLoadPlaygroud(playground.playground_id)"
+					>
+						<span class="material-symbols-rounded">login</span>
+					</Button>
+					<Button
+						:disabled="playground.is_default"
+						class="w-10 h-10"
+						outlined
+						rounded
+						title="Supprimer le Playground"
+						@click="() => deletePlayground(playground.playground_id)"
+					>
+						<span class="material-symbols-rounded">delete</span>
+					</Button>
+				</div>
 			</div>
 		</div>
-
-		<Button
-			class="w-10 h-10 col-span-2 mx-auto"
-			outlined
-			rounded
-			title="Créer un nouveau Playground"
-			@click="newPlaygroundDialogVisible = true"
+		<div
+			class="flex justify-between items-center flex-col w-min p-2 gap-4 border-[1px] border-gray-500/30 rounded-2xl"
 		>
-			<span class="material-symbols-rounded">add</span>
-		</Button>
+			<div
+				class="aspect-32/9 w-96 rounded-xl flex items-center justify-center"
+			>
+				<span class="material-symbols-rounded">add</span>
+				<div class="flex flex-col">
+					<span class="font-medium">Créer un thème</span>
+				</div>
+			</div>
+
+			<Button
+				class="w-10 h-10 col-span-2 mx-auto"
+				outlined
+				rounded
+				title="Créer un nouveau Playground"
+				@click="newPlaygroundDialogVisible = true"
+			>
+				<span class="material-symbols-rounded">add</span>
+			</Button>
+		</div>
+
 
 		<Dialog
 			v-model:visible="newPlaygroundDialogVisible"

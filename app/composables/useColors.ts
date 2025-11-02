@@ -18,10 +18,7 @@ export function useColors() {
 
     // Fonction pour déterminer la couleur du texte avec le bon contraste
     function getTextColor(backgroundColor: string): string {
-        const luminance = getLuminance(backgroundColor)
-
-        // Seuil de luminosité (ajustable)
-        return luminance > 0.5 ? '#000000' : '#ffffff'
+        return getLuminance(backgroundColor) > 0.5 ? '#000000' : '#ffffff'
     }
 
     return {
