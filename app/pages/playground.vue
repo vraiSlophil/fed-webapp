@@ -225,20 +225,20 @@ watch(() => formData.color, (newVal) => {
 			@contextmenu.prevent="onContextMenu"
 		>
 
-<pre class="fixed top-28 left-1/40 z-1 w-19/20 max-h-200 overflow-y-scroll bg-black/60 text-white p-2 rounded text-xs">
-Context Menu Position: {{ contextMenuPosition }}
-Context Menu Visible: {{ contextMenu?.visible }}
-Context Menu Items: {{ contextMenuItems }}
-Visible Themes Count: {{ visibleThemes.length }}
-All Themes Count: {{ themes.length }}
-Themes: {{ toRaw(themes) }}
-Playgrounds: {{ toRaw(playgrounds) }}
-Current Playground: {{ currentPlayground }}
-Visible Themes: {{ visibleThemes.length }}
-All Themes: {{ themes.length }}
-Loading: {{ loading }}
-Current Playground: {{ currentPlayground?.playground.name }}
-</pre>
+<!--<pre class="fixed top-28 left-1/40 z-1 w-19/20 max-h-200 overflow-y-scroll bg-black/60 text-white p-2 rounded text-xs">-->
+<!--Context Menu Position: {{ contextMenuPosition }}-->
+<!--Context Menu Visible: {{ contextMenu?.visible }}-->
+<!--Context Menu Items: {{ contextMenuItems }}-->
+<!--Visible Themes Count: {{ visibleThemes.length }}-->
+<!--All Themes Count: {{ themes.length }}-->
+<!--Themes: {{ toRaw(themes) }}-->
+<!--Playgrounds: {{ toRaw(playgrounds) }}-->
+<!--Current Playground: {{ currentPlayground }}-->
+<!--Visible Themes: {{ visibleThemes.length }}-->
+<!--All Themes: {{ themes.length }}-->
+<!--Loading: {{ loading }}-->
+<!--Current Playground: {{ currentPlayground?.playground.name }}-->
+<!--</pre>-->
 
 			<Menu ref="contextMenu" :model="contextMenuItems" :style="{ top: `${contextMenuPosition.y}px`, left: `${contextMenuPosition.x}px` }" class="!absolute !w-min !min-w-min"
 				  popup>

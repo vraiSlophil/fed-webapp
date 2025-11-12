@@ -17,11 +17,28 @@ const {
 	setDefaultPlayground,
 	fetchPlaygroundStats
 } = usePlaygrounds();
-const {getLuminance, getTextColor} = useColors();
+const {getTextColor} = useColors();
 const toast = useToast();
 
 const dialogVisible = ref(false);
 
+const deletePlaygroundDialogVisible = ref(false);
+const playgroundToDelete = reactive<{
+	playground_id: string;
+	name: string;
+}>({
+	playground_id: '',
+	name: ''
+});
+const editPlaygroundDialogVisible = ref(false);
+const editPlaygroundData = reactive<CreatePlaygroundPayload & { playground_id?: string }>({
+	name: '',
+	slug: '',
+	icon: '',
+	color: '',
+	background_color: '',
+	is_default: false
+});
 const newPlaygroundDialogVisible = ref(false);
 const newPlaygroundData = reactive<CreatePlaygroundPayload>({
 	name: '',
@@ -95,6 +112,91 @@ const handleLoadPlaygroud = async (playgroundId: string) => {
 		console.error(e);
 	}
 };
+const handleOpenEditDialog = (playground: any) => {
+  editPlaygroundData.playground_id = playground.playground_id;
+  editPlaygroundData.name = playground.name;
+  editPlaygroundData.slug = playground.slug;
+  editPlaygroundData.icon = playground.icon;
+  editPlaygroundData.color = playground.color;
+  editPlaygroundData.background_color = playground.background_color;
+  editPlaygroundData.is_default = playground.is_default;
+  editPlaygroundDialogVisible.value = true;
+};
+
+const handleUpdatePlayground = async () => {
+  try {
+    if (!editPlaygroundData.playground_id || !editPlaygroundData.name) {
+      toast.add({severity: 'error', summary: 'Erreur', detail: 'Le nom est requis.', life: 3000});
+      return;
+    }
+    if (editPlaygroundData.color) {
+      editPlaygroundData.color = checkColor(editPlaygroundData.color);
+    }
+    if (editPlaygroundData.background_color) {
+      editPlaygroundData.background_color = checkColor(editPlaygroundData.background_color);
+    }
+    await updatePlayground(editPlaygroundData.playground_id, {...editPlaygroundData});
+    await fetchPlaygrounds(); // Recharger la liste
+    editPlaygroundDialogVisible.value = false;
+    toast.add({severity: 'success', summary: 'Succès', detail: 'Playground mis à jour avec succès.', life: 3000});
+  } catch (e) {
+    toast.add({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: 'Une erreur est survenue lors de la mise à jour.',
+      life: 3000
+    });
+    console.error(e);
+  }
+};
+
+watch(() => editPlaygroundData.name, (newName: string) => {
+  editPlaygroundData.slug = newName
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+});
+const handleDeletePlayground = async (playgroundId: string) => {
+	try {
+		await deletePlayground(playgroundId);
+		await fetchPlaygrounds(); // Recharger la liste
+		toast.add({
+			severity: 'success',
+			summary: 'Succès',
+			detail: 'Playground supprimé avec succès.',
+			life: 3000
+		});
+	} catch (e) {
+		toast.add({
+			severity: 'error',
+			summary: 'Erreur',
+			detail: 'Une erreur est survenue lors de la suppression.',
+			life: 3000
+		});
+		console.error(e);
+	}
+};
+
+const handleSetAsDefault = async (playgroundId: string) => {
+	try {
+		await setDefaultPlayground(playgroundId);
+		await fetchPlaygrounds(); // Recharger la liste
+		toast.add({
+			severity: 'success',
+			summary: 'Succès',
+			detail: 'Playground défini comme par défaut.',
+			life: 3000
+		});
+	} catch (e) {
+		toast.add({
+			severity: 'error',
+			summary: 'Erreur',
+			detail: 'Une erreur est survenue.',
+			life: 3000
+		});
+		console.error(e);
+	}
+};
 
 // watch(() => newPlaygroundData.color, (newColor) => {
 // 	if (newColor) newPlaygroundData.color = checkColor(newColor);
@@ -119,7 +221,7 @@ watch(() => newPlaygroundData.name, (newName: string) => {
 		class="w-10 h-10"
 		outlined
 		rounded
-		@click="dialogVisible = true"
+		@click="dialogVisible = !dialogVisible"
 	>
 		<span class="material-symbols-rounded">
 			select_window_2
@@ -143,11 +245,12 @@ watch(() => newPlaygroundData.name, (newName: string) => {
 		<div
 			v-for="playground in playgrounds"
 			:key="playground.playground_id"
+			:style="{borderColor: (playground.is_default ? '#fd9a004d' : '')}"
 			class="flex justify-between items-center flex-col w-min p-2 gap-4 border-[1px] border-gray-500/30 rounded-2xl"
 		>
 			<div
-				:class="'aspect-32/9 w-96 rounded-xl flex items-center justify-center overflow-hidden bg-[size:10px_10px,50px_50px] bg-white dark:bg-black'"
 				:style="`background-color: ${ playground.background_color ?? 'none' };` + `background-image: linear-gradient(${(playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px), linear-gradient(90deg, ${(playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px), linear-gradient(90deg, ${(playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px), linear-gradient(${(playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px);`"
+				class="relative aspect-32/9 w-96 rounded-xl flex items-center justify-center overflow-hidden bg-[size:10px_10px,50px_50px] bg-white dark:bg-black"
 			>
 				<div
 					:style="{
@@ -159,20 +262,23 @@ watch(() => newPlaygroundData.name, (newName: string) => {
 					<div class="flex flex-col">
 						<span class="font-medium">{{ playground.name }}</span>
 					</div>
+					<span
+						class="absolute bottom-2 left-2 px-2 py-1 bg-[var(--p-dialog-background)] text-sm text-white font-bold border-[1px] border-amber-500/30 rounded-md">Thème{{
+							(playground.themes_count! > 1 ? 's' : '') + ' : ' + playground.themes_count
+						}}</span>
 				</div>
 			</div>
 			<div>
 				<div class="flex items-center gap-2">
-					<span class="text-sm text-gray-500">Thème{{(playground.themes_count! > 1 ? 's' : '') + ' : ' + playground.themes_count }}</span>
 					<Button
-						:disabled="playground.is_default"
+						v-if="!playground.is_default"
 						class="w-10 h-10"
 						outlined
 						rounded
 						title="Définir comme Playground par défaut"
-						@click="() => setDefaultPlayground(playground.playground_id)"
+						@click="() => handleSetAsDefault(playground.playground_id)"
 					>
-						<span class="material-symbols-rounded">check_circle</span>
+						<span class="material-symbols-rounded">home</span>
 					</Button>
 					<Button
 						:disabled="(currentPlayground && currentPlayground.playground.playground_id === playground.playground_id) as boolean"
@@ -182,7 +288,16 @@ watch(() => newPlaygroundData.name, (newName: string) => {
 						title="Charger le Playground"
 						@click="() => handleLoadPlaygroud(playground.playground_id)"
 					>
-						<span class="material-symbols-rounded">login</span>
+						<span class="material-symbols-rounded">open_in_new</span>
+					</Button>
+					<Button
+						class="w-10 h-10"
+						outlined
+						rounded
+						title="Modifier le Playground"
+						@click="() => handleOpenEditDialog(playground)"
+					>
+						<span class="material-symbols-rounded">edit</span>
 					</Button>
 					<Button
 						:disabled="playground.is_default"
@@ -190,7 +305,7 @@ watch(() => newPlaygroundData.name, (newName: string) => {
 						outlined
 						rounded
 						title="Supprimer le Playground"
-						@click="() => deletePlayground(playground.playground_id)"
+						@click="() => {deletePlaygroundDialogVisible = !deletePlaygroundDialogVisible; Object.assign(playgroundToDelete, { playground_id: playground.playground_id, name: playground.name })}"
 					>
 						<span class="material-symbols-rounded">delete</span>
 					</Button>
@@ -203,9 +318,8 @@ watch(() => newPlaygroundData.name, (newName: string) => {
 			<div
 				class="aspect-32/9 w-96 rounded-xl flex items-center justify-center"
 			>
-				<span class="material-symbols-rounded">add</span>
 				<div class="flex flex-col">
-					<span class="font-medium">Créer un thème</span>
+					<span class="font-medium">Créer un playground</span>
 				</div>
 			</div>
 
@@ -264,6 +378,71 @@ watch(() => newPlaygroundData.name, (newName: string) => {
 			</template>
 
 
+		</Dialog>
+		<Dialog
+			v-model:visible="editPlaygroundDialogVisible"
+			class="w-1/3"
+			header="Modifier le Playground"
+		>
+			<form class="space-y-4" @submit.prevent="handleUpdatePlayground">
+				<div>
+					<label class="block mb-1">Nom</label>
+					<InputText v-model="editPlaygroundData.name" class="w-full" placeholder="Nom du playground"/>
+				</div>
+				<div>
+					<label class="block mb-1">Slug</label>
+					<InputText v-model="editPlaygroundData.slug" class="w-full" placeholder="Slug du playground"/>
+				</div>
+				<div>
+					<label class="block mb-1">Icône (Material Symbols)</label>
+					<InputText v-model="editPlaygroundData.icon" class="w-full" placeholder="Icône du playground"/>
+				</div>
+				<div>
+					<label class="block mb-1">Couleur</label>
+					<div class="flex items-center gap-3">
+						<ColorPicker v-model="editPlaygroundData.color"/>
+						<InputText v-model="editPlaygroundData.color"/>
+					</div>
+				</div>
+				<div>
+					<label class="block mb-1">Couleur de fond</label>
+					<div class="flex items-center gap-3">
+						<ColorPicker v-model="editPlaygroundData.background_color"/>
+						<InputText v-model="editPlaygroundData.background_color"/>
+					</div>
+				</div>
+				<div class="flex items-center gap-2">
+					<Checkbox v-model="editPlaygroundData.is_default"/>
+					<label>Définir comme Playground par défaut</label>
+				</div>
+			</form>
+			<template #footer>
+				<Button class="p-button-text" label="Annuler" @click="editPlaygroundDialogVisible = false"/>
+				<Button label="Mettre à jour" @click="handleUpdatePlayground"/>
+			</template>
+		</Dialog>
+		<Dialog v-model:visible="deletePlaygroundDialogVisible" :closable="true" :modal="true"
+				header="Confirmer la suppression du playground">
+			<div class="confirmation-content flex items-center gap-3 m-4">
+				<span class="material-symbols-rounded text-yellow-500 text-2xl">warning</span>
+				<span>Êtes-vous sûr de vouloir supprimer le playground <strong>{{ playgroundToDelete.name }}</strong> ?</span>
+			</div>
+			<template #footer>
+				<Button
+					label="Annuler"
+					rounded
+					text
+					@click="deletePlaygroundDialogVisible = false"
+				/>
+				<Button
+					:loading="loading"
+					label="Supprimer"
+					outlined
+					rounded
+					severity="danger"
+					@click="() => {handleDeletePlayground(playgroundToDelete.playground_id); deletePlaygroundDialogVisible = false}"
+				/>
+			</template>
 		</Dialog>
 	</Dialog>
 </template>
