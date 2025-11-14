@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type {Theme} from '~/types/theme'
 import type {ThemeMember, ThemeMemberPermissions} from '~/types/themeMembers'
-import {useThemeMembers} from '~/composables/useThemeMembers'
+import {useThemeMembers} from "~/domains/themes/composables/useThemeMembers";
 
 const props = defineProps<{
 	visible: boolean

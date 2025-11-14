@@ -1,4 +1,5 @@
 import type {Theme} from "~/types/theme";
+import {usePlaygrounds} from "~/domains/playground/composables/usePlaygrounds";
 
 export const useMovableThemes = () => {
     const highestZIndex = ref(1)

@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import type {Theme} from '~/types/theme';
-import {useColors} from '~/composables/useColors';
+import {useColors} from "~/domains/shared/composables/useColors";
+import {useMovableThemes} from "~/domains/playground/composables/useMovableThemes";
+
 
 const props = defineProps<{
 	themelist: Theme[]

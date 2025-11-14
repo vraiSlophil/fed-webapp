@@ -2,7 +2,15 @@
 import {useVuelidate} from '@vuelidate/core'
 import {helpers, minLength, required} from '@vuelidate/validators'
 import type {CreateThemePayload, Theme} from "~/types/theme";
-import {usePlaygrounds} from "~/composables/usePlaygrounds";
+import {usePlaygrounds} from "~/domains/playground/composables/usePlaygrounds";
+import {useAuth} from "~/domains/auth/composables/useAuth";
+import {useThemes} from "~/domains/themes/composables/useThemes";
+import {useMovableThemes} from "~/domains/playground/composables/useMovableThemes";
+import Navbar from "~/domains/shared/components/Navbar.vue";
+import ThemeStorage from "~/domains/themes/components/ThemeStorage.vue";
+import PlaygroundMenu from "~/domains/playground/components/PlaygroundMenu.vue";
+import ThemeDropZone from "~/domains/playground/components/ThemeDropZone.vue";
+import MovableTheme from "~/domains/playground/components/MovableTheme.vue";
 
 const toast = useToast()
 
@@ -244,7 +252,7 @@ watch(() => formData.color, (newVal) => {
 				  popup>
 				<template #item="{ item, props }">
 					<div class="flex items-center p-2 gap-4 cursor-pointer text-nowrap"
-						 @click="item.command()">
+						 @click="item.command && item.command($event)">
 						<span class="material-symbols-rounded">{{ item.icon }}</span>
 						{{ item.label }}
 					</div>

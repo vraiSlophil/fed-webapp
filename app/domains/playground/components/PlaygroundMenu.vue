@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 
 import type {CreatePlaygroundPayload} from "~/types/playground";
-import {useColors} from "~/composables/useColors";
+import {useColors} from "~/domains/shared/composables/useColors";
+import {usePlaygrounds} from "~/domains/playground/composables/usePlaygrounds";
 
 const {
 	playgrounds,

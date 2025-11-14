@@ -1,4 +1,3 @@
-import { useApiFetch } from './useApiFetch'
 import { HttpMethods } from '~/utils/httpMethods'
 import type {ThemeStats} from "~/types/theme";
 

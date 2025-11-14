@@ -1,8 +1,8 @@
-<script setup lang="ts">
-import { ref, nextTick } from 'vue'
-import type { Task } from '~/types/task'
-import { useTask } from '~/composables/useTask'
+<script lang="ts" setup>
+import type {Task} from '~/types/task'
 import type {Theme} from "~/types/theme";
+import {useThemePermissions} from "~/domains/themes/composables/useThemePermissions";
+import {useTask} from "~/domains/tasks/composables/useTask";
 
 const props = defineProps<{
 	task: Task
@@ -19,7 +19,7 @@ const emit = defineEmits<{
 const toast = useToast();
 
 // Utiliser le composable de permissions
-const { 
+const {
 	isOwner,
 	canEditTask,
 	canDeleteTask,
@@ -204,8 +204,8 @@ const cancelDelete = () => {
 
 <template>
 	<div
-		class="p-4 hover:bg-white/20 dark:hover:bg-black/20 transition-colors border-b border-gray-300 dark:border-gray-700 last:border-b-0"
 		:class="{ 'opacity-60': isArchived }"
+		class="p-4 hover:bg-white/20 dark:hover:bg-black/20 transition-colors border-b border-gray-300 dark:border-gray-700 last:border-b-0"
 	>
 		<!-- Contenu principal de la tâche -->
 		<div class="flex items-center justify-between">
@@ -213,13 +213,13 @@ const cancelDelete = () => {
 				<!-- Checkbox de completion -->
 				<button
 					v-if="canValidateTask"
-					@click="handleToggleCompletion"
-					class="flex items-center justify-center w-6.5 h-6.5 rounded-full border-2 transition-colors flex-shrink-0 cursor-pointer"
 					:class="isCompleted
 						? 'bg-green-500 border-green-500 text-white'
 						: 'border-gray-300 dark:border-gray-600 hover:border-gray-400'"
 					:disabled="!canEdit || loading"
 					:title="isCompleted ? 'Marquer comme non terminé' : 'Marquer comme terminé'"
+					class="flex items-center justify-center w-6.5 h-6.5 rounded-full border-2 transition-colors flex-shrink-0 cursor-pointer"
+					@click="handleToggleCompletion"
 				>
 					<span v-if="loading" class="animate-spin flex items-center justify-center">
 						<span class="material-symbols-rounded !text-[18px]">progress_activity</span>
@@ -232,10 +232,10 @@ const cancelDelete = () => {
 					<!-- Mode affichage -->
 					<div v-if="!isEditingTitle" class="flex-1">
 						<h3
-							@dblclick="canEdit ? startTitleEdit() : null"
-							class="font-medium max-w-58 px-3 py-1 mr-8truncate cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors "
 							:class="isCompleted ? 'line-through text-gray-500' : ''"
 							:title="canEdit ? 'Double-cliquez pour modifier' : ''"
+							class="font-medium max-w-58 px-3 py-1 mr-8truncate cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors "
+							@dblclick="canEdit ? startTitleEdit() : null"
 						>
 							{{ task.title }}
 						</h3>
@@ -245,9 +245,7 @@ const cancelDelete = () => {
 					<div v-else class="flex-1">
 						<InputText
 							v-model="editedTitle"
-							@keyup.enter="confirmTitleEdit"
-							@keyup.esc="cancelTitleEdit"
-							class="w-full font-medium"
+							:disabled="loading"
 							:style="{
 								paddingLeft: '0.75rem',
 								paddingRight: '0.75rem',
@@ -259,8 +257,10 @@ const cancelDelete = () => {
 								border: 'none',
 								backgroundColor: 'rgba(255,255,255,0.1)'
 							}"
-							:disabled="loading"
 							autofocus
+							class="w-full font-medium"
+							@keyup.enter="confirmTitleEdit"
+							@keyup.esc="cancelTitleEdit"
 						/>
 					</div>
 
@@ -269,10 +269,10 @@ const cancelDelete = () => {
 						<!-- Tag de statut -->
 						<Tag
 							v-if="!isEditingTitle"
+							:class="{ 'cursor-pointer': canEdit }"
 							:severity="getStatusSeverity(task.status)"
 							:value="getStatusLabel(task.status)"
 							@click="canEdit ? handleStatusChange() : null"
-							:class="{ 'cursor-pointer': canEdit }"
 						/>
 
 						<!-- Badge archivé -->
@@ -285,7 +285,12 @@ const cancelDelete = () => {
 
 						<!-- Date de création -->
 						<span v-if="task.created_at" class="text-xs text-gray-400 dark:text-gray-500">
-							{{ new Date(task.created_at).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) }}
+							{{
+								new Date(task.created_at).toLocaleString('fr-FR', {
+									dateStyle: 'short',
+									timeStyle: 'short'
+								})
+							}}
 						</span>
 					</div>
 				</div>
@@ -297,23 +302,23 @@ const cancelDelete = () => {
 				<div>
 					<Button
 						v-if="canEdit && !isEditingTitle"
-						@click="startTitleEdit"
-						text
-						size="small"
-						class="p-2"
-						title="Modifier le titre"
 						:disabled="loading"
+						class="p-2"
+						size="small"
+						text
+						title="Modifier le titre"
+						@click="startTitleEdit"
 					>
 						<span class="material-symbols-rounded text-sm">edit</span>
 					</Button>
 					<Button
 						v-if="isEditingTitle"
-						@click="confirmTitleEdit"
-						text
-						size="small"
-						class="p-2"
-						title="Confirmer la modification"
 						:disabled="loading"
+						class="p-2"
+						size="small"
+						text
+						title="Confirmer la modification"
+						@click="confirmTitleEdit"
 					>
 						<span class="material-symbols-rounded text-sm">check</span>
 					</Button>
@@ -323,12 +328,12 @@ const cancelDelete = () => {
 					<!-- Bouton archiver/restaurer -->
 					<Button
 						v-if="isOwner && !isEditingTitle"
-						@click="handleToggleArchive"
-						text
-						size="small"
-						class="p-2"
-						:title="isArchived ? 'Restaurer' : 'Archiver'"
 						:disabled="loading"
+						:title="isArchived ? 'Restaurer' : 'Archiver'"
+						class="p-2"
+						size="small"
+						text
+						@click="handleToggleArchive"
 					>
 						<span class="material-symbols-rounded text-sm">
 							{{ isArchived ? 'unarchive' : 'archive' }}
@@ -337,12 +342,12 @@ const cancelDelete = () => {
 					<!-- Bouton annuler la modification -->
 					<Button
 						v-if="isEditingTitle"
-						@click="cancelTitleEdit"
-						text
-						size="small"
-						class="p-2"
-						title="Annuler la modification"
 						:disabled="loading"
+						class="p-2"
+						size="small"
+						text
+						title="Annuler la modification"
+						@click="cancelTitleEdit"
 					>
 						<span class="material-symbols-rounded text-sm">close</span>
 					</Button>
@@ -351,12 +356,12 @@ const cancelDelete = () => {
 				<!-- Bouton supprimer -->
 				<Button
 					v-if="canDeleteTask"
-					@click="confirmDelete"
-					text
-					size="small"
-					class="p-2 text-red-500 hover:text-red-600"
-					title="Supprimer"
 					:disabled="loading"
+					class="p-2 text-red-500 hover:text-red-600"
+					size="small"
+					text
+					title="Supprimer"
+					@click="confirmDelete"
 				>
 					<span class="material-symbols-rounded text-sm">delete</span>
 				</Button>
@@ -366,8 +371,8 @@ const cancelDelete = () => {
 		<Dialog
 			v-model:visible="showDeleteConfirm"
 			:header="'Confirmer la suppression'"
-			:style="{ width: '450px' }"
 			:modal="true"
+			:style="{ width: '450px' }"
 		>
 			<div class="flex items-center gap-2 m-2">
 				<span class="material-symbols-rounded text-yellow-500">warning</span>
@@ -375,15 +380,15 @@ const cancelDelete = () => {
 			</div>
 			<template #footer>
 				<Button
-					label="Non"
 					class="p-button-text"
+					label="Non"
 					@click="cancelDelete"
 				/>
 				<Button
-					label="Oui"
-					class="p-button-danger"
-					@click="handleConfirmDelete"
 					:loading="loading"
+					class="p-button-danger"
+					label="Oui"
+					@click="handleConfirmDelete"
 				/>
 			</template>
 		</Dialog>

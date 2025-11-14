@@ -1,4 +1,4 @@
-import {useApiFetch} from './useApiFetch'
+import {useApiFetch} from '~/composables/useApiFetch'
 import type {
     PermissionPreset,
     PermissionPresetConfig,
@@ -138,9 +138,9 @@ export const useThemeMembers = () => {
     }
 
     // Recherche avec debounce
-    const searchTimeout = ref<NodeJS.Timeout>()
+    const searchTimeout = ref<ReturnType<typeof setTimeout> | null>(null)
     const debouncedSearchUsers = (query: string, themeId: string) => {
-        clearTimeout(searchTimeout.value)
+        if (searchTimeout.value !== null) clearTimeout(searchTimeout.value)
         searchTimeout.value = setTimeout(async () => {
             await searchUsers(query, themeId)
         }, 300)
@@ -215,7 +215,7 @@ export const useThemeMembers = () => {
             // Mettre à jour le membre dans la liste
             const memberIndex = members.value.findIndex(m => m.user_id === userId)
             if (memberIndex !== -1) {
-                members.value[memberIndex].permissions = response.data.permissions
+                members.value[memberIndex]!.permissions = response.data.permissions
             }
 
             return response.data.permissions
@@ -239,7 +239,7 @@ export const useThemeMembers = () => {
             // Mettre à jour le statut du membre dans la liste
             const memberIndex = members.value.findIndex(m => m.user_id === userId)
             if (memberIndex !== -1) {
-                members.value[memberIndex].status = 'revoked'
+                members.value[memberIndex]!.status = 'revoked'
             }
 
             return true
@@ -263,7 +263,7 @@ export const useThemeMembers = () => {
             // Mettre à jour le statut du membre dans la liste
             const memberIndex = members.value.findIndex(m => m.user_id === userId)
             if (memberIndex !== -1) {
-                members.value[memberIndex].status = 'active'
+                members.value[memberIndex]!.status = 'active'
             }
 
             return true

@@ -1,5 +1,6 @@
 import type { Theme } from '~/types/theme'
 import type { ThemeMemberPermissions } from '~/types/themeMembers'
+import {useAuth} from "~/domains/auth/composables/useAuth";
 
 export const useThemePermissions = (theme: Ref<Theme> | ComputedRef<Theme>) => {
   const { user } = useAuth()

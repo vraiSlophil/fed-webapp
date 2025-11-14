@@ -1,3 +1,5 @@
+import {HttpMethods} from "~/utils/httpMethods";
+
 const ensureCsrf = async (config: any) => {
     await fetch(`${config.public.BACKEND_URL}/sanctum/csrf-cookie`, {credentials: 'include'})
 }

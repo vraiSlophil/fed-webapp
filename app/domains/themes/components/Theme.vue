@@ -1,7 +1,9 @@
 <script lang="ts" setup>
 import type {Theme} from '~/types/theme'
-import TaskList from "~/components/TaskList.vue";
-import {useColors} from "~/composables/useColors";
+import TaskList from "~/domains/tasks/components/TaskList.vue";
+import {useColors} from "~/domains/shared/composables/useColors";
+import {useThemes} from "~/domains/themes/composables/useThemes";
+import {useThemePermissions} from "~/domains/themes/composables/useThemePermissions";
 
 const props = defineProps<{
 	theme: Theme
@@ -31,7 +33,7 @@ const {
 
 const {isOwner, canUpdateTheme} = useThemePermissions(toRef(props, 'theme'))
 const toast = useToast()
-const {getLuminance, getTextColor} = useColors();
+const {getTextColor} = useColors();
 
 const openTheme = () => {
 	isThemeOpen.value = !isThemeOpen.value

@@ -28,11 +28,43 @@ export default defineNuxtConfig({
     devtools: {enabled: true},
     runtimeConfig: {
         public: {
-            BACKEND_URL: process.env.BACKEND_URL || 'http://localhost:8000',
-            FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:3000'
+            BACKEND_URL: '',
+            FRONTEND_URL: '',
         }
     },
     css: ['~/assets/css/main.css'],
+    components: [
+        // Auto-import depuis components/ (par défaut)
+        {
+            path: '~/components',
+            pathPrefix: false,
+        },
+        // Auto-import depuis tous les domaines
+        {
+            path: '~/domains/auth/components',
+            pathPrefix: false,
+        },
+        {
+            path: '~/domains/playground/components',
+            pathPrefix: false,
+        },
+        {
+            path: '~/domains/themes/components',
+            pathPrefix: false,
+        },
+        {
+            path: '~/domains/tasks/components',
+            pathPrefix: false,
+        },
+        {
+            path: '~/domains/admin/components',
+            pathPrefix: false,
+        },
+        {
+            path: '~/domains/shared/components',
+            pathPrefix: false,
+        },
+    ],
     modules: [
         '@primevue/nuxt-module'
     ],

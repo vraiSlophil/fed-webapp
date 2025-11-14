@@ -1,4 +1,4 @@
-import {useApiFetch} from './useApiFetch'
+import {useApiFetch} from '~/composables/useApiFetch'
 import type {CreateThemePayload, Theme} from '~/types/theme'
 
 export const useThemes = () => {

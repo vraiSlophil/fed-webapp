@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type {Theme} from "~/types/theme";
+import {useDraggableThemes} from "~/domains/playground/composables/useDraggableTheme";
+import {useDropZoneInteraction} from "~/domains/playground/composables/useDropZoneInteraction";
 
 const emit = defineEmits(['drop-theme'])
 

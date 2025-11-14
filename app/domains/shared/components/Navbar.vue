@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+import {useAuth} from "~/domains/auth/composables/useAuth";
+import {navigateTo} from '#app';
+
 const props = defineProps({
 	leftBackButton: {
 		type: Boolean,
@@ -56,9 +59,9 @@ const goBack = () => {
 			<slot name="left">
 				<div v-if="props.leftBackButton" class="flex justify-start items-center">
 					<Button
-						severity="secondary"
 						outlined
 						rounded
+						severity="secondary"
 						@click="goBack"
 					>
 						<span class="material-symbols-rounded">arrow_back_ios_new</span>
@@ -82,65 +85,67 @@ const goBack = () => {
 		</div>
 
 		<!-- Right Third -->
-		<div class="flex-1 text-right">
-			<slot name="right">
-				<div v-if="props.rightLoginButton">
-					<Button v-if="loading" severity="secondary" rounded outlined disabled>
-						<span class="material-symbols-rounded animate-spin">progress_activity</span>
-						Chargement...
-					</Button>
-					<div v-else-if="user && route.name !== 'playground'">
-						<Button
-							severity="primary"
-							rounded
-							@click="navigateTo('/playground')"
-						>
-							Accéder à FED
+		<ClientOnly>
+			<div class="flex-1 text-right">
+				<slot name="right">
+					<div v-if="props.rightLoginButton">
+						<Button v-if="loading" disabled outlined rounded severity="secondary">
+							<span class="material-symbols-rounded animate-spin">progress_activity</span>
+							Chargement...
 						</Button>
-					</div>
-					<div v-else-if="user && route.name === 'playground'">
-						<Button
-							v-if="user"
-							:query="{ from: currentRoute }"
-							severity="secondary"
-							rounded
-							outlined
-							class="flex justify-end items-center text-zinc-700 dark:text-zinc-300 gap-4"
-							@click="navigateTo('/user')"
-						>
-							<Avatar
-								v-if="avatarUrl"
-								:image="avatarUrl"
-								class="border-[1px] border-zinc-500"
-								shape="circle"
-							/>
-							<Avatar
-								v-else
-								class="border-[1px] border-zinc-500"
-								shape="circle"
+						<div v-else-if="user && route.name !== 'playground'">
+							<Button
+								rounded
+								severity="primary"
+								@click="navigateTo('/playground')"
 							>
-								<span class="material-symbols-rounded">person</span>
-							</Avatar>
-							{{
-								user && user.first_name && user.last_name ? user.first_name + ' ' + user.last_name : user?.username
-							}}
-						</Button>
-					</div>
+								Accéder à FED
+							</Button>
+						</div>
+						<div v-else-if="user && route.name === 'playground'">
+							<Button
+								v-if="user"
+								:query="{ from: currentRoute }"
+								class="flex justify-end items-center text-zinc-700 dark:text-zinc-300 gap-4"
+								outlined
+								rounded
+								severity="secondary"
+								@click="navigateTo('/user')"
+							>
+								<Avatar
+									v-if="avatarUrl"
+									:image="avatarUrl"
+									class="border-[1px] border-zinc-500"
+									shape="circle"
+								/>
+								<Avatar
+									v-else
+									class="border-[1px] border-zinc-500"
+									shape="circle"
+								>
+									<span class="material-symbols-rounded">person</span>
+								</Avatar>
+								{{
+									user && user.first_name && user.last_name ? user.first_name + ' ' + user.last_name : user?.username
+								}}
+							</Button>
+						</div>
 
-					<div v-else>
-						<Button
-							severity="secondary"
-							rounded
-							outlined
-							@click="navigateTo('/login')"
-						>
-							<span class="material-symbols-rounded">login</span>
-							Connexion / Inscription
-						</Button>
+						<div v-else>
+							<Button
+								outlined
+								rounded
+								severity="secondary"
+								@click="navigateTo('/login')"
+							>
+								<span class="material-symbols-rounded">login</span>
+								Connexion / Inscription
+							</Button>
+						</div>
 					</div>
-				</div>
-			</slot>
-		</div>
+				</slot>
+			</div>
+		</ClientOnly>
 	</nav>
 </template>
 

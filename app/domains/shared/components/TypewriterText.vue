@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import {useTypewriter} from "~/domains/shared/composables/useTypewriter";
+
 interface Props {
 	phrases: string[]
 	typeSpeed?: number

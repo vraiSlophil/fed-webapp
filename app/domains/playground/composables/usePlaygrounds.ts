@@ -1,5 +1,5 @@
 import {ref} from 'vue'
-import {useApiFetch} from './useApiFetch'
+import {useApiFetch} from '~/composables/useApiFetch'
 import type {CreatePlaygroundPayload, Playground, PlaygroundCompleteData} from '~/types/playground'
 
 const playgrounds = ref<Playground[]>([])
