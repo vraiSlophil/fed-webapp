@@ -245,7 +245,6 @@ watch(() => newPlaygroundData.name, (newName: string) => {
 		<div
 			v-for="playground in playgrounds"
 			:key="playground.playground_id"
-			:style="{borderColor: (playground.is_default ? '#fd9a004d' : '')}"
 			class="flex justify-between items-center flex-col w-min p-2 gap-4 border-[1px] border-gray-500/30 rounded-2xl"
 		>
 			<div
@@ -263,9 +262,16 @@ watch(() => newPlaygroundData.name, (newName: string) => {
 						<span class="font-medium">{{ playground.name }}</span>
 					</div>
 					<span
-						class="absolute bottom-2 left-2 px-2 py-1 bg-[var(--p-dialog-background)] text-sm text-white font-bold border-[1px] border-amber-500/30 rounded-md">Thème{{
-							(playground.themes_count! > 1 ? 's' : '') + ' : ' + playground.themes_count
-						}}</span>
+						class="absolute bottom-2 left-2 px-3 py-1 bg-[var(--p-dialog-background)] text-sm text-white font-bold border-[1px] border-amber-500/30 rounded-full"
+					>
+						Thème{{(playground.themes_count! > 1 ? 's' : '') + ' : ' + playground.themes_count }}
+					</span>
+					<span
+						class="material-symbols-rounded absolute bottom-2 right-2 p-1.5 bg-[var(--p-dialog-background)] text-sm text-white font-bold border-[1px] border-amber-500/30 rounded-full"
+						v-if="playground.is_default"
+					>
+						home
+					</span>
 				</div>
 			</div>
 			<div>

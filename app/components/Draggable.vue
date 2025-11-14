@@ -182,7 +182,6 @@ const handleDrag = (e: MouseEvent) => {
 // Gérer la fin du drag
 const handleDragEnd = (e: MouseEvent) => {
 	if (!isDragging.value) return
-	if (shouldIgnoreDrag(e)) return
 
 	document.removeEventListener('mousemove', handleDrag)
 	document.removeEventListener('mouseup', handleDragEnd)
@@ -333,7 +332,7 @@ const handleDrop = (e: DragEvent) => {
 		@drop="handleDrop"
 		class="draggable-component touch-none box-border relative h-min w-min group"
 	>
-		<slot></slot>
+		<slot :style="{ pointerEvents: isDragging ? 'none' : 'auto' }"></slot>
 		<div
 			v-if="resizableX || resizableY"
 			class="absolute bottom-0 right-0 w-3 h-3 cursor-se-resize opacity-0 group-hover:opacity-100 transition-all duration-200"
