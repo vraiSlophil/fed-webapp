@@ -1,4 +1,5 @@
 import {isServer} from "@primeuix/utils";
+import {useAuth} from "~/domains/auth/composables/useAuth";
 
 /**
  * Vérifie si l'utilisateur a les droits d'administration requis

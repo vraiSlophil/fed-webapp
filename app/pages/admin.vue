@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type {User} from '~/types/user'
+import {useAdmin} from "~/domains/admin/composables/useAdmin";
 
 // Navigation guard pour admin seulement
 definePageMeta({
@@ -434,13 +435,13 @@ const handleFileChange = (event: Event & { target: HTMLInputElement }, formType:
 		}
 
 		// Créer une URL pour la prévisualisation
-		avatarPreview.value = URL.createObjectURL(file)
+		avatarPreview.value = URL.createObjectURL(file!)
 
 		// Mettre à jour le formulaire approprié
 		if (formType === 'create') {
-			createForm.value.avatar = file
+			createForm.value!.avatar = file
 		} else {
-			editForm.value.avatar = file
+			editForm.value!.avatar = file
 		}
 	}
 }
@@ -805,12 +806,6 @@ const userActions = (user: User) => [
 												shape="circle"
 												size="xlarge"
 											/>
-											<div
-												v-if="!selectedUser.username || selectedUser.avatar_path"
-												class="w-24 h-24 rounded-full bg-blue-500 flex items-center justify-center text-white text-2xl font-bold mb-4"
-											>
-												{{ selectedUser.username.charAt(0).toUpperCase() }}
-											</div>
 											<h3 class="text-xl font-semibold">{{ selectedUser.username }}</h3>
 											<p class="text-gray-600">{{ selectedUser.email }}</p>
 										</div>

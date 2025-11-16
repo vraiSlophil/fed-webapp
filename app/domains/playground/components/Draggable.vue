@@ -1,5 +1,7 @@
 <script setup lang="ts">
 
+import {useDropZoneInteraction} from "~/domains/playground/composables/useDropZoneInteraction";
+
 const props = defineProps({
 	x: {
 		type: Number,
@@ -85,7 +87,7 @@ watch(() => props.height, (newVal) => {
 })
 
 // Styles calculés pour l'élément draggable
-const draggableStyles = computed(() => {
+const draggableStyles = computed<Record<string, string | number>>(() => {
 	return {
 		transform: `translate(${position.value.x}px, ${position.value.y}px)`,
 		width: !props.width ? 'auto' : `${dimensions.value.width}px`,

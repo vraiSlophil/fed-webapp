@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type {PermissionPreset, ThemeMember, ThemeMemberPermissions} from '~/types/themeMembers'
+import {useThemeMembers} from "~/domains/themes/composables/useThemeMembers";
 
 interface Props {
 	visible: boolean

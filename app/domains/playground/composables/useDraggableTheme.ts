@@ -1,4 +1,5 @@
 import type {Theme} from "~/types/theme";
+import {useDropZoneInteraction} from "~/domains/playground/composables/useDropZoneInteraction";
 
 // Variables globales pour être partagées entre toutes les instances
 const isDragging = ref(false)

@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import {ref, computed, watch} from 'vue'
-import {useAuth} from '~/composables/useAuth'
-import {HttpMethods} from '~/utils/httpMethods'
+import {useAuth} from "~/domains/auth/composables/useAuth";
 
 const {user, fetchUser, logout} = useAuth()
 const toast = useToast()
