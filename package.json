@@ -7,7 +7,9 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "test:e2e": "cypress open",
+    "test:e2e:headless": "cypress run"
   },
   "dependencies": {
     "@primeuix/themes": "^1.1.2",
@@ -22,6 +24,7 @@
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
-    "@primevue/nuxt-module": "^4.3.5"
+    "@primevue/nuxt-module": "^4.3.5",
+    "cypress": "^15.6.0"
   }
 }
