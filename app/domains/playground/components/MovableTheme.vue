@@ -53,6 +53,8 @@ const handleDragEnd = (event: any) => {
 
 <template>
 	<Draggable
+		class="draggable-theme"
+		:data-theme-id="theme.theme_id"
 		:x="theme.position?.x || 100"
 		:y="theme.position?.y || 100"
 		:width="theme.position?.width || 475"

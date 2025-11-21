@@ -85,8 +85,8 @@ const goBack = () => {
 		</div>
 
 		<!-- Right Third -->
-		<ClientOnly>
-			<div class="flex-1 text-right">
+		<div class="flex-1 text-right">
+			<ClientOnly>
 				<slot name="right">
 					<div v-if="props.rightLoginButton">
 						<Button v-if="loading" disabled outlined rounded severity="secondary">
@@ -144,8 +144,8 @@ const goBack = () => {
 						</div>
 					</div>
 				</slot>
-			</div>
-		</ClientOnly>
+			</ClientOnly>
+		</div>
 	</nav>
 </template>
 

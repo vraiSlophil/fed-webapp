@@ -219,7 +219,7 @@ watch(() => newPlaygroundData.name, (newName: string) => {
 
 <template>
 	<Button
-		class="w-10 h-10"
+		class="playground-button w-10 h-10"
 		outlined
 		rounded
 		@click="dialogVisible = !dialogVisible"
@@ -229,6 +229,9 @@ watch(() => newPlaygroundData.name, (newName: string) => {
 		</span>
 	</Button>
 	<Dialog
+		header="Gestion des Playgrounds"
+		:closable="true"
+		:modal="true"
 		v-model:visible="dialogVisible"
 		:pt="{
 			content: {
@@ -236,13 +239,11 @@ watch(() => newPlaygroundData.name, (newName: string) => {
 					// flex avec flex wrap pour que les playgrounds s'affichent en grille
 					display: 'grid',
 					gridTemplateColumns: 'repeat(2, 1fr)',
-					gap: '1rem',
+					gap: '1rem'
 				}
 			}
 		}"
 	>
-		<!--			:style="{borderColor: playground.color + '66' || '#00000066'}"-->
-		<!--			class="flex justify-between items-center mb-4 p-4 gap-4 border-[1px] rounded-full"-->
 		<div
 			v-for="playground in playgrounds"
 			:key="playground.playground_id"
@@ -298,7 +299,7 @@ watch(() => newPlaygroundData.name, (newName: string) => {
 						<span class="material-symbols-rounded">open_in_new</span>
 					</Button>
 					<Button
-						class="w-10 h-10"
+						class="edit-button w-10 h-10"
 						outlined
 						rounded
 						title="Modifier le Playground"
