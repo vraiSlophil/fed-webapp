@@ -12,6 +12,7 @@ describe("Playground - Thèmes déplaçables", () => {
     });
 
     it("affiche les thèmes déplaçables dans le playground", () => {
+        cy.visit("/playground");
         cy.get(".draggable-component")
             .first()
             .should("have.attr", "data-theme-id");
@@ -19,6 +20,7 @@ describe("Playground - Thèmes déplaçables", () => {
 
     // javascript
     it("permet de déplacer un thème et vérifie le delta via le `transform: translate(...)`", () => {
+        cy.visit("/playground");
         const moveDeltaX = 50;
         const moveDeltaY = 80;
 

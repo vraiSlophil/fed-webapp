@@ -1,24 +1,30 @@
 // cypress/support/loginHelper.js
 export function loginAndVisit({ email, password, nextRoute }) {
-    // Aller sur la page de login
-    cy.visit('/login')
+  // Aller sur la page de login
+  cy.visit('/login')
 
-    // Attendre 100ms avant de saisir les identifiants
-    cy.wait(100)
+  // Remplir le formulaire
+  cy.get('input[placeholder="Email"]').clear().type(email)
+  cy.get('input[placeholder="Mot de passe"]').clear().type(password)
 
-    cy.get('input[placeholder="Email"]').clear().type(email)
-    cy.get('input[placeholder="Mot de passe"]').clear().type(password)
+  // Intercepter la requête de login pour savoir quand elle est finie
+  cy.intercept('POST', '**/api/login').as('loginRequest')
 
-    cy.contains('button', 'Se connecter')
-        .should('not.be.disabled')
-        .click()
+  cy.contains('button', 'Se connecter')
+    .should('not.be.disabled')
+    .click()
 
-    // Attendre 200ms après la connexion
-    cy.wait(200)
+  // Attendre la fin de la requête de login
+  cy.wait('@loginRequest')
 
-    // Visiter la page suivante
+  // Vérifier qu'on n'est plus sur /login (redirection effectuée par l'appli)
+  cy.location('pathname', { timeout: 10000 }).should('not.eq', '/login')
+
+  // Si on a prévu une route cible différente, on y va sinon on reste
+  if (nextRoute) {
     cy.visit(nextRoute)
+  }
 
-    // Attendre 200ms après la navigation
-    cy.wait(200)
+  // S'assurer que la route finale est bien atteinte
+  cy.location('pathname', { timeout: 10000 }).should('include', nextRoute)
 }

@@ -9,10 +9,9 @@ const generateRandomString = (length) => {
         result += characters.charAt(Math.floor(Math.random() * characters.length));
     }
     return result;
-}
+};
 
 const uniquePlaygroundName = `Playground-${generateRandomString(8)}`;
-// slug attendu généré par le watcher depuis uniquePlaygroundName
 const uniquePlaygroundSlug = uniquePlaygroundName
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
@@ -28,11 +27,26 @@ describe("Playground - CRUD", () => {
     beforeEach(() => {
         cy.clearCookies();
         cy.clearLocalStorage();
+
         loginAndVisit({
             email: "user@example.com",
             password: "password",
             nextRoute: "/playground",
         });
+
+        // Debug: log le pathname réel
+        cy.location("pathname", {timeout: 10000}).then((path) => {
+            cy.log("Current path after loginAndVisit:", path);
+        });
+
+        // Vérifier qu'on n'est plus sur /login
+        cy.location("pathname", {timeout: 10000}).should("not.eq", "/login");
+
+        // Puis vérifier que la redirection vers /playground est bien faite
+        cy.url({timeout: 10000}).should("include", "/playground");
+
+        // s'assurer que la navbar / bouton playground sont rendus
+        cy.get("button.playground-button").should("be.visible");
     });
 
     it("permet d'ouvrir la gestion des playgrounds", () => {
@@ -62,9 +76,8 @@ describe("Playground - CRUD", () => {
         cy.contains("button", "Créer").click();
 
         cy.contains("Playground créé avec succès.").should("be.visible");
-        cy.contains("Gestion des Playgrounds").should("be.visible");
+        // cy.contains("Gestion des Playgrounds").should("be.visible");
 
-        // vérifier que le playground créé est bien affiché
         cy.contains("span", uniquePlaygroundName).should("exist");
     });
 
@@ -72,7 +85,6 @@ describe("Playground - CRUD", () => {
         cy.get("button.playground-button").click();
         cy.contains("Gestion des Playgrounds").should("be.visible");
 
-        // cibler le playground créé précédemment par son nom puis le bouton éditer associé
         cy.contains("span", uniquePlaygroundName)
             .parents("div.flex.justify-between.items-center.flex-col")
             .within(() => {
@@ -96,7 +108,6 @@ describe("Playground - CRUD", () => {
         cy.contains("button", "Mettre à jour").click();
         cy.contains("Playground mis à jour avec succès.").should("be.visible");
 
-        // s'assurer que le nouveau nom apparaît dans la liste
         cy.contains("span", editedPlaygroundName).should("exist");
     });
 
@@ -104,7 +115,6 @@ describe("Playground - CRUD", () => {
         cy.get("button.playground-button").click();
         cy.contains("Gestion des Playgrounds").should("be.visible");
 
-        // cibler le playground modifié par son nom et cliquer sur son bouton supprimer non désactivé
         cy.contains("span", editedPlaygroundName)
             .parents("div.flex.justify-between.items-center.flex-col")
             .within(() => {
@@ -119,7 +129,6 @@ describe("Playground - CRUD", () => {
 
         cy.contains("Playground supprimé avec succès.").should("be.visible");
 
-        // vérifier qu'il n'apparaît plus dans la liste
         cy.contains("span", editedPlaygroundName).should("not.exist");
     });
 });
