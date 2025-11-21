@@ -1,46 +1,125 @@
+// javascript
+// cypress/e2e/playground/playground_crud.cy.js
+import {loginAndVisit} from "../../support/loginHelper.js";
+
+const generateRandomString = (length) => {
+    const characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let result = "";
+    for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
+}
+
+const uniquePlaygroundName = `Playground-${generateRandomString(8)}`;
+// slug attendu généré par le watcher depuis uniquePlaygroundName
+const uniquePlaygroundSlug = uniquePlaygroundName
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+const editedPlaygroundName = `Playground-Edited-${generateRandomString(8)}`;
+const editedPlaygroundSlug = editedPlaygroundName
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
 describe("Playground - CRUD", () => {
-  beforeEach(() => {
-    cy.clearCookies();
-    cy.clearLocalStorage();
-    // Se connecter
-    cy.visit("/login");
-    cy.get('input[type="email"]').type("user@example.com");
-    cy.get('input[type="password"]').type("password");
-    cy.get('button[type="submit"]').click();
-  });
+    beforeEach(() => {
+        cy.clearCookies();
+        cy.clearLocalStorage();
+        loginAndVisit({
+            email: "user@example.com",
+            password: "password",
+            nextRoute: "/playground",
+        });
+    });
 
-  it("permet de créer un nouveau playground", () => {
-    cy.visit("/playground");
-    cy.contains("Nouveau playground").click();
+    it("permet d'ouvrir la gestion des playgrounds", () => {
+        cy.get("button.playground-button").click();
+        cy.wait(100);
+        cy.contains("Gestion des Playgrounds").should("be.visible");
+    });
 
-    cy.get('input[name="name"]').type("Mon playground");
-    cy.get('textarea[name="description"]').type("Description du playground");
-    cy.get('button[type="submit"]').click();
+    it("permet de créer un nouveau playground", () => {
+        cy.get("button.playground-button").click();
+        cy.contains("Gestion des Playgrounds").should("be.visible");
 
-    cy.contains("Mon playground").should("be.visible");
-  });
+        cy.get("button[title='Créer un nouveau Playground']").click();
+        cy.contains("Créer un nouveau Playground").should("be.visible");
 
-  it("permet de modifier un playground existant", () => {
-    cy.visit("/playground");
-    cy.get(".playground").first().contains("Modifier").click();
+        cy.wait(100);
 
-    cy.get('input[name="name"]').clear().type("Playground modifié");
-    cy.get('button[type="submit"]').click();
+        cy.get("input[placeholder='Nom du playground']").type(uniquePlaygroundName);
 
-    cy.contains("Playground modifié").should("be.visible");
-  });
+        cy.wait(100);
 
-  it("permet de supprimer un playground", () => {
-    cy.visit("/playground");
-    cy.get(".playground").first().contains("Supprimer").click();
-    cy.contains("Confirmer").click();
+        cy.get("input[placeholder='Slug du playground']")
+            .should("have.value", uniquePlaygroundSlug);
 
-    cy.contains("Playground supprimé").should("be.visible");
-  });
+        cy.get("input[placeholder='Icône du playground']").type("home");
 
-  it("gère le cas d'un playground inexistant", () => {
-    cy.visit("/playground/999999");
-    cy.contains("Playground introuvable").should("be.visible");
-  });
+        cy.contains("button", "Créer").click();
+
+        cy.contains("Playground créé avec succès.").should("be.visible");
+        cy.contains("Gestion des Playgrounds").should("be.visible");
+
+        // vérifier que le playground créé est bien affiché
+        cy.contains("span", uniquePlaygroundName).should("exist");
+    });
+
+    it("permet de modifier un playground existant", () => {
+        cy.get("button.playground-button").click();
+        cy.contains("Gestion des Playgrounds").should("be.visible");
+
+        // cibler le playground créé précédemment par son nom puis le bouton éditer associé
+        cy.contains("span", uniquePlaygroundName)
+            .parents("div.flex.justify-between.items-center.flex-col")
+            .within(() => {
+                cy.get("button.edit-button").click();
+            });
+
+        cy.contains("Modifier le Playground").should("be.visible");
+
+        cy.get("input[placeholder='Nom du playground']")
+            .clear();
+
+        cy.wait(100);
+
+        cy.get("input[placeholder='Nom du playground']")
+            .clear()
+            .type(editedPlaygroundName);
+
+        cy.get("input[placeholder='Slug du playground']")
+            .should("have.value", editedPlaygroundSlug);
+
+        cy.contains("button", "Mettre à jour").click();
+        cy.contains("Playground mis à jour avec succès.").should("be.visible");
+
+        // s'assurer que le nouveau nom apparaît dans la liste
+        cy.contains("span", editedPlaygroundName).should("exist");
+    });
+
+    it("permet de supprimer un playground", () => {
+        cy.get("button.playground-button").click();
+        cy.contains("Gestion des Playgrounds").should("be.visible");
+
+        // cibler le playground modifié par son nom et cliquer sur son bouton supprimer non désactivé
+        cy.contains("span", editedPlaygroundName)
+            .parents("div.flex.justify-between.items-center.flex-col")
+            .within(() => {
+                cy.get("button[title='Supprimer le Playground']")
+                    .not("[disabled]")
+                    .click();
+            });
+
+        cy.contains("Confirmer la suppression du playground").should("be.visible");
+
+        cy.contains("button", "Supprimer").click();
+
+        cy.contains("Playground supprimé avec succès.").should("be.visible");
+
+        // vérifier qu'il n'apparaît plus dans la liste
+        cy.contains("span", editedPlaygroundName).should("not.exist");
+    });
 });
-
