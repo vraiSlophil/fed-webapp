@@ -62,6 +62,28 @@ export const usePlaygrounds = () => {
         }
     }
 
+    // Nouvelle fonction : charge un playground par id OU par slug
+    const fetchPlaygroundByIdOrSlug = async (idOrSlug: string) => {
+        // On tente d'abord par id directement
+        try {
+            return await fetchPlayground(idOrSlug)
+        } catch (e: any) {
+            // Si l'appel direct échoue, on tente de résoudre via le slug
+            // On recharge la liste si nécessaire
+            if (!playgrounds.value.length) {
+                await fetchPlaygrounds()
+            }
+
+            const found = playgrounds.value.find(p => p.slug === idOrSlug)
+            if (!found) {
+                error.value = 'Playground introuvable'
+                throw new Error('Playground introuvable')
+            }
+
+            return await fetchPlayground(found.playground_id)
+        }
+    }
+
     // Met à jour un playground
     const updatePlayground = async (playgroundId: string, payload: Partial<Playground>) => {
         loading.value = true
@@ -148,6 +170,7 @@ export const usePlaygrounds = () => {
         fetchPlaygrounds,
         createPlayground,
         fetchPlayground,
+        fetchPlaygroundByIdOrSlug,
         updatePlayground,
         updateThemeInPlayground,
         deletePlayground,

@@ -49,6 +49,11 @@ const goBack = () => {
 	}
 }
 
+const isPlaygroundRoute = computed(() => {
+	const name = route.name?.toString() || ''
+	return name.startsWith('playground')
+})
+
 </script>
 
 <template>
@@ -93,7 +98,7 @@ const goBack = () => {
 							<span class="material-symbols-rounded animate-spin">progress_activity</span>
 							Chargement...
 						</Button>
-						<div v-else-if="user && route.name !== 'playground'">
+						<div v-else-if="user && !isPlaygroundRoute">
 							<Button
 								rounded
 								severity="primary"
@@ -102,7 +107,7 @@ const goBack = () => {
 								Accéder à FED
 							</Button>
 						</div>
-						<div v-else-if="user && route.name === 'playground'">
+						<div v-else-if="user && isPlaygroundRoute">
 							<Button
 								v-if="user"
 								:query="{ from: currentRoute }"

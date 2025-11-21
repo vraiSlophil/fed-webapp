@@ -1,15 +1,9 @@
 <script setup lang="ts">
-
+import PlaygroundPage from '~/domains/playground/components/PlaygroundPage.vue'
 </script>
 
 <template>
-	<main
-		class="place-content-center min-h-screen"
-	>
-		<h1 class="text-center">
-			TEST
-		</h1>
-	</main>
+  <PlaygroundPage />
 </template>
 
 <style scoped>

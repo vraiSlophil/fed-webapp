@@ -11,15 +11,13 @@ const {
 	error,
 	fetchPlaygrounds,
 	createPlayground,
-	fetchPlayground,
 	updatePlayground,
-	updateThemeInPlayground,
 	deletePlayground,
-	setDefaultPlayground,
-	fetchPlaygroundStats
+	setDefaultPlayground
 } = usePlaygrounds();
 const {getTextColor} = useColors();
 const toast = useToast();
+const router = useRouter();
 
 const dialogVisible = ref(false);
 
@@ -99,9 +97,24 @@ const handleCreatePlayground = async () => {
 
 const handleLoadPlaygroud = async (playgroundId: string) => {
 	try {
-		// currentPlayground.value = await fetchPlayground(playgroundId);
-		await fetchPlayground(playgroundId);
-		toast.add({severity: 'success', summary: 'Succès', detail: 'Playground chargé avec succès.', life: 3000});
+		const playground = playgrounds.value.find(p => p.playground_id === playgroundId);
+		if (!playground) {
+			toast.add({
+				severity: 'error',
+				summary: 'Erreur',
+				detail: 'Playground introuvable.',
+				life: 3000
+			});
+			return;
+		}
+		const target = playground.slug || playground.playground_id;
+		await router.push(`/playground/${target}`);
+		toast.add({
+			severity: 'success',
+			summary: 'Succès',
+			detail: 'Playground chargé avec succès.',
+			life: 3000
+		});
 		dialogVisible.value = false;
 	} catch (e) {
 		toast.add({
@@ -114,48 +127,48 @@ const handleLoadPlaygroud = async (playgroundId: string) => {
 	}
 };
 const handleOpenEditDialog = (playground: any) => {
-  editPlaygroundData.playground_id = playground.playground_id;
-  editPlaygroundData.name = playground.name;
-  editPlaygroundData.slug = playground.slug;
-  editPlaygroundData.icon = playground.icon;
-  editPlaygroundData.color = playground.color;
-  editPlaygroundData.background_color = playground.background_color;
-  editPlaygroundData.is_default = playground.is_default;
-  editPlaygroundDialogVisible.value = true;
+	editPlaygroundData.playground_id = playground.playground_id;
+	editPlaygroundData.name = playground.name;
+	editPlaygroundData.slug = playground.slug;
+	editPlaygroundData.icon = playground.icon;
+	editPlaygroundData.color = playground.color;
+	editPlaygroundData.background_color = playground.background_color;
+	editPlaygroundData.is_default = playground.is_default;
+	editPlaygroundDialogVisible.value = true;
 };
 
 const handleUpdatePlayground = async () => {
-  try {
-    if (!editPlaygroundData.playground_id || !editPlaygroundData.name) {
-      toast.add({severity: 'error', summary: 'Erreur', detail: 'Le nom est requis.', life: 3000});
-      return;
-    }
-    if (editPlaygroundData.color) {
-      editPlaygroundData.color = checkColor(editPlaygroundData.color);
-    }
-    if (editPlaygroundData.background_color) {
-      editPlaygroundData.background_color = checkColor(editPlaygroundData.background_color);
-    }
-    await updatePlayground(editPlaygroundData.playground_id, {...editPlaygroundData});
-    await fetchPlaygrounds(); // Recharger la liste
-    editPlaygroundDialogVisible.value = false;
-    toast.add({severity: 'success', summary: 'Succès', detail: 'Playground mis à jour avec succès.', life: 3000});
-  } catch (e) {
-    toast.add({
-      severity: 'error',
-      summary: 'Erreur',
-      detail: 'Une erreur est survenue lors de la mise à jour.',
-      life: 3000
-    });
-    console.error(e);
-  }
+	try {
+		if (!editPlaygroundData.playground_id || !editPlaygroundData.name) {
+			toast.add({severity: 'error', summary: 'Erreur', detail: 'Le nom est requis.', life: 3000});
+			return;
+		}
+		if (editPlaygroundData.color) {
+			editPlaygroundData.color = checkColor(editPlaygroundData.color);
+		}
+		if (editPlaygroundData.background_color) {
+			editPlaygroundData.background_color = checkColor(editPlaygroundData.background_color);
+		}
+		await updatePlayground(editPlaygroundData.playground_id, {...editPlaygroundData});
+		await fetchPlaygrounds(); // Recharger la liste
+		editPlaygroundDialogVisible.value = false;
+		toast.add({severity: 'success', summary: 'Succès', detail: 'Playground mis à jour avec succès.', life: 3000});
+	} catch (e) {
+		toast.add({
+			severity: 'error',
+			summary: 'Erreur',
+			detail: 'Une erreur est survenue lors de la mise à jour.',
+			life: 3000
+		});
+		console.error(e);
+	}
 };
 
 watch(() => editPlaygroundData.name, (newName: string) => {
-  editPlaygroundData.slug = newName
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+	editPlaygroundData.slug = newName
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/^-+|-+$/g, '');
 });
 const handleDeletePlayground = async (playgroundId: string) => {
 	try {
@@ -229,10 +242,9 @@ watch(() => newPlaygroundData.name, (newName: string) => {
 		</span>
 	</Button>
 	<Dialog
-		header="Gestion des Playgrounds"
+		v-model:visible="dialogVisible"
 		:closable="true"
 		:modal="true"
-		v-model:visible="dialogVisible"
 		:pt="{
 			content: {
 				style: {
@@ -243,6 +255,7 @@ watch(() => newPlaygroundData.name, (newName: string) => {
 				}
 			}
 		}"
+		header="Gestion des Playgrounds"
 	>
 		<div
 			v-for="playground in playgrounds"
@@ -266,11 +279,11 @@ watch(() => newPlaygroundData.name, (newName: string) => {
 					<span
 						class="absolute bottom-2 left-2 px-3 py-1 bg-[var(--p-dialog-background)] text-sm text-white font-bold border-[1px] border-amber-500/30 rounded-full"
 					>
-						Thème{{(playground.themes_count! > 1 ? 's' : '') + ' : ' + playground.themes_count }}
+						Thème{{ (playground.themes_count! > 1 ? 's' : '') + ' : ' + playground.themes_count }}
 					</span>
 					<span
-						class="material-symbols-rounded absolute bottom-2 right-2 p-1.5 bg-[var(--p-dialog-background)] text-sm text-white font-bold border-[1px] border-amber-500/30 rounded-full"
 						v-if="playground.is_default"
+						class="material-symbols-rounded absolute bottom-2 right-2 p-1.5 bg-[var(--p-dialog-background)] text-sm text-white font-bold border-[1px] border-amber-500/30 rounded-full"
 					>
 						home
 					</span>
