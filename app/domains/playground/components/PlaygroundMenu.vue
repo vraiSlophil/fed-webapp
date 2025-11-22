@@ -312,7 +312,7 @@ watch(() => newPlaygroundData.name, (newName: string) => {
 						<span class="material-symbols-rounded">open_in_new</span>
 					</Button>
 					<Button
-						class="edit-button w-10 h-10"
+						class="w-10 h-10"
 						outlined
 						rounded
 						title="Modifier le Playground"

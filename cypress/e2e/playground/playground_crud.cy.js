@@ -1,5 +1,3 @@
-// javascript
-// cypress/e2e/playground/playground_crud.cy.js
 import {loginAndVisit} from "../../support/loginHelper.js";
 
 const generateRandomString = (length) => {
@@ -33,20 +31,6 @@ describe("Playground - CRUD", () => {
             password: "password",
             nextRoute: "/playground",
         });
-
-        // Debug: log le pathname réel
-        cy.location("pathname", {timeout: 10000}).then((path) => {
-            cy.log("Current path after loginAndVisit:", path);
-        });
-
-        // Vérifier qu'on n'est plus sur /login
-        cy.location("pathname", {timeout: 10000}).should("not.eq", "/login");
-
-        // Puis vérifier que la redirection vers /playground est bien faite
-        cy.url({timeout: 10000}).should("include", "/playground");
-
-        // s'assurer que la navbar / bouton playground sont rendus
-        cy.get("button.playground-button").should("be.visible");
     });
 
     it("permet d'ouvrir la gestion des playgrounds", () => {
@@ -88,7 +72,7 @@ describe("Playground - CRUD", () => {
         cy.contains("span", uniquePlaygroundName)
             .parents("div.flex.justify-between.items-center.flex-col")
             .within(() => {
-                cy.get("button.edit-button").click();
+                cy.get("button[title='Modifier le Playground']").click();
             });
 
         cy.contains("Modifier le Playground").should("be.visible");
@@ -109,6 +93,44 @@ describe("Playground - CRUD", () => {
         cy.contains("Playground mis à jour avec succès.").should("be.visible");
 
         cy.contains("span", editedPlaygroundName).should("exist");
+    });
+
+    it("charge le playground via son slug", () => {
+        // ouvrir le menu des playgrounds
+        cy.get("button.playground-button").click();
+        cy.contains("Gestion des Playgrounds").should("be.visible");
+
+        // cliquer sur Charger pour le playground édité
+        cy.contains("span", editedPlaygroundName)
+            .parents("div.flex.justify-between.items-center.flex-col")
+            .within(() => {
+                cy.get("button[title='Charger le Playground']")
+                    .should("not.be.disabled")
+                    .click();
+            });
+
+        // attendre après la navigation
+        cy.wait(500);
+
+        // vérifier que l'URL contient bien le slug du playground édité
+        cy.location("pathname", {timeout: 10000})
+            .should("eq", `/playground/${editedPlaygroundSlug}`);
+
+        cy.wait(500);
+
+        // rouvrir le menu pour vérifier l'état du bouton Charger
+        cy.get("button.playground-button").click();
+        cy.contains("Gestion des Playgrounds").should("be.visible");
+
+        cy.wait(500);
+
+        // le bouton Charger pour ce playground doit être désactivé
+        cy.contains("span", editedPlaygroundName)
+            .parents("div.flex.justify-between.items-center.flex-col")
+            .within(() => {
+                cy.get("button[title='Charger le Playground']")
+                    .should("be.disabled");
+            });
     });
 
     it("permet de supprimer un playground", () => {

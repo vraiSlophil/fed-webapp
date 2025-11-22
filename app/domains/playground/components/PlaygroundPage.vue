@@ -14,7 +14,6 @@ import {usePlaygrounds} from '~/domains/playground/composables/usePlaygrounds'
 import {useThemes} from '~/domains/themes/composables/useThemes'
 import {useAuth} from '~/domains/auth/composables/useAuth'
 import {useMovableThemes} from '~/domains/playground/composables/useMovableThemes'
-import type {Playground} from "~/types/playground";
 
 const route = useRoute()
 const idOrSlug = computed(() => route.params.id as string | undefined)
@@ -168,32 +167,32 @@ const closeContextMenu = () => {
 }
 
 const initPlayground = async () => {
-    await fetchPlaygrounds()
+	await fetchPlaygrounds()
 
-    try {
-        if (idOrSlug.value) {
-            await fetchPlaygroundByIdOrSlug(idOrSlug.value)
-        } else {
-            const defaultPlayground = playgrounds.value.find(p => p.is_default)
-            if (defaultPlayground) {
-                await fetchPlaygroundByIdOrSlug(defaultPlayground.playground_id)
-            }
-        }
+	try {
+		if (idOrSlug.value) {
+			await fetchPlaygroundByIdOrSlug(idOrSlug.value)
+		} else {
+			const defaultPlayground = playgrounds.value.find(p => p.is_default)
+			if (defaultPlayground) {
+				await fetchPlaygroundByIdOrSlug(defaultPlayground.playground_id)
+			}
+		}
 
-        if (currentPlayground.value) {
-            applyPositionsToThemes()
-        }
-    } catch (e: any) {
-        console.error(e)
-        toast.add({
-            severity: 'error',
-            summary: 'Erreur',
-            detail: e.message || 'Erreur lors du chargement du playground',
-            life: 3000
-        })
-    } finally {
-        isCurrentPlaygroundInitialized.value = true
-    }
+		if (currentPlayground.value) {
+			applyPositionsToThemes()
+		}
+	} catch (e: any) {
+		console.error(e)
+		toast.add({
+			severity: 'error',
+			summary: 'Erreur',
+			detail: e.message || 'Erreur lors du chargement du playground',
+			life: 3000
+		})
+	} finally {
+		isCurrentPlaygroundInitialized.value = true
+	}
 }
 
 onMounted(async () => {
@@ -221,101 +220,105 @@ watch(
 </script>
 
 <template>
-  <div class="overflow-hidden w-screen h-screen">
-    <div v-if="loading" class="flex items-center justify-center w-full h-full">
-      <span class="material-symbols-rounded animate-spin text-4xl">progress_activity</span>
-    </div>
+	<div class="overflow-hidden w-screen h-screen">
 
-    <div v-else class="w-full h-full" @click="closeContextMenu">
-      <Navbar :left-back-button="false" :right-login-button="true">
-        <template #left>
-          <div class="flex justify-start items-center gap-4 flex-row mx-1.5">
-            <ThemeStorage :themelist="themes" @reload="() => reloadCurrentPlayground()" />
-            <Button :disabled="loading" class="w-10 h-10" outlined rounded @click="() => reloadCurrentPlayground()">
-              <span v-if="loading" class="material-symbols-rounded animate-spin w-min">progress_activity</span>
-              <span v-else class="material-symbols-rounded w-min">refresh</span>
-            </Button>
-            <PlaygroundMenu />
-          </div>
-        </template>
-      </Navbar>
+		<div class="w-full h-full" @click="closeContextMenu">
+			<Navbar :left-back-button="false" :right-login-button="true">
+				<template #left>
+					<div class="flex justify-start items-center gap-4 flex-row mx-1.5">
+						<ThemeStorage :themelist="themes" @reload="() => reloadCurrentPlayground()"/>
+						<Button :disabled="loading" class="w-10 h-10" outlined rounded
+								@click="() => reloadCurrentPlayground()">
+							<span v-if="loading"
+								  class="material-symbols-rounded animate-spin w-min">progress_activity</span>
+							<span v-else class="material-symbols-rounded w-min">refresh</span>
+						</Button>
+						<PlaygroundMenu/>
+					</div>
+				</template>
+			</Navbar>
 
-      <div
-        :class="'absolute top-0 left-0 flex items-center justify-center h-full w-full m-0 overflow-hidden bg-[size:20px_20px,100px_100px] bg-white dark:bg-black'"
-        :style="
-          `background-color: ${currentPlayground?.playground.background_color ?? 'none'};` +
-          `background-image: linear-gradient(${(currentPlayground?.playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px), linear-gradient(90deg, ${(currentPlayground?.playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px), linear-gradient(90deg, ${(currentPlayground?.playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px), linear-gradient(${(currentPlayground?.playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px);`
-        "
-        @click="closeContextMenu"
-        @contextmenu.prevent="onContextMenu"
-      >
-        <Menu
-          ref="contextMenu"
-          :model="contextMenuItems"
-          :style="{ top: `${contextMenuPosition.y}px`, left: `${contextMenuPosition.x}px` }"
-          class="!absolute !w-min !min-w-min"
-          popup
-        >
-          <template #item="{ item }">
-            <div class="flex items-center p-2 gap-4 cursor-pointer text-nowrap" @click="item.command && item.command({} as any)">
-              <span class="material-symbols-rounded">{{ item.icon }}</span>
-              {{ item.label }}
-            </div>
-          </template>
-        </Menu>
+			<div v-if="loading" class="flex items-center justify-center w-full h-full">
+				<span class="material-symbols-rounded animate-spin text-4xl">progress_activity</span>
+			</div>
+			<div v-else
+				 :class="'absolute top-0 left-0 flex items-center justify-center h-full w-full m-0 overflow-hidden bg-[size:20px_20px,100px_100px] bg-white dark:bg-black'"
+				 :style="
+					  `background-color: ${currentPlayground?.playground.background_color ?? 'none'};` +
+					  `background-image: linear-gradient(${(currentPlayground?.playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px), linear-gradient(90deg, ${(currentPlayground?.playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px), linear-gradient(90deg, ${(currentPlayground?.playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px), linear-gradient(${(currentPlayground?.playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px);`
+				 "
+				 @click="closeContextMenu"
+				 @contextmenu.prevent="onContextMenu"
+			>
+				<Menu
+					ref="contextMenu"
+					:model="contextMenuItems"
+					:style="{ top: `${contextMenuPosition.y}px`, left: `${contextMenuPosition.x}px` }"
+					class="!absolute !w-min !min-w-min"
+					popup
+				>
+					<template #item="{ item }">
+						<div class="flex items-center p-2 gap-4 cursor-pointer text-nowrap"
+							 @click="item.command && item.command({} as any)">
+							<span class="material-symbols-rounded">{{ item.icon }}</span>
+							{{ item.label }}
+						</div>
+					</template>
+				</Menu>
 
-        <ThemeDropZone @drop-theme="handleThemeStored" />
+				<ThemeDropZone @drop-theme="handleThemeStored"/>
 
-        <div v-if="!themes.length" class="text-center">
-          <i class="material-symbols-rounded text-2xl text-primary">info</i>
-          <p class="mt-2">Aucun thème trouvé. Créez votre premier thème !</p>
-        </div>
+				<div v-if="!themes.length" class="text-center">
+					<i class="material-symbols-rounded text-2xl text-primary">info</i>
+					<p class="mt-2">Aucun thème trouvé. Créez votre premier thème !</p>
+				</div>
 
-        <div v-else class="w-full h-full relative overflow-hidden">
-          <MovableTheme
-            v-for="theme in visibleThemes"
-            :key="theme.theme_id"
-            :theme="theme"
-            @destroy="() => reloadCurrentPlayground()"
-            @storetheme="handleThemeStored"
-            @position-change="handleThemePositionChange"
-          />
-        </div>
-      </div>
+				<div v-else class="w-full h-full relative overflow-hidden">
+					<MovableTheme
+						v-for="theme in visibleThemes"
+						:key="theme.theme_id"
+						:theme="theme"
+						@destroy="() => reloadCurrentPlayground()"
+						@storetheme="handleThemeStored"
+						@position-change="handleThemePositionChange"
+					/>
+				</div>
+			</div>
 
-      <Dialog v-model:visible="createThemeDialogVisible" :closable="true" :modal="true" header="Créer un nouveau thème">
-        <form class="space-y-4" @submit.prevent="handleNewTheme">
-          <h2 class="text-lg font-semibold">Créer un nouveau thème</h2>
-          <div>
-            <label class="block mb-1">Titre</label>
-            <InputText
-              v-model="formData.title"
-              :class="{ 'p-invalid': v$.title.$error }"
-              class="w-full"
-              placeholder="Nom du thème"
-            />
-            <small v-if="v$.title.$error" class="p-error">{{ v$.title.$errors[0]?.$message }}</small>
-          </div>
-          <div>
-            <label class="block mb-1">Couleur</label>
-            <div class="flex items-center gap-3">
-              <ColorPicker v-model="formData.color" />
-              <InputText
-                v-model="formData.color"
-                class="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded"
-                placeholder="#FBC531"
-              />
-            </div>
-            <small v-if="v$.color.$error" class="p-error">{{ v$.color.$errors[0]?.$message }}</small>
-          </div>
-        </form>
-        <template #footer>
-          <Button class="p-button-text" label="Annuler" @click="showCreateThemeDialog(false)" />
-          <Button :loading="loading" label="Créer" @click="handleNewTheme" />
-        </template>
-      </Dialog>
-    </div>
-  </div>
+			<Dialog v-model:visible="createThemeDialogVisible" :closable="true" :modal="true"
+					header="Créer un nouveau thème">
+				<form class="space-y-4" @submit.prevent="handleNewTheme">
+					<h2 class="text-lg font-semibold">Créer un nouveau thème</h2>
+					<div>
+						<label class="block mb-1">Titre</label>
+						<InputText
+							v-model="formData.title"
+							:class="{ 'p-invalid': v$.title.$error }"
+							class="w-full"
+							placeholder="Nom du thème"
+						/>
+						<small v-if="v$.title.$error" class="p-error">{{ v$.title.$errors[0]?.$message }}</small>
+					</div>
+					<div>
+						<label class="block mb-1">Couleur</label>
+						<div class="flex items-center gap-3">
+							<ColorPicker v-model="formData.color"/>
+							<InputText
+								v-model="formData.color"
+								class="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded"
+								placeholder="#FBC531"
+							/>
+						</div>
+						<small v-if="v$.color.$error" class="p-error">{{ v$.color.$errors[0]?.$message }}</small>
+					</div>
+				</form>
+				<template #footer>
+					<Button class="p-button-text" label="Annuler" @click="showCreateThemeDialog(false)"/>
+					<Button :loading="loading" label="Créer" @click="handleNewTheme"/>
+				</template>
+			</Dialog>
+		</div>
+	</div>
 </template>
 
 <style scoped>
