@@ -83,7 +83,6 @@ describe("Playground - CRUD", () => {
         cy.wait(100);
 
         cy.get("input[placeholder='Nom du playground']")
-            .clear()
             .type(editedPlaygroundName);
 
         cy.get("input[placeholder='Slug du playground']")
@@ -110,19 +109,19 @@ describe("Playground - CRUD", () => {
             });
 
         // attendre après la navigation
-        cy.wait(500);
+        cy.wait(250);
 
         // vérifier que l'URL contient bien le slug du playground édité
         cy.location("pathname", {timeout: 10000})
             .should("eq", `/playground/${editedPlaygroundSlug}`);
 
-        cy.wait(500);
+        cy.wait(250);
 
         // rouvrir le menu pour vérifier l'état du bouton Charger
         cy.get("button.playground-button").click();
         cy.contains("Gestion des Playgrounds").should("be.visible");
 
-        cy.wait(500);
+        cy.wait(250);
 
         // le bouton Charger pour ce playground doit être désactivé
         cy.contains("span", editedPlaygroundName)
@@ -132,6 +131,43 @@ describe("Playground - CRUD", () => {
                     .should("be.disabled");
             });
     });
+
+    // it("charge le playground par son slug quand le bouton Charger est désactivé", () => {
+    //     // on part du principe que le playground édité est déjà chargé
+    //     cy.get("button.playground-button").click();
+    //     cy.contains("Gestion des Playgrounds").should("be.visible");
+    //
+    //     // vérifie que le bouton Charger pour ce playground est bien désactivé dans le menu
+    //     cy.contains("span", editedPlaygroundName)
+    //         .parents("div.flex.justify-between.items-center.flex-col")
+    //         .within(() => {
+    //             cy.get("button[title='Charger le Playground']")
+    //                 .should("be.disabled");
+    //         });
+    //
+    //     // navigue directement vers l'URL en utilisant le slug
+    //     cy.visit(`/playground/${editedPlaygroundSlug}`);
+    //     cy.wait(250);
+    //
+    //     // vérifie que l'URL correspond bien au slug
+    //     cy.location("pathname", {timeout: 10000})
+    //         .should("eq", `/playground/${editedPlaygroundSlug}`);
+    //
+    //     cy.wait(250);
+    //
+    //     // rouvre le menu pour s'assurer que ce playground est toujours marqué comme chargé
+    //     cy.get("button.playground-button").click();
+    //     cy.contains("Gestion des Playgrounds").should("be.visible");
+    //
+    //     cy.wait(250);
+    //
+    //     cy.contains("span", editedPlaygroundName)
+    //         .parents("div.flex.justify-between.items-center.flex-col")
+    //         .within(() => {
+    //             cy.get("button[title='Charger le Playground']")
+    //                 .should("be.disabled");
+    //         });
+    // });
 
     it("permet de supprimer un playground", () => {
         cy.get("button.playground-button").click();

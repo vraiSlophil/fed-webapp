@@ -9,11 +9,11 @@ describe("Playground - Interactions drag & drop", () => {
             password: "password",
             nextRoute: "/playground",
         });
-        cy.wait(500);
+        cy.wait(250);
     });
 
     it("permet de transporter un thème jusque dans la drop zone", () => {
-        cy.wait(500);
+        cy.wait(250);
 
         cy.get(".draggable-component").first().then(($el) => {
             const el = $el[0];
@@ -30,7 +30,7 @@ describe("Playground - Interactions drag & drop", () => {
                     force: true,
                 });
 
-            cy.wait(500);
+            cy.wait(250);
 
             cy.window().then((win) => {
                 const targetX = Math.max(50, Math.round(win.innerWidth - 30));
@@ -45,7 +45,7 @@ describe("Playground - Interactions drag & drop", () => {
                         force: true,
                     });
 
-                cy.wait(500);
+                cy.wait(250);
 
                 cy.get("body")
                     .trigger("mouseup", {
@@ -56,12 +56,12 @@ describe("Playground - Interactions drag & drop", () => {
             });
         });
 
-        cy.wait(500);
+        cy.wait(250);
         cy.contains("Thème rangé").should("be.visible");
     });
 
     it("remet un thème rangé sur le playground en cliquant sur le + dans ThemeStorage", () => {
-        cy.wait(500);
+        cy.wait(250);
 
         cy.get(".draggable-component").then(($startList) => {
             const startCount = $startList.length;
@@ -81,7 +81,7 @@ describe("Playground - Interactions drag & drop", () => {
                         force: true,
                     });
 
-                cy.wait(500);
+                cy.wait(250);
 
                 cy.window().then((win) => {
                     const targetX = Math.max(50, Math.round(win.innerWidth - 30));
@@ -96,7 +96,7 @@ describe("Playground - Interactions drag & drop", () => {
                             force: true,
                         });
 
-                    cy.wait(500);
+                    cy.wait(250);
 
                     cy.get("body")
                         .trigger("mouseup", {
@@ -107,10 +107,10 @@ describe("Playground - Interactions drag & drop", () => {
                 });
             });
 
-            cy.wait(500);
+            cy.wait(250);
             cy.contains("Thème rangé").should("be.visible");
 
-            cy.wait(500);
+            cy.wait(250);
             cy.get("body").then(($body) => {
                 if ($body.find("button[data-testid='theme-storage-toggle']").length) {
                     cy.get("button[data-testid='theme-storage-toggle']").click();
@@ -129,7 +129,7 @@ describe("Playground - Interactions drag & drop", () => {
                 }
             });
 
-            cy.wait(500);
+            cy.wait(250);
             cy.get("body").then(($body) => {
                 if ($body.find(".theme-storage-list, .stored-themes, [data-testid='theme-storage-list']").length) {
                     cy.get(".theme-storage-list, .stored-themes, [data-testid='theme-storage-list']").first().within(() => {
@@ -144,7 +144,7 @@ describe("Playground - Interactions drag & drop", () => {
                 }
             });
 
-            cy.wait(500);
+            cy.wait(250);
 
             cy.get(".draggable-component").its("length").should("eq", startCount);
         });
