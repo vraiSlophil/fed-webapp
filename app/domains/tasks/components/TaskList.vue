@@ -291,21 +291,27 @@ const toggleFiltersVisibility = () => {
 									</div>
 								</template>
 							</Select>
-							<button
-								class="p-inputtext flex items-center justify-center h-10 w-10 cursor-pointer !text-gray-400 !rounded-full"
+							<Button
+								class="h-10 w-10 flex items-center justify-center !text-gray-400"
+								rounded
+								text
+								title="Changer l'ordre"
 								@click="toggleSortOrder"
 							>
 								<span class="material-symbols-rounded text-sm">{{ getCurrentSortOption().icon }}</span>
-							</button>
+							</Button>
 
-							<button
-								class="p-inputtext flex items-center justify-center h-10 w-10 cursor-pointer !text-gray-400 !rounded-full"
+							<Button
+								class="h-10 w-10 flex items-center justify-center !text-gray-400"
+								rounded
+								text
+								title="Basculer l'archive"
 								@click="toggleArchivedFilter"
 							>
 								<span class="material-symbols-rounded text-sm">{{
 										getCurrentArchiveOption().icon
 									}}</span>
-							</button>
+							</Button>
 						</div>
 					</div>
 				</div>
