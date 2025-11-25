@@ -5,7 +5,7 @@
 <template>
 	<div>
 		<NuxtPage/>
-		<Toast position="top-right"/>
+		<Toast position="bottom-right"/>
 	</div>
 </template>
 
