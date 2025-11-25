@@ -242,7 +242,8 @@ const toggleFiltersVisibility = () => {
 			<div class="flex justify-start">
 				<div class="w-full max-w-lg flex items-center justify-start gap-2 relative">
 					<IconField class="flex-1 relative">
-						<span class="material-symbols-rounded text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2">search</span>
+						<span
+							class="material-symbols-rounded text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2">search</span>
 						<InputText
 							v-model="searchQuery"
 							class="w-full h-10 flex items-center justify-between pl-10 pr-4 py-2 text-sm !rounded-full"
@@ -252,18 +253,18 @@ const toggleFiltersVisibility = () => {
 					</IconField>
 					<div class="">
 						<Button
+							class="w-10 h-10"
 							outlined
 							rounded
 							severity="secondary"
-							class="w-10 h-10"
 							@click="toggleFiltersVisibility"
 						>
 							<span v-if="!filtersVisibility" class="material-symbols-rounded">settings</span>
 							<span v-else class="material-symbols-rounded">close</span>
 						</Button>
 						<div
-							class="mr-10 p-2 absolute -top-2 right-0 flex justify-center items-center flex-nowrap gap-2 rounded-full bg-white/60 dark:bg-black/60 animation-all duration-200"
 							:class="filtersVisibility ? 'opacity-100 pointer-event-default' : 'opacity-0 pointer-events-none'"
+							class="mr-10 p-2 absolute -top-2 right-0 flex justify-center items-center flex-nowrap gap-2 rounded-full bg-white/60 dark:bg-black/60 animation-all duration-200"
 						>
 							<Select
 								v-model="currentStatusFilter"
@@ -301,7 +302,9 @@ const toggleFiltersVisibility = () => {
 								class="p-inputtext flex items-center justify-center h-10 w-10 cursor-pointer !text-gray-400 !rounded-full"
 								@click="toggleArchivedFilter"
 							>
-								<span class="material-symbols-rounded text-sm">{{ getCurrentArchiveOption().icon }}</span>
+								<span class="material-symbols-rounded text-sm">{{
+										getCurrentArchiveOption().icon
+									}}</span>
 							</button>
 						</div>
 					</div>
@@ -323,9 +326,10 @@ const toggleFiltersVisibility = () => {
 				<Button
 					:disabled="!newTaskTitle.trim()"
 					:loading="isCreatingTask"
+					class="h-10 w-10"
 					outlined
 					rounded
-					class="h-10 w-10"
+					title="Créer une tâche"
 					@click="handleCreateTask"
 				>
 					<span v-if="!isCreatingTask" class="material-symbols-rounded">add</span>
@@ -492,10 +496,10 @@ const toggleFiltersVisibility = () => {
 			<div v-if="pagination.last_page > 1" class="p-4 border-t border-gray-300 dark:border-gray-700">
 				<Paginator
 					:first="(pagination.current_page - 1) * pagination.per_page"
+					:pt="{root: '!rounded-full !bg-white/10 h-10 !p-0'}"
 					:rows="pagination.per_page"
 					:totalRecords="pagination.total"
 					@page="setPage($event.page + 1); loadTasks()"
-					:pt="{root: '!rounded-full !bg-white/10 h-10 !p-0'}"
 				/>
 			</div>
 		</div>

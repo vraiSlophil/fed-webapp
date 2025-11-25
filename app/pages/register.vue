@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import {useAuth} from "~/domains/auth/composables/useAuth";
+
 const username = ref<string>('')
 const email = ref<string>('')
 const password = ref<string>('')

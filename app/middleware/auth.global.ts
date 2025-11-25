@@ -37,10 +37,13 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
         return
     }
 
-    try {
-        await initAuth()
-    } catch (e) {
-        console.warn('Auth init failed', e)
+    // Si on n'est pas encore authentifié ET qu'on n'a pas de user, on tente un init
+    if (!isAuthenticated.value || !user.value) {
+        try {
+            await initAuth()
+        } catch (e) {
+            console.warn('Auth init failed', e)
+        }
     }
 
     // Vérifier l'authentification pour les routes protégées
@@ -58,14 +61,4 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
         return navigateTo('/login')
     }
 
-    // Extension possible: vérification des rôles/permissions
-    // if (needsAdminRole(to.path) && !hasRole(user.value, 'ADMIN')) {
-    //   toast.add({
-    //     severity: 'error',
-    //     summary: 'Accès interdit',
-    //     detail: 'Vous n\'avez pas les permissions nécessaires',
-    //     life: 3000
-    //   })
-    //   return navigateTo('/')
-    // }
 })
