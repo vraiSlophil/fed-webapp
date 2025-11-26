@@ -305,7 +305,7 @@ watch(
 							<ColorPicker v-model="formData.color"/>
 							<InputText
 								v-model="formData.color"
-								class="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded"
+								class="font-mono bg-neutral-100 dark:bg-neutral-700 px-2 py-1 rounded"
 								placeholder="#FBC531"
 							/>
 						</div>

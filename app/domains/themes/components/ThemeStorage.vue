@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import type {Theme} from '~/types/theme';
 import {useColors} from "~/domains/shared/composables/useColors";
 import {useMovableThemes} from "~/domains/playground/composables/useMovableThemes";
 
@@ -68,39 +67,40 @@ watch(storedThemes, () => {
 		<!-- Panel de thèmes rangés -->
 		<Popover
 			ref="storedThemesRef"
-			class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-2 mb-4 min-w-64 max-h-80 overflow-y-auto"
+			:pt="{ root: { class: 'relative overflow-hidden' }, content: { class: 'max-h-80 overflow-y-auto pr-2' } }"
+			class="bg-white dark:bg-neutral-800 shadow-lg p-2 mb-4 min-w-64"
 		>
-			<h3 class="text-lg font-semibold mb-3 flex items-center gap-2 border-b pb-2 dark:border-gray-700">
+			<h3 class="sticky -top-5 z-1000 flex items-center gap-2 mb-4 p-2 w-full bg-[var(--p-popover-background)] text-lg font-semibold border-b dark:border-neutral-700">
 				<span class="material-symbols-rounded">inventory_2</span>
 				Thèmes rangés
 			</h3>
 
-			<div v-if="storedThemes.length === 0" class="text-center py-4 text-gray-500">
+			<div v-if="storedThemes.length === 0" class="text-center py-4 text-neutral-500">
 				Aucun thème rangé
 			</div>
 
-			<ul v-else class="space-y-2">
-				<li
+			<div v-else class="space-y-2">
+				<Theme
 					v-for="theme in storedThemes"
 					:key="theme.theme_id"
-					:style="{
-						backgroundColor: theme.color,
-						color: getTextColor(theme.color)
-				  	}"
-					class="rounded-lg overflow-hidden flex items-center justify-between p-2 pl-6 mt-4 w-64"
+					:theme="theme"
+					variant="stored"
+					class="w-64"
 				>
-					<span class="font-medium truncate">{{ theme.title }}</span>
-					<Button
-						:style="{ color: getTextColor(theme.color) }"
-						class="p-2 rounded-full"
-						text
-						title="Remettre sur le tableau"
-						@click="restoreTheme(theme)"
-					>
-						<span class="material-symbols-rounded">add</span>
-					</Button>
-				</li>
-			</ul>
+					<template #stored-actions="{ theme, textColor }">
+						<Button
+							:style="{ color: textColor }"
+							class="h-10 w-10 rounded-full"
+							outlined
+							severity="secondary"
+							title="Remettre sur le tableau"
+							@click="restoreTheme(theme)"
+						>
+							<span class="material-symbols-rounded">add</span>
+						</Button>
+					</template>
+				</Theme>
+			</div>
 		</Popover>
 	</div>
 </template>

@@ -92,8 +92,6 @@ export const FedPreset = definePreset(Aura, {
         },
         inputtext: {
             root: {
-                paddingX: '{form.field.padding.x}',
-                paddingY: '{form.field.padding.y}',
                 borderRadius: '{form.field.border.radius}'
             }
         },

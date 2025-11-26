@@ -177,21 +177,22 @@ watch(
 	<div>
 		<div
 			:class="[
-				isStoredVariant ? 'rounded-2xl px-6 py-4' : 'w-full min-h-18 p-4 rounded-[2.25rem]',
+				isStoredVariant ? 'px-6 py-4 min-w-48 max-w-72' : 'w-full min-w-100 min-h-18 p-4',
 				isThemeOpen ? 'rounded-b-none' : 'rounded-b-[2.25rem]'
 			]"
 			:style="{
 				backgroundColor: `${editedColor}`,
 				color: textColor
 			}"
-			class="flex items-center justify-between transition-all durée-200 min-w-100 hover:shadow-lg"
+			class="flex items-center justify-between rounded-[2.25rem] transition-all duration-200 shadow-sm hover:shadow-lg"
 		>
 			<div v-if="!isStoredVariant">
 				<Button
 					:style="{ color: textColor }"
 					class="h-10 w-10 cursor-pointer flex justify-center items-center align p-2"
 					rounded
-					text
+					outlined
+					severity="secondary"
 					title="Ouvrir"
 					@click="openTheme"
 				>
@@ -201,8 +202,8 @@ watch(
 
 			</div>
 			<!-- Mode normal -->
-			<div v-if="!isEditing" class="flex items-center gap-3 flex-grow" :class="isStoredVariant ? 'mr-4' : 'mx-6'">
-				<span class="font-medium truncate">{{ theme.title }}</span>
+			<div v-if="!isEditing" class="flex items-center gap-3 flex-grow min-w-0" :class="isStoredVariant ? 'mr-4' : 'mx-6'">
+				<span class="font-medium truncate block w-full">{{ theme.title }}</span>
 			</div>
 
 			<!-- Mode édition -->
@@ -220,7 +221,8 @@ watch(
 				/>
 			</div>
 
-			<!-- Actions --><div class="flex gap-2" :class="isStoredVariant ? 'items-center' : ''">
+			<!-- Actions -->
+			<div class="flex gap-2" :class="isStoredVariant ? 'items-center' : ''">
 				<template v-if="isStoredVariant">
 					<slot name="stored-actions" :theme="theme" :textColor="textColor" />
 				</template>
@@ -235,7 +237,8 @@ watch(
 							}"
 							class="h-10 w-10 cursor-pointer flex justify-center items-center align p-2 rounded-full"
 							rounded
-							text
+							outlined
+							severity="secondary"
 							title="Modifier"
 							@click="startEdit"
 						>
@@ -250,7 +253,8 @@ watch(
 							}"
 							class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
 							rounded
-							text
+							outlined
+							severity="secondary"
 							title="Quitter le thème"
 							@click="confirmLeave(theme)"
 						>
@@ -265,7 +269,8 @@ watch(
 							}"
 							class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
 							rounded
-							text
+							outlined
+							severity="secondary"
 							title="Supprimer"
 							@click="confirmDelete(theme)"
 						>
@@ -280,7 +285,8 @@ watch(
 							}"
 							class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
 							rounded
-							text
+							outlined
+							severity="secondary"
 							title="Partager"
 							@click="membersPopoverVisible = true"
 						>
@@ -305,7 +311,8 @@ watch(
 								}"
 								class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
 								rounded
-								text
+								outlined
+								severity="secondary"
 								title="Changer la couleur"
 								@click="colorPopoverRef.show($event)"
 							>
@@ -323,7 +330,7 @@ watch(
 										/>
 									</div>
 									<div class="flex items-center justify-center flex-row gap-3">
-										<span class="text-sm  dark:text-gray-300">Code hex:</span>
+										<span class="text-sm  dark:text-neutral-300">Code hex:</span>
 										<InputText
 											v-model="editedColor"
 											class="flex-1 font-mono text-sm w-30"
@@ -339,7 +346,8 @@ watch(
 							}"
 							class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
 							rounded
-							text
+							outlined
+							severity="secondary"
 							title="Confirmer"
 							@click="confirmEdit"
 						>
@@ -351,7 +359,8 @@ watch(
 							}"
 							class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
 							rounded
-							text
+							outlined
+							severity="secondary"
 							title="Annuler"
 							@click="cancelEdit"
 						>
@@ -371,7 +380,7 @@ watch(
 		</div>
 		<div
 			v-if="!isStoredVariant && isThemeOpen"
-			class="min-h-42 w-full bg-white/10 dark:bg-gray/10 backdrop-blur-xs rounded-b-[2.25rem] overflow-hidden"
+			class="min-h-42 w-full bg-white/10 dark:bg-neutral-800/20 backdrop-blur-xl rounded-b-[2.25rem] overflow-hidden"
 			data-no-drag
 		>
 			<TaskList
