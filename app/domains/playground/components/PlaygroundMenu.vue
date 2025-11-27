@@ -302,7 +302,7 @@ watch(() => newPlaygroundData.name, (newName: string) => {
 						<span class="material-symbols-rounded">home</span>
 					</Button>
 					<Button
-						:disabled="(currentPlayground && currentPlayground.playground.playground_id === playground.playground_id) as boolean"
+						:disabled="!!currentPlayground && currentPlayground.playground_id === playground.playground_id"
 						class="w-10 h-10"
 						outlined
 						rounded

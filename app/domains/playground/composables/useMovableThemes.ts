@@ -5,7 +5,7 @@ export const useMovableThemes = () => {
     const highestZIndex = ref(1)
 
     // Récupérer la ref partagée depuis usePlaygrounds
-    const {currentPlayground} = usePlaygrounds()
+    const {playgroundThemes} = usePlaygrounds()
 
     // Fonction pour charger les positions depuis localStorage
     const loadPositionsFromLocalStorage = () => {
@@ -39,11 +39,11 @@ export const useMovableThemes = () => {
 
     // Appliquer les positions sauvegardées aux thèmes
     const applyPositionsToThemes = () => {
-        if (!currentPlayground.value?.themes) return
+        if (!playgroundThemes.value) return
 
         const savedPositions = loadPositionsFromLocalStorage()
 
-        currentPlayground.value.themes = currentPlayground.value.themes.map((theme: Theme) => {
+        playgroundThemes.value = playgroundThemes.value.map((theme: Theme) => {
             const savedPosition = savedPositions[theme.theme_id]
             return {
                 ...theme,
@@ -63,7 +63,7 @@ export const useMovableThemes = () => {
         })
 
         highestZIndex.value = Math.max(
-            ...currentPlayground.value.themes.map((theme: Theme) => theme.position?.zIndex || 0),
+            ...playgroundThemes.value.map((theme: Theme) => theme.position?.zIndex || 0),
             1
         )
     }
@@ -74,24 +74,20 @@ export const useMovableThemes = () => {
         width: number,
         zIndex: number
     }) => {
-        if (!currentPlayground.value?.themes) return false
+        if (!playgroundThemes.value) return false
 
         // Incrémenter le z-index
         highestZIndex.value += 1
 
-        // Mettre à jour la position avec le nouveau z-index
         const updatedPosition = {
             ...position,
             zIndex: highestZIndex.value
         }
 
-        // Mettre à jour directement dans la ref partagée
-        const themeIndex = currentPlayground.value.themes.findIndex((t: Theme) => t.theme_id === themeId)
-        if (themeIndex !== -1) {
-            currentPlayground.value.themes[themeIndex].position = updatedPosition
-        }
+        const themeIndex = playgroundThemes.value.findIndex((t: Theme) => t.theme_id === themeId)
+        if (themeIndex === -1 || !playgroundThemes.value[themeIndex]) return false
 
-        // Sauvegarder dans localStorage
+        playgroundThemes.value[themeIndex].position = updatedPosition
         savePositionToLocalStorage(themeId, updatedPosition)
 
         return updatedPosition

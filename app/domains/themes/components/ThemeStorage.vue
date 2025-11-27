@@ -28,7 +28,7 @@ const restoreTheme = (theme: Theme) => {
 	// Mettre stored à false
 	if (setThemeStored(props.themelist, theme.theme_id, false)) {
 		// Forcer le rechargement de l'affichage
-		emit('reload');
+		// emit('reload');
 
 		// Notification
 		toast.add({
@@ -67,10 +67,9 @@ watch(storedThemes, () => {
 		<!-- Panel de thèmes rangés -->
 		<Popover
 			ref="storedThemesRef"
-			:pt="{ root: { class: 'relative overflow-hidden' }, content: { class: 'max-h-80 overflow-y-auto pr-2' } }"
-			class="bg-white dark:bg-neutral-800 shadow-lg p-2 mb-4 min-w-64"
+			class="grid overflow-hidden bg-white dark:bg-neutral-800 shadow-lg p-2 mb-4 min-w-64"
 		>
-			<h3 class="sticky -top-5 z-1000 flex items-center gap-2 mb-4 p-2 w-full bg-[var(--p-popover-background)] text-lg font-semibold border-b dark:border-neutral-700">
+			<h3 class="flex items-center gap-2 mb-4 px-4 py-2 w-full bg-[var(--p-popover-background)] text-lg font-semibold border-b dark:border-neutral-700">
 				<span class="material-symbols-rounded">inventory_2</span>
 				Thèmes rangés
 			</h3>
@@ -79,17 +78,16 @@ watch(storedThemes, () => {
 				Aucun thème rangé
 			</div>
 
-			<div v-else class="space-y-2">
+			<div v-else class="max-h-80 overflow-y-auto space-y-4 rounded-lg">
 				<Theme
 					v-for="theme in storedThemes"
 					:key="theme.theme_id"
 					:theme="theme"
 					variant="stored"
-					class="w-64"
 				>
 					<template #stored-actions="{ theme, textColor }">
 						<Button
-							:style="{ color: textColor }"
+							:style="{ color: textColor, borderColor: textColor }"
 							class="h-10 w-10 rounded-full"
 							outlined
 							severity="secondary"

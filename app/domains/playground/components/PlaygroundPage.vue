@@ -32,10 +32,13 @@ const {
 const {
 	playgrounds,
 	currentPlayground,
+	playgroundThemes,
+	themesPagination,
 	loading: playgroundLoading,
 	error,
 	fetchPlaygrounds,
-	fetchPlaygroundByIdOrSlug
+	fetchPlaygroundMetaByIdOrSlug,
+	fetchPlaygroundThemesPage
 } = usePlaygrounds()
 
 // États et validation
@@ -65,27 +68,55 @@ const contextMenuPosition = ref({x: 0, y: 0})
 const isCurrentPlaygroundInitialized = ref(false)
 const loading = computed(() => playgroundLoading.value || !isCurrentPlaygroundInitialized.value)
 
-const themes = computed(() => currentPlayground.value?.themes ?? [])
+const themes = computed<Theme[]>(() => playgroundThemes.value)
 const visibleThemes = computed(() => getVisibleThemes(themes.value))
 
-watch(
-	() => currentPlayground.value?.playground.playground_id,
-	async (newPlaygroundId, oldPlaygroundId) => {
-		if (!isCurrentPlaygroundInitialized.value) return
+// Préchargement en tâche de fond de toutes les pages de thèmes
+const preloadAllThemesInBackground = async () => {
+	if (!currentPlayground.value || !themesPagination.value) return
 
-		if (newPlaygroundId && newPlaygroundId !== oldPlaygroundId) {
-			await reloadCurrentPlayground()
-		} else if (!newPlaygroundId) {
-			currentPlayground.value = null
+	let {current_page, last_page, per_page} = themesPagination.value
+	let nextPage = current_page + 1
+
+	while (nextPage <= last_page) {
+		try {
+			await fetchPlaygroundThemesPage(currentPlayground.value.playground_id, nextPage, per_page)
+			applyPositionsToThemes()
+		} catch (e: any) {
+			console.error('Erreur lors du préchargement des thèmes page', nextPage, e)
+			break
 		}
+		nextPage++
 	}
-)
+}
 
 const reloadCurrentPlayground = async (playground_id?: string) => {
-	const identifier = playground_id ?? currentPlayground.value?.playground.playground_id
-	if (!identifier) return
-	await fetchPlaygroundByIdOrSlug(identifier)
-	applyPositionsToThemes()
+	try {
+		const identifier =
+			playground_id
+			?? currentPlayground.value?.playground_id
+			?? (idOrSlug.value as string | undefined)
+		if (!identifier) return
+
+		await fetchPlaygroundMetaByIdOrSlug(identifier)
+
+		if (!currentPlayground.value) {
+			throw new Error('Playground introuvable')
+		}
+
+		await fetchPlaygroundThemesPage(currentPlayground.value.playground_id, 1, themesPagination.value?.per_page ?? 20)
+		applyPositionsToThemes()
+
+		// lancer le préchargement en tâche de fond sans bloquer
+		preloadAllThemesInBackground()
+	} catch (e: any) {
+		toast.add({
+			severity: 'error',
+			summary: 'Erreur',
+			detail: e.message || 'Playground introuvable',
+			life: 3000
+		})
+	}
 }
 
 const handleThemeStored = (theme: Theme) => {
@@ -130,7 +161,7 @@ const handleNewTheme = async () => {
 	if (!isValid) return
 
 	try {
-		formData.playground_id = currentPlayground.value?.playground.playground_id || ''
+		formData.playground_id = currentPlayground.value?.playground_id || ''
 		await createTheme(formData)
 		showCreateThemeDialog(false)
 		await reloadCurrentPlayground()
@@ -171,17 +202,23 @@ const initPlayground = async () => {
 
 	try {
 		if (idOrSlug.value) {
-			await fetchPlaygroundByIdOrSlug(idOrSlug.value)
+			await fetchPlaygroundMetaByIdOrSlug(idOrSlug.value)
 		} else {
 			const defaultPlayground = playgrounds.value.find(p => p.is_default)
 			if (defaultPlayground) {
-				await fetchPlaygroundByIdOrSlug(defaultPlayground.playground_id)
+				await fetchPlaygroundMetaByIdOrSlug(defaultPlayground.playground_id)
 			}
 		}
 
-		if (currentPlayground.value) {
-			applyPositionsToThemes()
+		if (!currentPlayground.value) {
+			throw new Error('Playground introuvable')
 		}
+
+		await fetchPlaygroundThemesPage(currentPlayground.value.playground_id, 1, 20)
+		applyPositionsToThemes()
+
+		// préchargement en fond des pages suivantes
+		preloadAllThemesInBackground()
 	} catch (e: any) {
 		console.error(e)
 		toast.add({
@@ -238,14 +275,14 @@ watch(
 				</template>
 			</Navbar>
 
-			<div v-if="loading" class="flex items-center justify-center w-full h-full">
+			<div class="flex items-center justify-center w-full h-full">
 				<span class="material-symbols-rounded animate-spin text-4xl">progress_activity</span>
 			</div>
-			<div v-else
+			<div
 				 :class="'absolute top-0 left-0 flex items-center justify-center h-full w-full m-0 overflow-hidden bg-[size:20px_20px,100px_100px] bg-white dark:bg-black'"
 				 :style="
-					  `background-color: ${currentPlayground?.playground.background_color ?? 'none'};` +
-					  `background-image: linear-gradient(${(currentPlayground?.playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px), linear-gradient(90deg, ${(currentPlayground?.playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px), linear-gradient(90deg, ${(currentPlayground?.playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px), linear-gradient(${(currentPlayground?.playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px);`
+					  `background-color: ${currentPlayground?.background_color ?? 'none'};` +
+					  `background-image: linear-gradient(${(currentPlayground?.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px), linear-gradient(90deg, ${(currentPlayground?.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px), linear-gradient(90deg, ${(currentPlayground?.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px), linear-gradient(${(currentPlayground?.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px);`
 				 "
 				 @click="closeContextMenu"
 				 @contextmenu.prevent="onContextMenu"

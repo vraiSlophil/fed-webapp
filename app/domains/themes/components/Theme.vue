@@ -12,6 +12,10 @@ const props = defineProps<{
 	variant?: ThemeVariant
 }>()
 
+const emit = defineEmits<{
+	(e: 'destroy', theme: Theme): void
+}>()
+
 defineSlots<{
 	'stored-actions'?: (scope: { theme: Theme, textColor: string }) => any
 }>()
@@ -80,7 +84,8 @@ const handleDeleteTheme = async () => {
 	if (selectedTheme.value) {
 		try {
 			await deleteTheme(selectedTheme.value.theme_id)
-			emits('destroy', selectedTheme.value)
+			// Notifier le parent que le thème a été supprimé
+			emit('destroy', selectedTheme.value)
 			toast.add({
 				severity: 'success',
 				summary: 'Succès',
@@ -111,7 +116,6 @@ const handleLeaveTheme = async () => {
 	if (selectedTheme.value) {
 		try {
 			await leaveTheme(selectedTheme.value.theme_id)
-			emits('destroy', selectedTheme.value)
 			toast.add({
 				severity: 'success',
 				summary: 'Succès',
@@ -188,7 +192,7 @@ watch(
 		>
 			<div v-if="!isStoredVariant">
 				<Button
-					:style="{ color: textColor }"
+					:style="{ color: textColor, borderColor: textColor + '80' }"
 					class="h-10 w-10 cursor-pointer flex justify-center items-center align p-2"
 					rounded
 					outlined
@@ -232,9 +236,7 @@ watch(
 						<!-- Bouton Modifier - affiché uniquement si l'utilisateur a le droit de modifier -->
 						<Button
 							v-if="canUpdateTheme"
-							:style="{
-								color: textColor,
-							}"
+							:style="{ color: textColor, borderColor: textColor + '80' }"
 							class="h-10 w-10 cursor-pointer flex justify-center items-center align p-2 rounded-full"
 							rounded
 							outlined
@@ -248,9 +250,7 @@ watch(
 						<!-- Bouton Quitter - affiché uniquement si l'utilisateur est invité -->
 						<Button
 							v-if="!isOwner && !isEditing"
-							:style="{
-								color: textColor,
-							}"
+							:style="{ color: textColor, borderColor: textColor + '80' }"
 							class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
 							rounded
 							outlined
@@ -264,9 +264,7 @@ watch(
 						<!-- Bouton Supprimer - affiché uniquement si l'utilisateur est propriétaire -->
 						<Button
 							v-if="isOwner"
-							:style="{
-								color: textColor,
-							}"
+							:style="{ color: textColor, borderColor: textColor + '80' }"
 							class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
 							rounded
 							outlined
@@ -280,9 +278,7 @@ watch(
 						<!-- Bouton Partager - affiché uniquement si l'utilisateur est propriétaire -->
 						<Button
 							v-if="isOwner"
-							:style="{
-								color: textColor,
-							}"
+							:style="{ color: textColor, borderColor: textColor + '80' }"
 							class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
 							rounded
 							outlined
@@ -306,9 +302,7 @@ watch(
 						<!-- Bouton pour le sélecteur de couleur avec Popover -->
 						<div>
 							<Button
-								:style="{
-									color: textColor,
-								}"
+								:style="{ color: textColor, borderColor: textColor + '80' }"
 								class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
 								rounded
 								outlined
@@ -341,9 +335,7 @@ watch(
 						</div>
 
 						<Button
-							:style="{
-								color: textColor,
-							}"
+							:style="{ color: textColor, borderColor: textColor + '80' }"
 							class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
 							rounded
 							outlined
@@ -354,9 +346,7 @@ watch(
 							<span class="material-symbols-rounded">check</span>
 						</Button>
 						<Button
-							:style="{
-								color: textColor,
-							}"
+							:style="{ color: textColor, borderColor: textColor + '80' }"
 							class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
 							rounded
 							outlined
