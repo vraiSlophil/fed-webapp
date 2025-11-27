@@ -297,10 +297,10 @@ const getDisplayName = (member: ThemeMember) => {
 				<TabPanel value="0">
 					<!-- Liste des membres -->
 					<div v-if="loading" class="text-center py-4">
-						<span class="material-symbols-rounded text-gray-400 !text-4xl animate-spin">
+						<span class="material-symbols-rounded text-neutral-400 !text-4xl animate-spin">
 						  progress_activity
 						</span>
-						<p class="text-sm text-gray-500 mt-2">Chargement des membres...</p>
+						<p class="text-sm text-neutral-500 mt-2">Chargement des membres...</p>
 					</div>
 					<div v-else>
 						<div
@@ -336,7 +336,7 @@ const getDisplayName = (member: ThemeMember) => {
 											</div>
 											<div
 												:title="member.email"
-												class="text-sm text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap"
+												class="text-sm text-neutral-500 overflow-hidden text-ellipsis whitespace-nowrap"
 											>
 												{{ member.email }}
 											</div>
@@ -410,7 +410,7 @@ const getDisplayName = (member: ThemeMember) => {
 					<div>
 						<IconField class="mb-4 relative flex items-center justify-start">
 							<span
-								class="material-symbols-rounded text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2">
+								class="material-symbols-rounded text-neutral-400 absolute left-4 top-1/2 transform -translate-y-1/2">
 								search
 							</span>
 							<InputText
@@ -422,7 +422,7 @@ const getDisplayName = (member: ThemeMember) => {
 						</IconField>
 
 						<!-- Message quand aucun résultat -->
-						<div v-if="noResults" class="text-center text-gray-500 py-4">
+						<div v-if="noResults" class="text-center text-neutral-500 py-4">
 							<p class="text-sm">Aucun utilisateur trouvé. Essayez avec un autre terme de recherche.</p>
 						</div>
 
@@ -452,7 +452,7 @@ const getDisplayName = (member: ThemeMember) => {
 										</div>
 										<div>
 											<div class="font-medium">{{ user.username }}</div>
-											<div class="text-sm text-gray-500">{{ user.email }}</div>
+											<div class="text-sm text-neutral-500">{{ user.email }}</div>
 										</div>
 									</div>
 									<div>

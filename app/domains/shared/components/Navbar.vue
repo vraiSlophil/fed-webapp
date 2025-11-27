@@ -58,7 +58,7 @@ const isPlaygroundRoute = computed(() => {
 
 <template>
 	<nav
-		class="fixed top-4 left-4 z-1000 w-[calc(100%-2rem)] flex items-center justify-between py-4 px-5 backdrop-blur-xs shadow-[inset_0_0_3rem_#88888844] rounded-full border-[1px] border-gray-200/10">
+		class="fixed top-4 left-4 z-1000 w-[calc(100%-2rem)] flex items-center justify-between py-4 px-5 backdrop-blur-xs shadow-[inset_0_0_3rem_#88888844] rounded-full border-[1px] border-neutral-200/10">
 		<!-- Left Third -->
 		<div class="flex-1 text-left">
 			<slot name="left">

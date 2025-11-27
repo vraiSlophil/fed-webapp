@@ -1,11 +1,21 @@
 import {ref} from 'vue'
 import {useApiFetch} from '~/composables/useApiFetch'
-import type {CreatePlaygroundPayload, Playground, PlaygroundCompleteData} from '~/types/playground'
+import type {CreatePlaygroundPayload, Playground} from '~/types/playground'
+import type {Theme} from '~/types/theme'
+import type {Pagination} from '~/types/pagination'
 
 const playgrounds = ref<Playground[]>([])
-const currentPlayground = ref<PlaygroundCompleteData | null>(null)
+const currentPlayground = ref<Playground | null>(null)
+const playgroundThemes = ref<Theme[]>([])
+const themesPagination = ref<Pagination | null>(null)
 const loading = ref(false)
 const error = ref<string | null>(null)
+
+// Détection simple d’un UUID v4 (ou format UUID générique)
+const isUuid = (value: string) => {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    return uuidRegex.test(value)
+}
 
 export const usePlaygrounds = () => {
 
@@ -16,11 +26,6 @@ export const usePlaygrounds = () => {
         try {
             const res = await useApiFetch('/api/playgrounds', {method: 'GET'})
             playgrounds.value = res.data.playgrounds
-
-            // const defaultPlayground: Playground | undefined = playgrounds.value.find(p => p.is_default)
-            // if (!currentPlayground.value && defaultPlayground) {
-            //     await fetchPlayground(defaultPlayground.playground_id)
-            // }
         } catch (e: any) {
             error.value = e.message || 'Erreur lors du chargement des playgrounds'
         } finally {
@@ -46,45 +51,82 @@ export const usePlaygrounds = () => {
         }
     }
 
-    // Détail d'un playground avec toutes ses données
-    const fetchPlayground = async (playgroundId: string) => {
+    const fetchPlaygroundMetaById = async (playgroundId: string) => {
         loading.value = true
         error.value = null
         try {
             const res = await useApiFetch(`/api/playgrounds/${playgroundId}`, {method: 'GET'})
-            currentPlayground.value = res.data
-            return res.data
+            currentPlayground.value = res.data.playground
+            return currentPlayground.value
         } catch (e: any) {
-            error.value = e.message || 'Erreur lors du chargement'
+            error.value = e.message || 'Erreur lors du chargement du playground'
             throw e
         } finally {
             loading.value = false
         }
     }
 
-    // Nouvelle fonction : charge un playground par id OU par slug
-    const fetchPlaygroundByIdOrSlug = async (idOrSlug: string) => {
-        // On tente d'abord par id directement
+    const fetchPlaygroundMetaBySlug = async (slug: string) => {
+        loading.value = true
+        error.value = null
         try {
-            return await fetchPlayground(idOrSlug)
+            const res = await useApiFetch(`/api/playgrounds/by-slug/${slug}`, {method: 'GET'})
+            currentPlayground.value = res.data.playground
+            return currentPlayground.value
         } catch (e: any) {
-            // Si l'appel direct échoue, on tente de résoudre via le slug
-            // On recharge la liste si nécessaire
-            if (!playgrounds.value.length) {
-                await fetchPlaygrounds()
-            }
-
-            const found = playgrounds.value.find(p => p.slug === idOrSlug)
-            if (!found) {
-                error.value = 'Playground introuvable'
-                throw new Error('Playground introuvable')
-            }
-
-            return await fetchPlayground(found.playground_id)
+            error.value = e.message || 'Erreur lors du chargement du playground'
+            throw e
+        } finally {
+            loading.value = false
         }
     }
 
-    // Met à jour un playground
+    // Résolution méta avec logique: UUID -> route id, sinon slug; fallback sur l’autre en cas d’échec
+    const fetchPlaygroundMetaByIdOrSlug = async (idOrSlug: string) => {
+        const tryIdFirst = isUuid(idOrSlug)
+
+        const attempts = tryIdFirst
+            ? [() => fetchPlaygroundMetaById(idOrSlug), () => fetchPlaygroundMetaBySlug(idOrSlug)]
+            : [() => fetchPlaygroundMetaBySlug(idOrSlug), () => fetchPlaygroundMetaById(idOrSlug)]
+
+        for (const attempt of attempts) {
+            try {
+                return await attempt()
+            } catch (e) {
+                // on essaie l’autre option
+            }
+        }
+
+        throw new Error('Playground introuvable')
+    }
+
+    // Thèmes: doivent toujours être chargés par UUID playgroundId
+    const fetchPlaygroundThemesPage = async (playgroundId: string, page = 1, perPage = 20) => {
+        loading.value = true
+        error.value = null
+        try {
+            const res = await useApiFetch(`/api/playgrounds/${playgroundId}/themes?page=${page}&per_page=${perPage}`, {
+                method: 'GET'
+            })
+
+            const {themes, pagination} = res.data as {themes: Theme[]; pagination: Pagination}
+
+            if (page === 1) {
+                playgroundThemes.value = themes
+            } else {
+                playgroundThemes.value = [...playgroundThemes.value, ...themes]
+            }
+
+            themesPagination.value = pagination
+            return {themes, pagination}
+        } catch (e: any) {
+            error.value = e.message || 'Erreur lors du chargement des thèmes'
+            throw e
+        } finally {
+            loading.value = false
+        }
+    }
+
     const updatePlayground = async (playgroundId: string, payload: Partial<Playground>) => {
         loading.value = true
         error.value = null
@@ -94,7 +136,7 @@ export const usePlaygrounds = () => {
                 body: JSON.stringify(payload)
             })
             if (currentPlayground.value) {
-                currentPlayground.value.playground = res.data.playground
+                currentPlayground.value = res.data.playground
             }
             return res.data.playground
         } catch (e: any) {
@@ -105,20 +147,6 @@ export const usePlaygrounds = () => {
         }
     }
 
-    // Met à jour un thème dans le playground courant
-    const updateThemeInPlayground = (themeId: string, updates: Partial<any>) => {
-        if (!currentPlayground.value?.themes) return
-
-        const themeIndex = currentPlayground.value.themes.findIndex((t: any) => t.theme_id === themeId)
-        if (themeIndex !== -1) {
-            currentPlayground.value.themes[themeIndex] = {
-                ...currentPlayground.value.themes[themeIndex],
-                ...updates
-            }
-        }
-    }
-
-    // Supprime un playground
     const deletePlayground = async (playgroundId: string) => {
         loading.value = true
         error.value = null
@@ -132,7 +160,6 @@ export const usePlaygrounds = () => {
         }
     }
 
-    // Définit un playground comme par défaut
     const setDefaultPlayground = async (playgroundId: string) => {
         loading.value = true
         error.value = null
@@ -147,7 +174,6 @@ export const usePlaygrounds = () => {
         }
     }
 
-    // Récupère les stats d'un playground
     const fetchPlaygroundStats = async (playgroundId: string) => {
         loading.value = true
         error.value = null
@@ -165,14 +191,17 @@ export const usePlaygrounds = () => {
     return {
         playgrounds,
         currentPlayground,
+        playgroundThemes,
+        themesPagination,
         loading,
         error,
         fetchPlaygrounds,
         createPlayground,
-        fetchPlayground,
-        fetchPlaygroundByIdOrSlug,
+        fetchPlaygroundMetaById,
+        fetchPlaygroundMetaBySlug,
+        fetchPlaygroundMetaByIdOrSlug,
+        fetchPlaygroundThemesPage,
         updatePlayground,
-        updateThemeInPlayground,
         deletePlayground,
         setDefaultPlayground,
         fetchPlaygroundStats

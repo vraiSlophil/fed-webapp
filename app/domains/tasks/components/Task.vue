@@ -205,7 +205,7 @@ const cancelDelete = () => {
 <template>
 	<div
 		:class="{ 'opacity-60': isArchived }"
-		class="p-4 hover:bg-white/20 dark:hover:bg-black/20 transition-colors border-b border-gray-300 dark:border-gray-700 last:border-b-0"
+		class="p-4 hover:bg-white/20 dark:hover:bg-black/20 transition-colors border-b border-neutral-300 dark:border-neutral-700 last:border-b-0"
 	>
 		<!-- Contenu principal de la tâche -->
 		<div class="flex items-center justify-between">
@@ -215,7 +215,7 @@ const cancelDelete = () => {
 					v-if="canValidateTask"
 					:class="isCompleted
 						? 'bg-green-500 border-green-500 text-white'
-						: 'border-gray-300 dark:border-gray-600 hover:border-gray-400'"
+						: 'border-neutral-300 dark:border-neutral-600 hover:border-neutral-400'"
 					:disabled="!canEdit || loading"
 					:title="isCompleted ? 'Marquer comme non terminé' : 'Marquer comme terminé'"
 					class="flex items-center justify-center w-6.5 h-6.5 rounded-full border-2 transition-colors flex-shrink-0 cursor-pointer"
@@ -232,7 +232,7 @@ const cancelDelete = () => {
 					<!-- Mode affichage -->
 					<div v-if="!isEditingTitle" class="flex-1">
 						<h3
-							:class="isCompleted ? 'line-through text-gray-500' : ''"
+							:class="isCompleted ? 'line-through text-neutral-500' : ''"
 							:title="canEdit ? 'Double-cliquez pour modifier' : ''"
 							class="font-medium max-w-58 px-3 py-1 mr-8truncate cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors "
 							@dblclick="canEdit ? startTitleEdit() : null"
@@ -284,7 +284,7 @@ const cancelDelete = () => {
 						</Tag>
 
 						<!-- Date de création -->
-						<span v-if="task.created_at" class="text-xs text-gray-400 dark:text-gray-500">
+						<span v-if="task.created_at" class="text-xs text-neutral-400 dark:text-neutral-500">
 							{{
 								new Date(task.created_at).toLocaleString('fr-FR', {
 									dateStyle: 'short',
@@ -305,7 +305,8 @@ const cancelDelete = () => {
 						:disabled="loading"
 						class="p-2"
 						size="small"
-						text
+						outlined
+						severity="secondary"
 						title="Modifier le titre"
 						@click="startTitleEdit"
 					>
@@ -316,7 +317,8 @@ const cancelDelete = () => {
 						:disabled="loading"
 						class="p-2"
 						size="small"
-						text
+						outlined
+						severity="secondary"
 						title="Confirmer la modification"
 						@click="confirmTitleEdit"
 					>
@@ -332,7 +334,8 @@ const cancelDelete = () => {
 						:title="isArchived ? 'Restaurer' : 'Archiver'"
 						class="p-2"
 						size="small"
-						text
+						outlined
+						severity="secondary"
 						@click="handleToggleArchive"
 					>
 						<span class="material-symbols-rounded text-sm">
@@ -345,7 +348,8 @@ const cancelDelete = () => {
 						:disabled="loading"
 						class="p-2"
 						size="small"
-						text
+						outlined
+						severity="secondary"
 						title="Annuler la modification"
 						@click="cancelTitleEdit"
 					>
@@ -359,7 +363,8 @@ const cancelDelete = () => {
 					:disabled="loading"
 					class="p-2 text-red-500 hover:text-red-600"
 					size="small"
-					text
+					outlined
+					severity="secondary"
 					title="Supprimer"
 					@click="confirmDelete"
 				>

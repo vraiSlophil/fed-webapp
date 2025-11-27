@@ -1,10 +1,11 @@
 import { useApiFetch } from '~/composables/useApiFetch'
-import type {Task, TaskFilters, TaskPagination, TaskResponse} from "~/types/task";
+import type {Task, TaskFilters, TaskResponse} from "~/types/task";
 import { HttpMethods } from '~/utils/httpMethods'
+import type {Pagination} from "~/types/pagination";
 
 export const useTasks = () => {
     const tasks = ref<Task[]>([])
-    const pagination = ref<TaskPagination>({
+    const pagination = ref<Pagination>({
         total: 0,
         per_page: 15,
         current_page: 1,

@@ -237,13 +237,13 @@ const toggleFiltersVisibility = () => {
 
 <template>
 	<div class="h-full flex flex-col rounded-b-lg">
-		<div class="flex flex-col gap-1 p-4 border-b border-gray-300 dark:border-gray-700 transition-all">
+		<div class="flex flex-col gap-1 p-4 border-b border-neutral-300 dark:border-neutral-700 transition-all">
 			<!-- Barre d'outils -->
 			<div class="flex justify-start">
 				<div class="w-full max-w-lg flex items-center justify-start gap-2 relative">
 					<IconField class="flex-1 relative">
 						<span
-							class="material-symbols-rounded text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2">search</span>
+							class="material-symbols-rounded text-neutral-400 absolute left-3 top-1/2 transform -translate-y-1/2">search</span>
 						<InputText
 							v-model="searchQuery"
 							class="w-full h-10 flex items-center justify-between pl-10 pr-4 py-2 text-sm !rounded-full"
@@ -274,7 +274,7 @@ const toggleFiltersVisibility = () => {
 							>
 								<template #option="slotProps">
 									<div class="flex items-center gap-2">
-									<span class="material-symbols-rounded text-sm text-gray-400">{{
+									<span class="material-symbols-rounded text-sm text-neutral-400">{{
 											slotProps.option.icon
 										}}</span>
 										{{ slotProps.option.label }}
@@ -282,7 +282,7 @@ const toggleFiltersVisibility = () => {
 								</template>
 								<template #value="slotProps">
 									<div class="flex items-center gap-2 ">
-								<span class="material-symbols-rounded text-sm text-gray-400">
+								<span class="material-symbols-rounded text-sm text-neutral-400">
 								  {{ (currentStatusFilter as any)?.icon || statusOptions[0].icon }}
 								</span>
 										<span>
@@ -291,21 +291,27 @@ const toggleFiltersVisibility = () => {
 									</div>
 								</template>
 							</Select>
-							<button
-								class="p-inputtext flex items-center justify-center h-10 w-10 cursor-pointer !text-gray-400 !rounded-full"
+							<Button
+								class="h-10 w-10 flex items-center justify-center !text-neutral-400"
+								rounded
+								text
+								title="Changer l'ordre"
 								@click="toggleSortOrder"
 							>
 								<span class="material-symbols-rounded text-sm">{{ getCurrentSortOption().icon }}</span>
-							</button>
+							</Button>
 
-							<button
-								class="p-inputtext flex items-center justify-center h-10 w-10 cursor-pointer !text-gray-400 !rounded-full"
+							<Button
+								class="h-10 w-10 flex items-center justify-center !text-neutral-400"
+								rounded
+								text
+								title="Basculer l'archive"
 								@click="toggleArchivedFilter"
 							>
 								<span class="material-symbols-rounded text-sm">{{
 										getCurrentArchiveOption().icon
 									}}</span>
-							</button>
+							</Button>
 						</div>
 					</div>
 				</div>
@@ -348,12 +354,12 @@ const toggleFiltersVisibility = () => {
 				filter: statsLoading ? 'blur(4px) brightness(0.5)' : 'none',
 
 			}"
-				class="p-4 border-b border-gray-300 dark:border-gray-700 transition-all"
+				class="p-4 border-b border-neutral-300 dark:border-neutral-700 transition-all"
 			>
 				<!-- Affichage des statistiques de base -->
 				<div class="space-y-3">
 					<!-- Statistiques de base et bouton pour afficher plus -->
-					<div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+					<div class="flex items-center justify-between text-sm text-neutral-600 dark:text-neutral-400">
 						<div class="flex items-center gap-2">
 						<span>{{ themeStats.active }} tâche{{
 								themeStats.active > 1 ? 's' : ''
@@ -379,7 +385,7 @@ const toggleFiltersVisibility = () => {
 					</div>
 
 					<!-- Barre de progression -->
-					<div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+					<div class="w-full bg-neutral-200 dark:bg-neutral-700 rounded-full h-2">
 						<div
 							:style="{
 							width: themeStats.completion_rate + '%',
@@ -393,7 +399,7 @@ const toggleFiltersVisibility = () => {
 					<div v-if="showDetailedStats" class="pt-3 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
 						<!-- Statistiques par statut -->
 						<div class="bg-white/10 dark:bg-white/10 rounded-lg p-3 space-y-2">
-							<h4 class="font-semibold text-gray-700 dark:text-gray-300">Par statut</h4>
+							<h4 class="font-semibold text-neutral-700 dark:text-neutral-300">Par statut</h4>
 							<div class="flex items-center justify-between">
 							<span class="flex items-center gap-1">
 								<span
@@ -419,8 +425,8 @@ const toggleFiltersVisibility = () => {
 						</div>
 
 						<!-- Statistiques d'archivage -->
-						<div class="bg-white/10 dark:bg-gray/10 rounded-lg p-3 space-y-2">
-							<h4 class="font-semibold text-gray-700 dark:text-gray-300">Archivage</h4>
+						<div class="bg-white/10 dark:bg-neutral/10 rounded-lg p-3 space-y-2">
+							<h4 class="font-semibold text-neutral-700 dark:text-neutral-300">Archivage</h4>
 							<div class="flex items-center justify-between">
 							<span class="flex items-center gap-1">
 								<span class="material-symbols-rounded text-green-500 text-sm">visibility</span>
@@ -430,7 +436,7 @@ const toggleFiltersVisibility = () => {
 							</div>
 							<div class="flex items-center justify-between">
 							<span class="flex items-center gap-1">
-								<span class="material-symbols-rounded text-gray-500 text-sm">archive</span>
+								<span class="material-symbols-rounded text-neutral-500 text-sm">archive</span>
 								Archivées
 							</span>
 								<span class="font-medium">{{ themeStats.archived }}</span>
@@ -438,8 +444,8 @@ const toggleFiltersVisibility = () => {
 						</div>
 
 						<!-- Statistiques récentes -->
-						<div class="bg-white/10 dark:bg-gray/10 rounded-lg p-3 space-y-2 col-span-2 md:col-span-1">
-							<h4 class="font-semibold text-gray-700 dark:text-gray-300">Derniers 7 jours</h4>
+						<div class="bg-white/10 dark:bg-neutral/10 rounded-lg p-3 space-y-2 col-span-2 md:col-span-1">
+							<h4 class="font-semibold text-neutral-700 dark:text-neutral-300">Derniers 7 jours</h4>
 							<div class="flex items-center justify-between">
 							<span class="flex items-center gap-1">
 								<span class="material-symbols-rounded text-blue-500 text-sm">add_circle</span>
@@ -465,11 +471,11 @@ const toggleFiltersVisibility = () => {
 					v-if="loading"
 					class="flex items-center justify-center w-full h-42"
 				>
-					<span class="material-symbols-rounded text-gray-400 !text-4xl animate-spin">
+					<span class="material-symbols-rounded text-neutral-400 !text-4xl animate-spin">
 						progress_activity
 					</span>
 				</div>
-				<div v-else-if="tasks.length === 0" class="p-8 text-center text-gray-500 dark:text-gray-400">
+				<div v-else-if="tasks.length === 0" class="p-8 text-center text-neutral-500 dark:text-neutral-400">
 				<span class="material-symbols-rounded text-4xl mb-2 block">
 					{{ currentArchivedFilter ? 'archive' : 'assignment' }}
 				</span>
@@ -493,7 +499,7 @@ const toggleFiltersVisibility = () => {
 			</div>
 
 			<!-- Pagination -->
-			<div v-if="pagination.last_page > 1" class="p-4 border-t border-gray-300 dark:border-gray-700">
+			<div v-if="pagination.last_page > 1" class="p-4 border-t border-neutral-300 dark:border-neutral-700">
 				<Paginator
 					:first="(pagination.current_page - 1) * pagination.per_page"
 					:pt="{root: '!rounded-full !bg-white/10 h-10 !p-0'}"

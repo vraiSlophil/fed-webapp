@@ -111,7 +111,7 @@ const getDisplayName = (person: any) => {
 	>
 		<div v-if="displayPerson" class="flex items-center gap-3 mb-4">
 			<div
-				class="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center overflow-hidden">
+				class="w-8 h-8 bg-neutral-200 dark:bg-neutral-700 rounded-full flex items-center justify-center overflow-hidden">
 				<img
 					v-if="displayPerson.avatar_path"
 					:alt="displayPerson.username"
@@ -122,7 +122,7 @@ const getDisplayName = (person: any) => {
 			</div>
 			<div>
 				<div class="font-medium">{{ getDisplayName(displayPerson) }}</div>
-				<div class="text-sm text-gray-500">{{ displayPerson.email }}</div>
+				<div class="text-sm text-neutral-500">{{ displayPerson.email }}</div>
 			</div>
 		</div>
 

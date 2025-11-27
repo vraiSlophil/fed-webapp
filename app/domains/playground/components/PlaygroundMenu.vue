@@ -260,7 +260,7 @@ watch(() => newPlaygroundData.name, (newName: string) => {
 		<div
 			v-for="playground in playgrounds"
 			:key="playground.playground_id"
-			class="flex justify-between items-center flex-col w-min p-2 gap-4 border-[1px] border-gray-500/30 rounded-2xl"
+			class="flex justify-between items-center flex-col w-min p-2 gap-4 border-[1px] border-neutral-500/30 rounded-2xl"
 		>
 			<div
 				:style="`background-color: ${ playground.background_color ?? 'none' };` + `background-image: linear-gradient(${(playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px), linear-gradient(90deg, ${(playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px), linear-gradient(90deg, ${(playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px), linear-gradient(${(playground.color ?? '#AAAAAA') + '1A'} 1px, transparent 1px);`"
@@ -302,7 +302,7 @@ watch(() => newPlaygroundData.name, (newName: string) => {
 						<span class="material-symbols-rounded">home</span>
 					</Button>
 					<Button
-						:disabled="(currentPlayground && currentPlayground.playground.playground_id === playground.playground_id) as boolean"
+						:disabled="!!currentPlayground && currentPlayground.playground_id === playground.playground_id"
 						class="w-10 h-10"
 						outlined
 						rounded
@@ -334,7 +334,7 @@ watch(() => newPlaygroundData.name, (newName: string) => {
 			</div>
 		</div>
 		<div
-			class="flex justify-between items-center flex-col w-min p-2 gap-4 border-[1px] border-gray-500/30 rounded-2xl"
+			class="flex justify-between items-center flex-col w-min p-2 gap-4 border-[1px] border-neutral-500/30 rounded-2xl"
 		>
 			<div
 				class="aspect-32/9 w-96 rounded-xl flex items-center justify-center"
