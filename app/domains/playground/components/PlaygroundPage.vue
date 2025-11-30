@@ -1,7 +1,4 @@
 <script lang="ts" setup>
-// Ce composant factorise la logique de la page playground pour être réutilisée
-// à la fois sur /playground et /playground/[idOrSlug].
-
 import {useVuelidate} from '@vuelidate/core'
 import {helpers, minLength, required} from '@vuelidate/validators'
 import Navbar from '~/domains/shared/components/Navbar.vue'
@@ -12,7 +9,6 @@ import MovableTheme from '~/domains/playground/components/MovableTheme.vue'
 import type {CreateThemePayload, Theme} from '~/types/theme'
 import {usePlaygrounds} from '~/domains/playground/composables/usePlaygrounds'
 import {useThemes} from '~/domains/themes/composables/useThemes'
-import {useAuth} from '~/domains/auth/composables/useAuth'
 import {useMovableThemes} from '~/domains/playground/composables/useMovableThemes'
 
 const route = useRoute()
@@ -20,11 +16,9 @@ const idOrSlug = computed(() => route.params.id as string | undefined)
 
 const toast = useToast()
 
-// Composables
-const {user} = useAuth()
 const {createTheme} = useThemes()
 const {
-	applyPositionsToThemes,
+	// applyPositionsToThemes,
 	handlePositionChange,
 	setThemeStored,
 	getVisibleThemes
@@ -38,10 +32,11 @@ const {
 	error,
 	fetchPlaygrounds,
 	fetchPlaygroundMetaByIdOrSlug,
-	fetchPlaygroundThemesPage
+	fetchPlaygroundThemesPage,
+	preloadAllThemesInBackground,
+	reloadCurrentPlayground
 } = usePlaygrounds()
 
-// États et validation
 const formData = reactive<CreateThemePayload>({
 	title: '',
 	color: '#FBC531',
@@ -71,52 +66,6 @@ const loading = computed(() => playgroundLoading.value || !isCurrentPlaygroundIn
 const themes = computed<Theme[]>(() => playgroundThemes.value)
 const visibleThemes = computed(() => getVisibleThemes(themes.value))
 
-const preloadAllThemesInBackground = async () => {
-	if (!currentPlayground.value || !themesPagination.value) return
-
-	let {current_page, last_page, per_page} = themesPagination.value
-	let nextPage = current_page + 1
-
-	while (nextPage <= last_page) {
-		try {
-			await fetchPlaygroundThemesPage(currentPlayground.value.playground_id, nextPage, per_page)
-			applyPositionsToThemes()
-		} catch (e: any) {
-			console.error('Erreur lors du préchargement des thèmes page', nextPage, e)
-			break
-		}
-		nextPage++
-	}
-}
-
-const reloadCurrentPlayground = async (playground_id?: string) => {
-	try {
-		const identifier =
-			playground_id
-			?? currentPlayground.value?.playground_id
-			?? (idOrSlug.value as string | undefined)
-		if (!identifier) return
-
-		await fetchPlaygroundMetaByIdOrSlug(identifier)
-
-		if (!currentPlayground.value) {
-			throw new Error('Playground introuvable')
-		}
-
-		await fetchPlaygroundThemesPage(currentPlayground.value.playground_id, 1, themesPagination.value?.per_page ?? 20)
-		applyPositionsToThemes()
-
-		// lancer le préchargement en tâche de fond sans bloquer
-		preloadAllThemesInBackground()
-	} catch (e: any) {
-		toast.add({
-			severity: 'error',
-			summary: 'Erreur',
-			detail: e.message || 'Playground introuvable',
-			life: 3000
-		})
-	}
-}
 
 const handleThemeStored = (theme: Theme) => {
 	setThemeStored(themes.value, theme.theme_id, true)
@@ -163,7 +112,7 @@ const handleNewTheme = async () => {
 		formData.playground_id = currentPlayground.value?.playground_id || ''
 		await createTheme(formData)
 		showCreateThemeDialog(false)
-		await reloadCurrentPlayground()
+		// await reloadCurrentPlayground()
 
 		toast.add({
 			severity: 'success',
@@ -214,10 +163,9 @@ const initPlayground = async () => {
 		}
 
 		await fetchPlaygroundThemesPage(currentPlayground.value.playground_id, 1, 20)
-		applyPositionsToThemes()
+		// applyPositionsToThemes()
 
-		// préchargement en fond des pages suivantes
-		preloadAllThemesInBackground()
+		await preloadAllThemesInBackground()
 	} catch (e: any) {
 		console.error(e)
 		toast.add({
@@ -232,7 +180,6 @@ const initPlayground = async () => {
 }
 
 onMounted(async () => {
-	// print la route actuelle pour le debug
 	await initPlayground()
 })
 

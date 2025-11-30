@@ -1,120 +1,121 @@
-import type {Theme} from "~/types/theme";
-import {usePlaygrounds} from "~/domains/playground/composables/usePlaygrounds";
+import {nextTick, ref, watch} from 'vue'
+import type {Theme} from '~/types/theme'
+import {usePlaygrounds} from '~/domains/playground/composables/usePlaygrounds'
 
 export const useMovableThemes = () => {
     const highestZIndex = ref(1)
-
-    // Récupérer la ref partagée depuis usePlaygrounds
     const {playgroundThemes} = usePlaygrounds()
 
-    // Fonction pour charger les positions depuis localStorage
     const loadPositionsFromLocalStorage = () => {
         try {
             const storedPositions = localStorage.getItem('theme_positions')
-            if (!storedPositions) return {}
-            return JSON.parse(storedPositions)
+            return storedPositions ? JSON.parse(storedPositions) : {}
         } catch (error) {
             console.error('Erreur lors du chargement des positions:', error)
             return {}
         }
     }
 
-    // Fonction pour sauvegarder la position dans localStorage
-    const savePositionToLocalStorage = (themeId: string, position: {
-        x: number,
-        y: number,
-        width: number,
-        zIndex: number
-    }, stored: boolean = false) => {
+    const savePositionToLocalStorage = (
+        themeId: string,
+        position: { x: number; y: number; width: number; zIndex: number },
+        stored = false
+    ) => {
         try {
             const storedPositions = localStorage.getItem('theme_positions')
             const positions = storedPositions ? JSON.parse(storedPositions) : {}
-
-            positions[themeId] = {...position, zIndex: position.zIndex, stored}
+            positions[themeId] = {...position, stored}
             localStorage.setItem('theme_positions', JSON.stringify(positions))
         } catch (error) {
             console.error('Erreur lors de la sauvegarde de la position:', error)
         }
     }
 
-    // Appliquer les positions sauvegardées aux thèmes
     const applyPositionsToThemes = () => {
-        if (!playgroundThemes.value) return
+        const themes = playgroundThemes.value
+        if (!themes?.length) return
 
         const savedPositions = loadPositionsFromLocalStorage()
 
-        playgroundThemes.value = playgroundThemes.value.map((theme: Theme) => {
-            const savedPosition = savedPositions[theme.theme_id]
-            return {
-                ...theme,
-                position: savedPosition ? {
-                    x: savedPosition.x,
-                    y: savedPosition.y,
-                    width: savedPosition.width,
-                    zIndex: savedPosition.zIndex
-                } : (theme.position || {
-                    x: 100,
-                    y: 100,
-                    width: 475,
-                    zIndex: 1
-                }),
-                stored: savedPosition?.stored || false
-            }
+        themes.forEach((theme: Theme) => {
+            const saved = savedPositions[theme.theme_id]
+            theme.position = saved
+                ? {x: saved.x, y: saved.y, width: saved.width, zIndex: saved.zIndex}
+                : theme.position || {x: 100, y: 100, width: 475, zIndex: 1}
+            theme.stored = saved?.stored ?? theme.stored ?? false
         })
 
         highestZIndex.value = Math.max(
-            ...playgroundThemes.value.map((theme: Theme) => theme.position?.zIndex || 0),
+            ...themes.map((theme: Theme) => theme.position?.zIndex || 0),
             1
         )
     }
 
-    const handlePositionChange = (themeId: string, position: {
-        x: number,
-        y: number,
-        width: number,
-        zIndex: number
-    }) => {
-        if (!playgroundThemes.value) return false
+    const applyPositionsToTheme = (id: string) => {
+        const themes = playgroundThemes.value
+        if (!themes?.length) return
 
-        // Incrémenter le z-index
+        const savedPositions = loadPositionsFromLocalStorage()
+        const theme = themes.find((t: Theme) => t.theme_id === id)
+        if (!theme) return
+
+        const saved = savedPositions[theme.theme_id]
+        theme.position = saved
+            ? {x: saved.x, y: saved.y, width: saved.width, zIndex: saved.zIndex}
+            : theme.position || {x: 100, y: 100, width: 475, zIndex: 1}
+        theme.stored = saved?.stored ?? theme.stored ?? false
+
+        highestZIndex.value = Math.max(
+            ...themes.map((theme: Theme) => theme.position?.zIndex || 0),
+            1
+        )
+    }
+
+    const handlePositionChange = (
+        themeId: string,
+        position: { x: number; y: number; width: number; zIndex: number }
+    ) => {
+        const themes = playgroundThemes.value
+        if (!themes?.length) return false
+
         highestZIndex.value += 1
+        const updatedPosition = {...position, zIndex: highestZIndex.value}
 
-        const updatedPosition = {
-            ...position,
-            zIndex: highestZIndex.value
-        }
+        const theme = themes.find((t: Theme) => t.theme_id === themeId)
+        if (!theme) return false
 
-        const themeIndex = playgroundThemes.value.findIndex((t: Theme) => t.theme_id === themeId)
-        if (themeIndex === -1 || !playgroundThemes.value[themeIndex]) return false
-
-        playgroundThemes.value[themeIndex].position = updatedPosition
+        theme.position = updatedPosition
         savePositionToLocalStorage(themeId, updatedPosition)
 
         return updatedPosition
     }
 
     const setThemeStored = (themes: Theme[], themeId: string, stored: boolean) => {
-        const themeIndex = themes.findIndex(t => t.theme_id === themeId)
-        if (themeIndex !== -1) {
-            if (!themes[themeIndex]) return false
-            // Mettre à jour l'état local
-            themes[themeIndex].stored = stored
+        const theme = themes?.find(t => t.theme_id === themeId)
+        if (!theme) return false
 
-            const position = themes[themeIndex].position || {x: 100, y: 100, width: 475, zIndex: 1}
-            savePositionToLocalStorage(themeId, position, stored)
-
-            return true
-        }
-        return false
+        theme.stored = stored
+        const position = theme.position || {x: 100, y: 100, width: 475, zIndex: 1}
+        savePositionToLocalStorage(themeId, position, stored)
+        return true
     }
 
-    const getStoredThemes = (themes: Theme[]) => {
-        return themes ? themes.filter(theme => theme.stored === true) : []
-    }
+    const getStoredThemes = (themes: Theme[]) => themes?.filter(theme => theme.stored) ?? []
+    const getVisibleThemes = (themes: Theme[]) => themes?.filter(theme => !theme.stored) ?? []
 
-    const getVisibleThemes = (themes: Theme[]) => {
-        return themes ? themes.filter(theme => !theme.stored) : []
-    }
+    watch(
+        () =>
+            playgroundThemes.value?.map(theme => ({
+                id: theme.theme_id,
+                updatedAt: theme.updated_at ?? null
+            })),
+        async (newVal, oldVal) => {
+            if (!newVal || newVal === oldVal) return
+            await nextTick()
+            applyPositionsToThemes()
+        },
+        {immediate: true, deep: true}
+    )
 
     return {
         highestZIndex,

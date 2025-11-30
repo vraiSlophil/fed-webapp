@@ -2,16 +2,21 @@ import {ref} from 'vue'
 import {useApiFetch} from '~/composables/useApiFetch'
 import type {CreatePlaygroundPayload, Playground} from '~/types/playground'
 import type {Theme} from '~/types/theme'
-import type {Pagination} from '~/types/pagination'
+import {usePlaygroundThemesPagination} from "~/domains/playground/composables/usePlaygroundThemesPagination";
 
 const playgrounds = ref<Playground[]>([])
 const currentPlayground = ref<Playground | null>(null)
-const playgroundThemes = ref<Theme[]>([])
-const themesPagination = ref<Pagination | null>(null)
+const themesPaginationRef = ref<ReturnType<typeof usePlaygroundThemesPagination> | null>(null)
+
+const playgroundThemes = computed<Theme[]>(() => {
+    return themesPaginationRef.value?.allThemes ?? []
+})
+
+const themesPagination = computed(() => themesPaginationRef.value)
+
 const loading = ref(false)
 const error = ref<string | null>(null)
 
-// Détection simple d’un UUID v4 (ou format UUID générique)
 const isUuid = (value: string) => {
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
     return uuidRegex.test(value)
@@ -33,7 +38,6 @@ export const usePlaygrounds = () => {
         }
     }
 
-    // Crée un nouveau playground
     const createPlayground = async (payload: CreatePlaygroundPayload) => {
         loading.value = true
         error.value = null
@@ -81,7 +85,6 @@ export const usePlaygrounds = () => {
         }
     }
 
-    // Résolution méta avec logique: UUID -> route id, sinon slug; fallback sur l’autre en cas d’échec
     const fetchPlaygroundMetaByIdOrSlug = async (idOrSlug: string) => {
         const tryIdFirst = isUuid(idOrSlug)
 
@@ -98,33 +101,6 @@ export const usePlaygrounds = () => {
         }
 
         throw new Error('Playground introuvable')
-    }
-
-    // Thèmes: doivent toujours être chargés par UUID playgroundId
-    const fetchPlaygroundThemesPage = async (playgroundId: string, page = 1, perPage = 20) => {
-        loading.value = true
-        error.value = null
-        try {
-            const res = await useApiFetch(`/api/playgrounds/${playgroundId}/themes?page=${page}&per_page=${perPage}`, {
-                method: 'GET'
-            })
-
-            const {themes, pagination} = res.data as {themes: Theme[]; pagination: Pagination}
-
-            if (page === 1) {
-                playgroundThemes.value = themes
-            } else {
-                playgroundThemes.value = [...playgroundThemes.value, ...themes]
-            }
-
-            themesPagination.value = pagination
-            return {themes, pagination}
-        } catch (e: any) {
-            error.value = e.message || 'Erreur lors du chargement des thèmes'
-            throw e
-        } finally {
-            loading.value = false
-        }
     }
 
     const updatePlayground = async (playgroundId: string, payload: Partial<Playground>) => {
@@ -188,6 +164,25 @@ export const usePlaygrounds = () => {
         }
     }
 
+    const fetchPlaygroundThemesPage = async (playgroundId: string, page = 1, perPage = 20) => {
+        if (!themesPaginationRef.value || themesPaginationRef.value.page !== page) {
+            themesPaginationRef.value = usePlaygroundThemesPagination(playgroundId)
+        }
+        await themesPaginationRef.value!.setPerPage(perPage)
+        await themesPaginationRef.value!.loadFirstPage()
+    }
+
+    const preloadAllThemesInBackground = async () => {
+        if (!themesPaginationRef.value) return
+        await themesPaginationRef.value.preloadAllPages()
+    }
+
+    const reloadCurrentPlayground = async () => {
+        if (!currentPlayground.value || !themesPaginationRef.value) return
+        await themesPaginationRef.value.loadFirstPage()
+        await themesPaginationRef.value.preloadAllPages()
+    }
+
     return {
         playgrounds,
         currentPlayground,
@@ -204,6 +199,8 @@ export const usePlaygrounds = () => {
         updatePlayground,
         deletePlayground,
         setDefaultPlayground,
-        fetchPlaygroundStats
+        fetchPlaygroundStats,
+        preloadAllThemesInBackground,
+        reloadCurrentPlayground
     }
 }
