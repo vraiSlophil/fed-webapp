@@ -1,4 +1,6 @@
 import {HttpMethods} from "~/utils/httpMethods";
+import type { QueryParams } from "~/utils/queryString";
+import { buildQueryString } from "~/utils/queryString";
 
 const ensureCsrf = async (config: any) => {
     await fetch(`${config.public.BACKEND_URL}/sanctum/csrf-cookie`, {credentials: 'include'})
@@ -9,9 +11,13 @@ const getXsrfHeader = () => {
     return decodeURIComponent(raw)
 }
 
+export type ApiFetchOptions = RequestInit & {
+    query?: QueryParams
+}
+
 export const useApiFetch = async (
     url: string,
-    options: RequestInit = {}
+    options: ApiFetchOptions = {}
 ) => {
     const config = useRuntimeConfig()
     const method = ((options.method || HttpMethods.GET) as HttpMethods).toUpperCase()
@@ -45,7 +51,15 @@ export const useApiFetch = async (
     /* 4.  On transmet TOUJOURS les cookies (session + XSRF) */
     options.credentials = 'include'
 
-    const response = await fetch(`${config.public.BACKEND_URL}${url}`, options)
+    const queryString = buildQueryString(options.query)
+    const hasExistingQuery = url.includes('?')
+    const finalUrl = hasExistingQuery && queryString
+        ? `${url}&${queryString.slice(1)}`
+        : `${url}${queryString}`
+
+    const { query, ...fetchOptions } = options
+
+    const response = await fetch(`${config.public.BACKEND_URL}${finalUrl}`, fetchOptions)
     const data = await response.json().catch(() => ({}))
 
     if (!response.ok) {

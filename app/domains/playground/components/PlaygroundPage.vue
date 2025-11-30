@@ -71,7 +71,6 @@ const loading = computed(() => playgroundLoading.value || !isCurrentPlaygroundIn
 const themes = computed<Theme[]>(() => playgroundThemes.value)
 const visibleThemes = computed(() => getVisibleThemes(themes.value))
 
-// Préchargement en tâche de fond de toutes les pages de thèmes
 const preloadAllThemesInBackground = async () => {
 	if (!currentPlayground.value || !themesPagination.value) return
 

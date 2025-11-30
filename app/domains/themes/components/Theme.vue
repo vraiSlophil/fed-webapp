@@ -84,7 +84,8 @@ const handleDeleteTheme = async () => {
 	if (selectedTheme.value) {
 		try {
 			await deleteTheme(selectedTheme.value.theme_id)
-			// Notifier le parent que le thème a été supprimé
+			// Le composable gère maintenant la suppression dans le cache paginé;
+			// on continue d émettre l événement pour les parents qui écoutent encore
 			emit('destroy', selectedTheme.value)
 			toast.add({
 				severity: 'success',

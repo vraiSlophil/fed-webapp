@@ -6,3 +6,8 @@ export type Pagination = {
     from: number | null
     to: number | null
 }
+
+export type PaginatedResponse<T> = {
+    data: T[]
+    pagination: Pagination
+}

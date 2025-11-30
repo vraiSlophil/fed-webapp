@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {useVuelidate} from '@vuelidate/core'
 import {helpers, minLength, required} from '@vuelidate/validators'
-import {useThemes} from '~/composables/useThemes'
+import {useThemes} from '~/domains/themes/composables/useThemes'
 
 // definePageMeta({
 // 	middleware: ["auth"]
@@ -34,20 +34,21 @@ const v$ = useVuelidate(rules, formData)
 const toast = useToast();
 // Initialisation du composable de thèmes
 const {
-	themes,
-	loading,
-	fetchThemes,
-	createTheme
+    themes,
+    loading,
+    fetchThemesPage,
+    currentPage,
+    createTheme
 } = useThemes()
 
 // Chargement initial
 onMounted(async () => {
-	await fetchThemes()
+    await fetchThemesPage(1, {force: true})
 })
 
 watch(
 	() => formData.color,
-	(newVal, oldVal) => {
+	(newVal) => {
 		if (newVal && !newVal.startsWith('#')) {
 			formData.color = `#${newVal}`
 		}
@@ -109,7 +110,7 @@ const submitForm = async () => {
 						:class="{ 'p-invalid': v$.title.$error }"
 					/>
 					<small v-if="v$.title.$error" class="p-error">
-						{{ v$.title.$errors[0].$message }}
+						{{ v$.title.$errors[0]?.$message }}
 					</small>
 				</div>
 				<div>
@@ -125,7 +126,7 @@ const submitForm = async () => {
 						/>
 					</div>
 					<small v-if="v$.color.$error" class="p-error">
-						{{ v$.color.$errors[0].$message }}
+						{{ v$.color.$errors[0]?.$message }}
 					</small>
 				</div>
 
@@ -136,7 +137,7 @@ const submitForm = async () => {
 				<div class="flex justify-between items-center">
 					<h2 class="text-lg font-semibold">Mes thèmes</h2>
 					<Button
-						@click="fetchThemes"
+						@click="fetchThemesPage(currentPage, { force: true })"
 						:loading="loading"
 					>
 						<span
@@ -164,7 +165,7 @@ const submitForm = async () => {
 						v-for="theme in themes"
 						:key="theme.theme_id"
 						:theme="theme"
-						@destroy="fetchThemes"
+						@destroy="fetchThemesPage(currentPage, { force: true })"
 					/>
 				</div>
 			</div>
