@@ -7,6 +7,7 @@ import {usePlaygroundThemesPagination} from "~/domains/playground/composables/us
 const playgrounds = ref<Playground[]>([])
 const currentPlayground = ref<Playground | null>(null)
 const themesPaginationRef = ref<ReturnType<typeof usePlaygroundThemesPagination> | null>(null)
+const currentPaginationPlaygroundId = ref<string | null>(null)
 
 const playgroundThemes = computed<Theme[]>(() => {
     return themesPaginationRef.value?.allThemes ?? []
@@ -165,10 +166,11 @@ export const usePlaygrounds = () => {
     }
 
     const fetchPlaygroundThemesPage = async (playgroundId: string, page = 1, perPage = 20) => {
-        if (!themesPaginationRef.value || themesPaginationRef.value.page !== page) {
+        if (!themesPaginationRef.value || currentPaginationPlaygroundId.value !== playgroundId) {
             themesPaginationRef.value = usePlaygroundThemesPagination(playgroundId)
+            currentPaginationPlaygroundId.value = playgroundId
         }
-        await themesPaginationRef.value!.setPerPage(perPage)
+        await themesPaginationRef.value!.setPerPage(perPage, false)
         await themesPaginationRef.value!.loadFirstPage()
     }
 

@@ -117,11 +117,11 @@ export const usePaginatedResource = <
         await loadPage(page.value)
     }
 
-    const setPerPage = async (value: number) => {
+    const setPerPage = async (value: number, shouldLoadPage: boolean = true) => {
         if (value <= 0) return
         perPage.value = value
         page.value = 1
-        await loadPage(1)
+        shouldLoadPage ? await loadPage(1) : null
     }
 
     const setFilters = async (newFilters: TFilters) => {
