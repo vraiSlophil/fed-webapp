@@ -99,6 +99,20 @@ export const FedPreset = definePreset(Aura, {
             root: {
                 borderRadius: '{form.field.border.radius}',
                 paddingX: '{form.field.padding.x}'
+            },
+            overlay: {
+                borderRadius: '1.25rem'
+            },
+            option: {
+                borderRadius: '1rem'
+            }
+        },
+        menu: {
+            root: {
+                borderRadius: '1.75rem'
+            },
+            item: {
+                borderRadius: '999px'
             }
         },
         multiselect: {
