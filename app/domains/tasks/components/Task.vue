@@ -303,9 +303,9 @@ const cancelDelete = () => {
 					<Button
 						v-if="canEdit && !isEditingTitle"
 						:disabled="loading"
-						class="p-2"
-						size="small"
+						class="w-10 h-10 p-2"
 						outlined
+						rounded
 						severity="secondary"
 						title="Modifier le titre"
 						@click="startTitleEdit"
@@ -315,9 +315,9 @@ const cancelDelete = () => {
 					<Button
 						v-if="isEditingTitle"
 						:disabled="loading"
-						class="p-2"
-						size="small"
+						class="w-10 h-10 p-2"
 						outlined
+						rounded
 						severity="secondary"
 						title="Confirmer la modification"
 						@click="confirmTitleEdit"
@@ -332,9 +332,9 @@ const cancelDelete = () => {
 						v-if="isOwner && !isEditingTitle"
 						:disabled="loading"
 						:title="isArchived ? 'Restaurer' : 'Archiver'"
-						class="p-2"
-						size="small"
+						class="w-10 h-10 p-2"
 						outlined
+						rounded
 						severity="secondary"
 						@click="handleToggleArchive"
 					>
@@ -346,9 +346,9 @@ const cancelDelete = () => {
 					<Button
 						v-if="isEditingTitle"
 						:disabled="loading"
-						class="p-2"
-						size="small"
+						class="w-10 h-10 p-2"
 						outlined
+						rounded
 						severity="secondary"
 						title="Annuler la modification"
 						@click="cancelTitleEdit"
@@ -361,9 +361,9 @@ const cancelDelete = () => {
 				<Button
 					v-if="canDeleteTask"
 					:disabled="loading"
-					class="p-2 text-red-500 hover:text-red-600"
-					size="small"
+					class="w-10 h-10 p-2 text-red-500 hover:text-red-600"
 					outlined
+					rounded
 					severity="secondary"
 					title="Supprimer"
 					@click="confirmDelete"

@@ -51,8 +51,6 @@ const currentArchivedFilter = ref(false)
 // Affichage détaillé des statistiques
 const showDetailedStats = ref(false)
 
-const filtersVisibility = ref(false)
-
 // Charger les tâches au montage et quand le thème change
 onMounted(() => {
 	if (props.isThemeOpen) {
@@ -229,121 +227,102 @@ const toggleDetailedStats = () => {
 	showDetailedStats.value = !showDetailedStats.value
 }
 
-const toggleFiltersVisibility = () => {
-	filtersVisibility.value = !filtersVisibility.value
-}
+// Items du SpeedDial pour les filtres
+const filterSpeedDialItems = computed(() => {
+	return [
+		{
+			label: currentSort.value === 'desc' ? 'Plus récent' : 'Plus ancien',
+			icon: getCurrentSortOption().icon,
+			command: () => toggleSortOrder()
+		},
+		{
+			label: currentArchivedFilter.value ? 'Archivées' : 'Actives',
+			icon: getCurrentArchiveOption().icon,
+			command: () => toggleArchivedFilter()
+		}
+	]
+})
 
 </script>
 
 <template>
-	<div class="h-full flex flex-col rounded-b-lg">
+	<div class="h-full flex flex-col rounded-b-[2.25rem]">
 		<div class="flex flex-col gap-1 p-4 border-b border-neutral-300 dark:border-neutral-700 transition-all">
 			<!-- Barre d'outils -->
 			<div class="flex justify-start">
 				<div class="w-full max-w-lg flex items-center justify-start gap-2 relative">
-					<IconField class="flex-1 relative">
-						<span
-							class="material-symbols-rounded text-neutral-400 absolute left-3 top-1/2 transform -translate-y-1/2">search</span>
-						<InputText
-							v-model="searchQuery"
-							class="w-full h-10 flex items-center justify-between pl-10 pr-4 py-2 text-sm !rounded-full"
-							placeholder="Rechercher une tâche..."
-							@input="handleSearch"
-						/>
-					</IconField>
-					<div class="">
-						<Button
-							class="w-10 h-10"
-							outlined
-							rounded
-							severity="secondary"
-							@click="toggleFiltersVisibility"
+					<InputText
+						v-model="searchQuery"
+						class="w-full h-10 flex items-center justify-between text-sm"
+						placeholder="Rechercher une tâche..."
+						@input="handleSearch"
+					/>
+					<div class="flex items-center gap-2">
+						<Select
+							v-model="currentStatusFilter"
+							:options="statusOptions"
+							class="w-36 h-10 flex items-center justify-between"
+							optionLabel="label"
 						>
-							<span v-if="!filtersVisibility" class="material-symbols-rounded">settings</span>
-							<span v-else class="material-symbols-rounded">close</span>
-						</Button>
-						<div
-							:class="filtersVisibility ? 'opacity-100 pointer-event-default' : 'opacity-0 pointer-events-none'"
-							class="mr-10 p-2 absolute -top-2 right-0 flex justify-center items-center flex-nowrap gap-2 rounded-full bg-white/60 dark:bg-black/60 animation-all duration-200"
-						>
-							<Select
-								v-model="currentStatusFilter"
-								:options="statusOptions"
-								class="w-36 h-10 flex items-center justify-between !rounded-full"
-								optionLabel="label"
-							>
-								<template #option="slotProps">
-									<div class="flex items-center gap-2">
+							<template #option="slotProps">
+								<div class="flex items-center gap-2">
 									<span class="material-symbols-rounded text-sm text-neutral-400">{{
 											slotProps.option.icon
 										}}</span>
-										{{ slotProps.option.label }}
-									</div>
-								</template>
-								<template #value="slotProps">
-									<div class="flex items-center gap-2 ">
-								<span class="material-symbols-rounded text-sm text-neutral-400">
-								  {{ (currentStatusFilter as any)?.icon || statusOptions[0].icon }}
-								</span>
-										<span>
-									{{ (currentStatusFilter as any)?.label || statusOptions[0].label }}
-								</span>
-									</div>
-								</template>
-							</Select>
-							<Button
-								class="h-10 w-10 flex items-center justify-center !text-neutral-400"
-								rounded
-								text
-								title="Changer l'ordre"
-								@click="toggleSortOrder"
-							>
-								<span class="material-symbols-rounded text-sm">{{ getCurrentSortOption().icon }}</span>
-							</Button>
-
-							<Button
-								class="h-10 w-10 flex items-center justify-center !text-neutral-400"
-								rounded
-								text
-								title="Basculer l'archive"
-								@click="toggleArchivedFilter"
-							>
-								<span class="material-symbols-rounded text-sm">{{
-										getCurrentArchiveOption().icon
-									}}</span>
-							</Button>
-						</div>
+									{{ slotProps.option.label }}
+								</div>
+							</template>
+							<template #value="slotProps">
+								<div class="flex items-center gap-2">
+									<span class="material-symbols-rounded text-sm text-neutral-400">
+									  {{ (currentStatusFilter as any)?.icon || statusOptions[0].icon }}
+									</span>
+									<span>
+										{{ (currentStatusFilter as any)?.label || statusOptions[0].label }}
+									</span>
+								</div>
+							</template>
+						</Select>
+						<SpeedDial
+							:model="filterSpeedDialItems"
+							:radius="50"
+							:style="{
+								position: 'relative',
+								'--p-item-diff-x': '0px',
+								'--p-item-diff-y': '0px'
+							}"
+							type="circle"
+							class="gap-0!"
+						>
+							<template #button="{ toggleCallback }">
+								<Button
+									class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
+									outlined
+									rounded
+									severity="secondary"
+									title="Filtres"
+									@click="toggleCallback"
+								>
+									<span class="material-symbols-rounded">tune</span>
+								</Button>
+							</template>
+							<template #item="{ item }">
+								<Button
+									:title="item.label"
+									class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full bg-[var(--p-button-secondary-background)]!"
+									outlined
+									rounded
+									severity="secondary"
+									@click="item.command"
+								>
+									<span class="material-symbols-rounded">{{ item.icon }}</span>
+								</Button>
+							</template>
+						</SpeedDial>
 					</div>
 				</div>
 			</div>
-
-			<!-- Formulaire de création de tâche (seulement pour les tâches actives) -->
-			<div v-if="(!currentArchivedFilter && canAddTask) || isOwner" class="px-4">
-			</div>
-			<div class="max-w-lg flex gap-2">
-				<InputText
-					v-model="newTaskTitle"
-					:disabled="isCreatingTask"
-					autofocus
-					class="flex-1 h-10 !rounded-full !px-4"
-					placeholder="Ajouter une nouvelle tâche..."
-					@keyup.enter="handleCreateTask"
-				/>
-				<Button
-					:disabled="!newTaskTitle.trim()"
-					:loading="isCreatingTask"
-					class="h-10 w-10"
-					outlined
-					rounded
-					title="Créer une tâche"
-					@click="handleCreateTask"
-				>
-					<span v-if="!isCreatingTask" class="material-symbols-rounded">add</span>
-					<span v-else class="material-symbols-rounded animate-spin">progress_activity</span>
-				</Button>
-			</div>
 		</div>
-
 		<div
 			class="overflow-y-auto max-h-[50vh]"
 		>
@@ -374,8 +353,10 @@ const toggleFiltersVisibility = () => {
 						</div>
 						<Button
 							:aria-label="showDetailedStats ? 'Masquer les détails' : 'Afficher les détails'"
-							:severity="'secondary'"
-							text
+							class="w-10 h-10"
+							outlined
+							rounded
+							severity="secondary"
 							@click="toggleDetailedStats"
 						>
 						<span class="material-symbols-rounded text-sm">
@@ -505,9 +486,35 @@ const toggleFiltersVisibility = () => {
 					:pt="{root: '!rounded-full !bg-white/10 h-10 !p-0'}"
 					:rows="pagination.per_page"
 					:totalRecords="pagination.total"
+					:pageLinkSize="3"
 					@page="setPage($event.page + 1); loadTasks()"
 				/>
 			</div>
+		</div>
+		<div
+			v-if="(!currentArchivedFilter && canAddTask) || isOwner"
+			class="max-w-lg flex gap-2 p-4"
+		>
+			<InputText
+				v-model="newTaskTitle"
+				:disabled="isCreatingTask"
+				autofocus
+				class="flex-1 h-10 !px-4"
+				placeholder="Ajouter une nouvelle tâche..."
+				@keyup.enter="handleCreateTask"
+			/>
+			<Button
+				:disabled="!newTaskTitle.trim()"
+				:loading="isCreatingTask"
+				class="h-10 w-10"
+				outlined
+				rounded
+				title="Créer une tâche"
+				@click="handleCreateTask"
+			>
+				<span v-if="!isCreatingTask" class="material-symbols-rounded">add</span>
+				<span v-else class="material-symbols-rounded animate-spin">progress_activity</span>
+			</Button>
 		</div>
 	</div>
 
