@@ -204,7 +204,7 @@ export const useThemes = () => {
 
         try {
             const response = await useApiFetch(`/api/themes/${id}`, {
-                method: HttpMethods.PUT,
+                method: HttpMethods.PATCH,
                 body: JSON.stringify(themeData)
             })
 

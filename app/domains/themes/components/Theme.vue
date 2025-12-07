@@ -45,16 +45,57 @@ const {getTextColor} = useColors();
 const variant = computed<ThemeVariant>(() => props.variant ?? 'default')
 const isStoredVariant = computed(() => variant.value === 'stored')
 
+// Items du SpeedDial construits dynamiquement selon les permissions
+const speedDialItems = computed(() => {
+	const items: Array<{
+		label: string
+		icon: string
+		command: () => void
+	}> = []
+
+	if (canUpdateTheme.value) {
+		items.push({
+			label: 'Modifier',
+			icon: 'edit',
+			command: () => startEdit()
+		})
+	}
+
+	if (!isOwner.value) {
+		items.push({
+			label: 'Quitter',
+			icon: 'chip_extraction',
+			command: () => confirmLeave(props.theme)
+		})
+	}
+
+	if (isOwner.value) {
+		items.push({
+			label: 'Supprimer',
+			icon: 'delete',
+			command: () => confirmDelete(props.theme)
+		})
+		items.push({
+			label: 'Partager',
+			icon: 'person_add',
+			command: () => {
+				membersPopoverVisible.value = true
+			}
+		})
+	}
+
+
+	return items
+})
+
 const openTheme = () => {
 	if (isStoredVariant.value) return
 	isThemeOpen.value = !isThemeOpen.value
 }
 
-// Gestion de la mise à jour
 const handleUpdate = async (themeId: string, data: { title?: string, color?: string }) => {
 	try {
 		await updateTheme(themeId, data)
-		// modifie le titre et la couleur du thème dans le composant parent
 		props.theme.title = data.title || props.theme.title
 		props.theme.color = data.color || props.theme.color
 		toast.add({
@@ -74,7 +115,6 @@ const handleUpdate = async (themeId: string, data: { title?: string, color?: str
 	}
 }
 
-// Gestion de la suppression
 const confirmDelete = (theme: Theme) => {
 	selectedTheme.value = theme
 	deleteDialogVisible.value = true
@@ -138,19 +178,15 @@ const handleLeaveTheme = async () => {
 	}
 }
 
-// Démarrer l'édition
 const startEdit = () => {
 	if (!canUpdateTheme.value) return
-
 	editedTitle.value = props.theme.title
 	editedColor.value = props.theme.color
 	isEditing.value = true
 }
 
-// Confirmer l'édition
 const confirmEdit = () => {
 	if (editedTitle.value.trim().length < 3) return
-
 	handleUpdate(props.theme.theme_id, {
 		title: editedTitle.value,
 		color: editedColor.value
@@ -195,8 +231,8 @@ watch(
 				<Button
 					:style="{ color: textColor, borderColor: textColor + '80' }"
 					class="h-10 w-10 cursor-pointer flex justify-center items-center align p-2"
-					rounded
 					outlined
+					rounded
 					severity="secondary"
 					title="Ouvrir"
 					@click="openTheme"
@@ -207,7 +243,8 @@ watch(
 
 			</div>
 			<!-- Mode normal -->
-			<div v-if="!isEditing" class="flex items-center gap-3 flex-grow min-w-0" :class="isStoredVariant ? 'mr-4' : 'mx-6'">
+			<div v-if="!isEditing" :class="isStoredVariant ? 'mr-4' : 'mx-6'"
+				 class="flex items-center gap-3 flex-grow min-w-0">
 				<span class="font-medium truncate block w-full">{{ theme.title }}</span>
 			</div>
 
@@ -227,69 +264,64 @@ watch(
 			</div>
 
 			<!-- Actions -->
-			<div class="flex gap-2" :class="isStoredVariant ? 'items-center' : ''">
+			<div :class="isStoredVariant ? 'items-center' : ''">
 				<template v-if="isStoredVariant">
-					<slot name="stored-actions" :theme="theme" :textColor="textColor" />
+					<slot :textColor="textColor" :theme="theme" name="stored-actions"/>
 				</template>
 				<template v-else>
-					<!-- Boutons en mode normal -->
 					<template v-if="!isEditing">
-						<!-- Bouton Modifier - affiché uniquement si l'utilisateur a le droit de modifier -->
 						<Button
-							v-if="canUpdateTheme"
-							:style="{ color: textColor, borderColor: textColor + '80' }"
-							class="h-10 w-10 cursor-pointer flex justify-center items-center align p-2 rounded-full"
-							rounded
-							outlined
-							severity="secondary"
-							title="Modifier"
-							@click="startEdit"
-						>
-							<span class="material-symbols-rounded">edit</span>
-						</Button>
-
-						<!-- Bouton Quitter - affiché uniquement si l'utilisateur est invité -->
-						<Button
-							v-if="!isOwner && !isEditing"
-							:style="{ color: textColor, borderColor: textColor + '80' }"
+							v-for="item in speedDialItems"
+							v-if="speedDialItems.length <= 1"
+							:style="{ color: textColor, borderColor: textColor + '80', backgroundColor: editedColor }"
+							:title="item.label"
 							class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
-							rounded
 							outlined
-							severity="secondary"
-							title="Quitter le thème"
-							@click="confirmLeave(theme)"
-						>
-							<span class="material-symbols-rounded">chip_extraction</span>
-						</Button>
-
-						<!-- Bouton Supprimer - affiché uniquement si l'utilisateur est propriétaire -->
-						<Button
-							v-if="isOwner"
-							:style="{ color: textColor, borderColor: textColor + '80' }"
-							class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
 							rounded
-							outlined
 							severity="secondary"
-							title="Supprimer"
-							@click="confirmDelete(theme)"
+							@click="item.command"
 						>
-							<span class="material-symbols-rounded">delete</span>
+							<span class="material-symbols-rounded">{{ item.icon }}</span>
 						</Button>
-
-						<!-- Bouton Partager - affiché uniquement si l'utilisateur est propriétaire -->
-						<Button
-							v-if="isOwner"
-							:style="{ color: textColor, borderColor: textColor + '80' }"
-							class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
-							rounded
-							outlined
-							severity="secondary"
-							title="Partager"
-							@click="membersPopoverVisible = true"
+						<SpeedDial
+							v-else
+							:model="speedDialItems"
+							:radius="50"
+							:style="{
+							    position: 'relative',
+							    '--p-item-diff-x': '0px',
+							    '--p-item-diff-y': '0px'
+							}"
+							type="circle"
+							class="gap-0!"
 						>
-							<span class="material-symbols-rounded">person_add</span>
-						</Button>
-
+							<template #button="{ toggleCallback }" class="h-10 w-10">
+								<Button
+									:style="{ color: textColor, borderColor: textColor + '80' }"
+									class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
+									outlined
+									rounded
+									severity="secondary"
+									title="Actions"
+									@click="toggleCallback"
+								>
+									<span class="material-symbols-rounded">more_vert</span>
+								</Button>
+							</template>
+							<template #item="{ item }">
+								<Button
+									:style="{ color: textColor, borderColor: textColor + '80', backgroundColor: editedColor }"
+									:title="item.label"
+									class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
+									outlined
+									rounded
+									severity="secondary"
+									@click="item.command"
+								>
+									<span class="material-symbols-rounded">{{ item.icon }}</span>
+								</Button>
+							</template>
+						</SpeedDial>
 						<LazyThemeMembersMenu
 							v-if="isOwner"
 							:theme="theme"
@@ -305,8 +337,8 @@ watch(
 							<Button
 								:style="{ color: textColor, borderColor: textColor + '80' }"
 								class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
-								rounded
 								outlined
+								rounded
 								severity="secondary"
 								title="Changer la couleur"
 								@click="colorPopoverRef.show($event)"
@@ -338,8 +370,8 @@ watch(
 						<Button
 							:style="{ color: textColor, borderColor: textColor + '80' }"
 							class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
-							rounded
 							outlined
+							rounded
 							severity="secondary"
 							title="Confirmer"
 							@click="confirmEdit"
@@ -349,8 +381,8 @@ watch(
 						<Button
 							:style="{ color: textColor, borderColor: textColor + '80' }"
 							class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
-							rounded
 							outlined
+							rounded
 							severity="secondary"
 							title="Annuler"
 							@click="cancelEdit"
@@ -380,7 +412,7 @@ watch(
 				class="cursor-auto"
 			/>
 		</div>
- 	</div>
+	</div>
 
 	<Dialog
 		v-model:visible="deleteDialogVisible"
@@ -395,16 +427,16 @@ watch(
 		<template #footer>
 			<Button
 				label="Non"
-				text
 				rounded
+				text
 				@click="deleteDialogVisible = false"
 			/>
 			<Button
 				:loading="loading"
 				label="Oui"
-				severity="danger"
-				rounded
 				outlined
+				rounded
+				severity="danger"
 				@click="handleDeleteTheme"
 			/>
 		</template>
@@ -423,16 +455,16 @@ watch(
 		<template #footer>
 			<Button
 				label="Non"
-				text
 				rounded
+				text
 				@click="leaveDialogVisible = false"
 			/>
 			<Button
 				:loading="loading"
 				label="Oui"
-				severity="danger"
-				rounded
 				outlined
+				rounded
+				severity="danger"
 				@click="handleLeaveTheme"
 			/>
 		</template>

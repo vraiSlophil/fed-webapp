@@ -57,7 +57,7 @@ export const useTask = (initialTask: Task) => {
 
         try {
             const response = await useApiFetch(`/api/tasks/${task.value.task_id}`, {
-                method: HttpMethods.PUT,
+                method: HttpMethods.PATCH,
                 body: JSON.stringify({ title: newTitle.trim() })
             }) as { data: { task: Task } }
 
@@ -80,7 +80,7 @@ export const useTask = (initialTask: Task) => {
 
         try {
             const response = await useApiFetch(`/api/tasks/${task.value.task_id}`, {
-                method: HttpMethods.PUT,
+                method: HttpMethods.PATCH,
                 body: JSON.stringify({ status: newStatus })
             }) as { data: { task: Task } }
 

@@ -109,7 +109,7 @@ export const usePlaygrounds = () => {
         error.value = null
         try {
             const res = await useApiFetch(`/api/playgrounds/${playgroundId}`, {
-                method: 'PUT',
+                method: HttpMethods.PATCH,
                 body: JSON.stringify(payload)
             })
             if (currentPlayground.value) {

@@ -208,7 +208,7 @@ export const useThemeMembers = () => {
 
         try {
             const response = await useApiFetch(`/api/themes/${themeId}/members/${userId}`, {
-                method: HttpMethods.PUT,
+                method: HttpMethods.PATCH,
                 body: JSON.stringify(permissions)
             }) as { data: { permissions: ThemeMemberPermissions } }
 
