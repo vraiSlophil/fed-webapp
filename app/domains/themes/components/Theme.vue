@@ -28,6 +28,7 @@ const colorPopoverRef = ref()
 const membersPopoverVisible = ref(false)
 const deleteDialogVisible = ref(false)
 const leaveDialogVisible = ref(false)
+const moveMenuVisible = ref(false)
 
 // Importer les composables nécessaires
 const {
@@ -60,6 +61,15 @@ const speedDialItems = computed(() => {
 			command: () => startEdit()
 		})
 	}
+
+	// Bouton de déplacement vers un autre playground (pour tous)
+	items.push({
+		label: 'Déplacer',
+		icon: 'drive_file_move',
+		command: () => {
+			moveMenuVisible.value = true
+		}
+	})
 
 	if (!isOwner.value) {
 		items.push({
@@ -270,21 +280,7 @@ watch(
 				</template>
 				<template v-else>
 					<template v-if="!isEditing">
-						<Button
-							v-for="item in speedDialItems"
-							v-if="speedDialItems.length <= 1"
-							:style="{ color: textColor, borderColor: textColor + '80', backgroundColor: editedColor }"
-							:title="item.label"
-							class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
-							outlined
-							rounded
-							severity="secondary"
-							@click="item.command"
-						>
-							<span class="material-symbols-rounded">{{ item.icon }}</span>
-						</Button>
 						<SpeedDial
-							v-else
 							:model="speedDialItems"
 							:radius="50"
 							:style="{
@@ -328,67 +324,76 @@ watch(
 							:visible="membersPopoverVisible"
 							@update:visible="membersPopoverVisible = $event"
 						/>
+						<LazyThemeMoveMenu
+							:theme="theme"
+							:visible="moveMenuVisible"
+							@moved="emit('destroy', $event)"
+							@update:visible="moveMenuVisible = $event"
+						/>
 					</template>
 
 					<!-- Boutons en mode édition -->
 					<template v-else>
-						<!-- Bouton pour le sélecteur de couleur avec Popover -->
-						<div>
+						<div class="flex flex-row items-center justify-center gap-2">
+
+							<!-- Bouton pour le sélecteur de couleur avec Popover -->
+							<div>
+								<Button
+									:style="{ color: textColor, borderColor: textColor + '80' }"
+									class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
+									outlined
+									rounded
+									severity="secondary"
+									title="Changer la couleur"
+									@click="colorPopoverRef.show($event)"
+								>
+									<span class="material-symbols-rounded">palette</span>
+								</Button>
+								<Popover
+									ref="colorPopoverRef"
+									target="prev"
+								>
+									<div class="p-3 flex items-center justify-center gap-2 flex-col">
+										<div class="mb-3">
+											<ColorPicker
+												v-model="editedColor"
+												inline
+											/>
+										</div>
+										<div class="flex items-center justify-center flex-row gap-3">
+											<span class="text-sm  dark:text-neutral-300">Code hex:</span>
+											<InputText
+												v-model="editedColor"
+												class="flex-1 font-mono text-sm w-30"
+											/>
+										</div>
+									</div>
+								</Popover>
+							</div>
+
 							<Button
 								:style="{ color: textColor, borderColor: textColor + '80' }"
 								class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
 								outlined
 								rounded
 								severity="secondary"
-								title="Changer la couleur"
-								@click="colorPopoverRef.show($event)"
+								title="Confirmer"
+								@click="confirmEdit"
 							>
-								<span class="material-symbols-rounded">palette</span>
+								<span class="material-symbols-rounded">check</span>
 							</Button>
-							<Popover
-								ref="colorPopoverRef"
-								target="prev"
+							<Button
+								:style="{ color: textColor, borderColor: textColor + '80' }"
+								class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
+								outlined
+								rounded
+								severity="secondary"
+								title="Annuler"
+								@click="cancelEdit"
 							>
-								<div class="p-3 flex items-center justify-center gap-2 flex-col">
-									<div class="mb-3">
-										<ColorPicker
-											v-model="editedColor"
-											inline
-										/>
-									</div>
-									<div class="flex items-center justify-center flex-row gap-3">
-										<span class="text-sm  dark:text-neutral-300">Code hex:</span>
-										<InputText
-											v-model="editedColor"
-											class="flex-1 font-mono text-sm w-30"
-										/>
-									</div>
-								</div>
-							</Popover>
+								<span class="material-symbols-rounded">close</span>
+							</Button>
 						</div>
-
-						<Button
-							:style="{ color: textColor, borderColor: textColor + '80' }"
-							class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
-							outlined
-							rounded
-							severity="secondary"
-							title="Confirmer"
-							@click="confirmEdit"
-						>
-							<span class="material-symbols-rounded">check</span>
-						</Button>
-						<Button
-							:style="{ color: textColor, borderColor: textColor + '80' }"
-							class="h-10 w-10 cursor-pointer flex justify-center items-center p-2 rounded-full"
-							outlined
-							rounded
-							severity="secondary"
-							title="Annuler"
-							@click="cancelEdit"
-						>
-							<span class="material-symbols-rounded">close</span>
-						</Button>
 					</template>
 				</template>
 			</div>
@@ -403,7 +408,7 @@ watch(
 		</div>
 		<div
 			v-if="!isStoredVariant && isThemeOpen"
-			class="min-h-42 w-full bg-white/10 dark:bg-neutral-800/20 backdrop-blur-xl rounded-b-[2.25rem] overflow-hidden"
+			class="min-h-42 w-full bg-white/10 dark:bg-neutral-800/20 backdrop-blur-xl rounded-b-[2.25rem] "
 			data-no-drag
 		>
 			<TaskList

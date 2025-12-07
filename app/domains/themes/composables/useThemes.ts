@@ -318,6 +318,51 @@ export const useThemes = () => {
         }
     }
 
+    /**
+     * Déplace un thème vers un autre playground.
+     * - Si l'utilisateur est propriétaire du thème : PATCH /api/themes/{id} avec { playground_id }
+     * - Si l'utilisateur est membre invité : PATCH /api/themes/{id}/members/{userId}/move-to-playground avec { target_playground_id }
+     */
+    const moveThemeToPlayground = async (
+        themeId: string,
+        targetPlaygroundId: string,
+        options?: { isOwner?: boolean; userId?: string }
+    ) => {
+        loading.value = true
+
+        try {
+            if (options?.isOwner) {
+                // Propriétaire : mise à jour directe du playground_id
+                await useApiFetch(`/api/themes/${themeId}`, {
+                    method: HttpMethods.PATCH,
+                    body: JSON.stringify({ playground_id: targetPlaygroundId })
+                })
+            } else if (options?.userId) {
+                // Membre invité : route spécifique pour déplacer
+                await useApiFetch(`/api/themes/${themeId}/members/${options.userId}/move-to-playground`, {
+                    method: HttpMethods.PATCH,
+                    body: JSON.stringify({ target_playground_id: targetPlaygroundId })
+                })
+            } else {
+                throw new Error('Impossible de déterminer le type de déplacement (propriétaire ou membre)')
+            }
+
+            // Retirer le thème du cache local après succès
+            removeThemeFromCache(themeId)
+
+            if (currentTheme.value?.theme_id === themeId) {
+                currentTheme.value = null
+            }
+
+            return true
+        } catch (error: any) {
+            console.error(error?.value ?? error)
+            throw new Error(error?.message || `Erreur lors du déplacement du thème vers le playground`)
+        } finally {
+            loading.value = false
+        }
+    }
+
     return {
         themes,
         currentTheme,
@@ -338,6 +383,7 @@ export const useThemes = () => {
         createTheme,
         updateTheme,
         deleteTheme,
-        leaveTheme
+        leaveTheme,
+        moveThemeToPlayground
     }
 }
