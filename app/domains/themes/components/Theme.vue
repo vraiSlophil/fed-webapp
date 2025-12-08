@@ -94,6 +94,37 @@ const speedDialItems = computed(() => {
 		})
 	}
 
+	// items.push({
+	// 	label: 'test1',
+	// 	icon: 'info',
+	// 	command: () => {
+	// 		console.log('test1')
+	// 	}
+	// })
+	//
+	// items.push({
+	// 	label: 'test2',
+	// 	icon: 'info',
+	// 	command: () => {
+	// 		console.log('test2')
+	// 	}
+	// })
+	//
+	// items.push({
+	// 	label: 'test3',
+	// 	icon: 'info',
+	// 	command: () => {
+	// 		console.log('test3')
+	// 	}
+	// })
+	//
+	// items.push({
+	// 	label: 'test4',
+	// 	icon: 'info',
+	// 	command: () => {
+	// 		console.log('test4')
+	// 	}
+	// })
 
 	return items
 })
@@ -228,7 +259,7 @@ watch(
 	<div>
 		<div
 			:class="[
-				isStoredVariant ? 'px-6 py-4 min-w-48 max-w-72' : 'w-full min-w-100 min-h-18 p-4',
+				isStoredVariant ? 'px-6 py-4 min-w-48 max-w-72' : 'w-full min-w-120 min-h-18 p-4',
 				isThemeOpen ? 'rounded-b-none' : 'rounded-b-[2.25rem]'
 			]"
 			:style="{
@@ -252,25 +283,34 @@ watch(
 				</Button>
 
 			</div>
-			<!-- Mode normal -->
-			<div v-if="!isEditing" :class="isStoredVariant ? 'mr-4' : 'mx-6'"
-				 class="flex items-center gap-3 flex-grow min-w-0">
-				<span class="font-medium truncate block w-full">{{ theme.title }}</span>
-			</div>
+			<div
+				class="flex flex-grow mx-4 min-w-0 cursor-pointer"
+			>
+				<!-- Mode normal -->
+				<div
+					v-if="!isEditing"
+					class="flex items-center gap-3 flex-grow min-w-0"
+				>
+					<span class="font-medium truncate block w-full">{{ theme.title }}</span>
+				</div>
 
-			<!-- Mode édition -->
-			<div v-else class="flex items-center gap-3 flex-grow">
-				<input
-					v-model="editedTitle"
-					:style="{
+				<!-- Mode édition -->
+				<div
+					v-else
+					class="flex items-center gap-3 flex-grow"
+				>
+					<input
+						v-model="editedTitle"
+						:style="{
 						color: textColor,
 						backgroundColor: textColor + '1A'
 					}"
-					class="font-medium flex-grow px-3 py-1 mx-3 !rounded-full focus:outline-none"
-					placeholder="Nom du thème"
-					@keyup.enter="confirmEdit"
-					@keyup.esc="cancelEdit"
-				/>
+						class="font-medium flex-grow px-3 py-1 !rounded-full focus:outline-none"
+						placeholder="Nom du thème"
+						@keyup.enter="confirmEdit"
+						@keyup.esc="cancelEdit"
+					/>
+				</div>
 			</div>
 
 			<!-- Actions -->
@@ -288,8 +328,15 @@ watch(
 							    '--p-item-diff-x': '0px',
 							    '--p-item-diff-y': '0px'
 							}"
-							type="circle"
-							class="gap-0!"
+							direction="left"
+							:pt="{
+								root: {
+									class: 'absolute',
+								},
+								list: {
+									class: 'absolute bottom-0 right-12/10',
+								},
+							}"
 						>
 							<template #button="{ toggleCallback }" class="h-10 w-10">
 								<Button

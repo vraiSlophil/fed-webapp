@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 
 import {useDropZoneInteraction} from "~/domains/playground/composables/useDropZoneInteraction";
 
@@ -215,14 +215,18 @@ const handleResizeStart = (e: MouseEvent) => {
 	e.stopPropagation()
 	isResizing.value = true
 	resizeStartPos.value = {x: e.clientX, y: e.clientY}
+
+	// Utiliser la taille réelle de l'élément, pas la valeur logique
+	const rect = draggableElement.value?.getBoundingClientRect()
 	initialDimensions.value = {
-		width: dimensions.value.width ?? 0,
-		height: dimensions.value.height ?? 0
+		width: rect?.width ?? dimensions.value.width ?? 0,
+		height: rect?.height ?? dimensions.value.height ?? 0
 	}
 
 	document.addEventListener('mousemove', handleResize)
 	document.addEventListener('mouseup', handleResizeEnd)
 }
+
 
 // Gérer le redimensionnement
 const handleResize = (e: MouseEvent) => {
@@ -235,7 +239,15 @@ const handleResize = (e: MouseEvent) => {
 	let newHeight = initialDimensions.value.height
 
 	if (props.resizableX) {
-		newWidth = Math.max(50, initialDimensions.value.width + deltaX)
+		newWidth = initialDimensions.value.width + deltaX
+
+		const childElement = draggableElement.value?.firstElementChild as HTMLElement
+		if (childElement) {
+			const minWidth = parseFloat(getComputedStyle(childElement).minWidth) || 50
+			newWidth = Math.max(minWidth, newWidth)
+		} else {
+			newWidth = Math.max(50, newWidth)
+		}
 	}
 
 	if (props.resizableY) {
@@ -322,24 +334,24 @@ const handleDrop = (e: DragEvent) => {
 	<div
 		ref="draggableElement"
 		:style="draggableStyles"
+		class="draggable-component touch-none box-border relative h-min w-min group"
+		@dragenter="handleDragEnter"
+		@dragleave="handleDragLeave"
+		@dragover="handleDragOver"
+		@drop="handleDrop"
 		@mousedown="(e) => {
 			if (!shouldIgnoreDrag(e)) {
 				e.preventDefault();
 				handleDragStart(e);
 			}
 		}"
-		@dragover="handleDragOver"
-		@dragenter="handleDragEnter"
-		@dragleave="handleDragLeave"
-		@drop="handleDrop"
-		class="draggable-component touch-none box-border relative h-min w-min group"
 	>
 		<slot :style="{ pointerEvents: isDragging ? 'none' : 'auto' }"></slot>
 		<div
 			v-if="resizableX || resizableY"
-			class="absolute bottom-0 right-0 w-3 h-3 cursor-se-resize opacity-0 group-hover:opacity-100 transition-all duration-200"
-			:class="{'opacity-100': isResizing, 'opacity-0': !isResizing}"
 			ref="resizeHandle"
+			:class="{'opacity-100': isResizing, 'opacity-0': !isResizing}"
+			class="absolute bottom-0 right-0 w-3 h-3 cursor-se-resize opacity-0 group-hover:opacity-100 transition-all duration-200"
 			@mousedown.prevent.stop="handleResizeStart"
 		>
 			<span class="material-symbols-rounded h-min w-min rotate-45 origin-center text-black dark:text-white">
