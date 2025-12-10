@@ -291,7 +291,15 @@ const filterSpeedDialItems = computed(() => {
 								'--p-item-diff-x': '0px',
 								'--p-item-diff-y': '0px'
 							}"
-							type="circle"
+							direction="left"
+							:pt="{
+								root: {
+									class: 'absolute',
+								},
+								list: {
+									class: 'absolute bottom-0 right-12/10',
+								},
+							}"
 							class="gap-0!"
 						>
 							<template #button="{ toggleCallback }">
