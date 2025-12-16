@@ -1,75 +1,51 @@
-# Nuxt Minimal Starter
+# fed-webapp
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+Front-end d’une application web de gestion de tâches partagées.
 
-## Setup
+## Prérequis
 
-Make sure to install dependencies:
+- Docker
+- Docker Compose
+- Avoir cloné et lancé l’API back-end : [fed-api](https://github.com/vraiSlophil/fed-api) (suivre son README)
 
-```bash
-# npm
-npm install
+## Configuration
 
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
-```
-
-## Development Server
-
-Start the development server on `http://localhost:3000`:
+Copiez le fichier `.env.example` en `.env` et adaptez les URLs si besoin :
 
 ```bash
-# npm
-npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
+cp .env.example .env
 ```
 
-## Production
+## Démarrage du projet
 
-Build the application for production:
+Lancez l’application en mode développement avec :
 
 ```bash
-# npm
-npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
+docker-compose up --build
 ```
 
-Locally preview production build:
+L’application sera accessible sur [http://localhost:3000](http://localhost:3000).
+
+## Arrêt du projet
+
+Pour arrêter les conteneurs :
 
 ```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
+docker-compose down
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+## Tests end-to-end (Cypress)
+
+Depuis le conteneur déjà lancé (service `nuxt-app`) :
+
+```bash
+docker exec -it <nom_du_conteneur_nuxt_app> npm run test:e2e
+# ou en headless
+docker exec -it <nom_du_conteneur_nuxt_app> npm run test:e2e:headless
+```
+
+Remplacez `<nom_du_conteneur_nuxt_app>` par le nom effectif du conteneur (visible via `docker ps`).
+
+## Conventions
+
+- **Commits** : Utilisez le format [Conventional Commit](https://www.conventionalcommits.org/fr/v1.0.0/).
