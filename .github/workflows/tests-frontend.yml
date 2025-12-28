@@ -1,0 +1,92 @@
+name: 🧪 Tests E2E Cypress
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  cypress-tests:
+    name: Cypress E2E Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 📥 Checkout frontend
+        uses: actions/checkout@v4
+
+      - name: 📥 Checkout backend
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/fed-api
+          path: fed-api
+          ref: main
+
+      - name: 🐳 Start backend services
+        working-directory: fed-api
+        run: |
+          cp .env.example .env
+          docker compose up -d postgres laravel
+          sleep 10
+
+      - name: 🗄️ Setup database
+        working-directory: fed-api
+        run: |
+          docker compose exec -T laravel php artisan migrate:fresh --seed --force
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📥 Install frontend dependencies
+        run: npm ci
+
+      - name: 🔨 Build frontend
+        run: npm run build
+        env:
+          VITE_API_URL: http://localhost:8000
+
+      - name: 🧪 Run Cypress tests
+        uses: cypress-io/github-action@v6
+        with:
+          start: npm run dev
+          wait-on: 'http://localhost:5173'
+          wait-on-timeout: 120
+          browser: chrome
+          record: true
+          parallel: true
+        env:
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CYPRESS_BASE_URL: http://localhost:5173
+          CYPRESS_API_URL: http://localhost:8000
+
+      - name: 📸 Upload screenshots on failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots
+
+      - name: 🎥 Upload videos
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cypress-videos
+          path: cypress/videos
+
+      - name: 📊 Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/coverage-final.json
+          flags: frontend
+          name: frontend-coverage
+
+      - name: 🧹 Cleanup
+        if: always()
+        working-directory: fed-api
+        run: docker compose down -v
