@@ -4,13 +4,17 @@ on:
   pull_request:
     branches: [ main, develop ]
   push:
-    branches: [ main, develop ]
+    branches: 
+      - main
+      - develop
+      - 'feat/**'
+  workflow_dispatch:
 
 jobs:
   cypress-tests:
     name: Cypress E2E Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     steps:
       - name: 📥 Checkout frontend
@@ -27,8 +31,10 @@ jobs:
         working-directory: fed-api
         run: |
           cp .env.example .env
+          sed -i 's/DB_USERNAME=.*/DB_USERNAME=postgres/' .env
+          sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=postgres/' .env
           docker compose up -d postgres laravel
-          sleep 10
+          sleep 15
 
       - name: 🗄️ Setup database
         working-directory: fed-api
@@ -56,11 +62,7 @@ jobs:
           wait-on: 'http://localhost:5173'
           wait-on-timeout: 120
           browser: chrome
-          record: true
-          parallel: true
         env:
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CYPRESS_BASE_URL: http://localhost:5173
           CYPRESS_API_URL: http://localhost:8000
 
@@ -70,6 +72,7 @@ jobs:
         with:
           name: cypress-screenshots
           path: cypress/screenshots
+          retention-days: 7
 
       - name: 🎥 Upload videos
         uses: actions/upload-artifact@v4
@@ -77,14 +80,7 @@ jobs:
         with:
           name: cypress-videos
           path: cypress/videos
-
-      - name: 📊 Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage/coverage-final.json
-          flags: frontend
-          name: frontend-coverage
+          retention-days: 7
 
       - name: 🧹 Cleanup
         if: always()
