@@ -29,8 +29,13 @@ jobs:
         with:
           node-version: '20'
 
-      - name: 📥 Install dependencies
-        run: npm install
+      - name: 📥 Install dependencies (with retry)
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: npm install
 
       - name: 🔨 Build application
         run: npm run build
