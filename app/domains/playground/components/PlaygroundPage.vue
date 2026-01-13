@@ -112,7 +112,7 @@ const handleNewTheme = async () => {
 		formData.playground_id = currentPlayground.value?.playground_id || ''
 		await createTheme(formData)
 		showCreateThemeDialog(false)
-		// await reloadCurrentPlayground()
+		await reloadCurrentPlayground()
 
 		toast.add({
 			severity: 'success',
