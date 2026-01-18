@@ -1,12 +1,9 @@
 services:
-  nuxt-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  nuxt:
+    image: node:24-bookworm-slim
     working_dir: /app
     volumes:
       - ./:/app
-      - /app/node_modules
     ports:
       - "3000:3000"
     command: sh -c "npm run dev"
