@@ -1,47 +1,47 @@
-import type {User} from "~/types/user";
+import type { User } from '~/types/user';
 
-const AUTH_TOKEN_STORAGE_KEY = 'auth-token'
+const AUTH_TOKEN_STORAGE_KEY = 'auth-token';
 
 export const useAuthState = () => {
-    const token = useState<string | null>('auth-token', () => null)
-    const user = useState<User | null>('user', () => null)
-    const forbidden = useState<boolean>('auth-forbidden', () => false)
-    const isAuthenticated = computed(() => Boolean(token.value))
+    const token = useState<string | null>('auth-token', () => null);
+    const user = useState<User | null>('user', () => null);
+    const forbidden = useState<boolean>('auth-forbidden', () => false);
+    const isAuthenticated = computed(() => Boolean(token.value));
 
     const setToken = (value: string | null) => {
-        token.value = value
+        token.value = value;
 
-        if (!import.meta.client) return
+        if (!import.meta.client) return;
 
         if (value) {
-            localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, value)
+            localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, value);
         } else {
-            localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY)
+            localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
         }
-    }
+    };
 
     const setUser = (value: User | null) => {
-        user.value = value
-    }
+        user.value = value;
+    };
 
     const setForbidden = (value: boolean) => {
-        forbidden.value = value
-    }
+        forbidden.value = value;
+    };
 
     const clearAuth = () => {
-        setToken(null)
-        user.value = null
-        forbidden.value = false
-    }
+        setToken(null);
+        user.value = null;
+        forbidden.value = false;
+    };
 
     const loadFromStorage = () => {
-        if (!import.meta.client) return
+        if (!import.meta.client) return;
 
-        const stored = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY)
+        const stored = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
         if (stored) {
-            token.value = stored
+            token.value = stored;
         }
-    }
+    };
 
     return {
         token,
@@ -53,6 +53,6 @@ export const useAuthState = () => {
         setForbidden,
         clearAuth,
         loadFromStorage,
-        storageKey: AUTH_TOKEN_STORAGE_KEY
-    }
-}
+        storageKey: AUTH_TOKEN_STORAGE_KEY,
+    };
+};

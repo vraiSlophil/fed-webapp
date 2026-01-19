@@ -3,9 +3,11 @@
 Thank you for contributing! To keep the repository consistent and easy to review, please follow the rules below.
 
 ## Language
+
 - All repository content (issues, PR titles and descriptions, comments, commit messages, documentation, and code comments) must be written in English.
 
 ## Branch naming
+
 - Create branches using the following pattern:
     - `<type>/<short-description>`
     - Optionally include an issue or ticket id: `<type>/JIRA-123-short-description` or `<type>/123-short-description`
@@ -18,6 +20,7 @@ Thank you for contributing! To keep the repository consistent and easy to review
     - `ci/update-workflow-triggers`
 
 ## Commit messages
+
 - Use Conventional Commits (in English) for all commit messages:
     - Official spec: https://www.conventionalcommits.org/en/v1.0.0/
 - Examples:
@@ -27,6 +30,7 @@ Thank you for contributing! To keep the repository consistent and easy to review
 - Keep commits small and focused. If a change requires multiple logical steps, use multiple commits.
 
 ## Pull requests
+
 - Open your PR targeting the `dev` branch (not `main`).
 - PR title should be descriptive; using Conventional Commit style in the title is encouraged (e.g. `fix(auth): ...`).
 - In the PR description include:
@@ -37,6 +41,7 @@ Thank you for contributing! To keep the repository consistent and easy to review
 - Ensure automated checks (CI / linters / tests) pass before requesting a review.
 
 ## Reviews and merging
+
 - Request a review from an admin or the repository owner: `vraiSlophil`.
 - Do NOT merge your own PR. A PR must be approved by another reviewer (admin or owner) before merging.
 - The PR may only be merged after:
@@ -49,15 +54,34 @@ Thank you for contributing! To keep the repository consistent and easy to review
     - Restrict who can push to protected branches (e.g., `dev`, `main`).
 
 ## Tests
+
 - Add or update tests for behavioral changes.
 - Make sure tests run locally and pass in CI.
 - For API changes, include feature tests that cover allowed and forbidden scenarios where applicable.
 
+## Git hooks (recommended)
+
+- This repo includes a versioned pre-commit hook that formats with Prettier then runs ESLint.
+- Enable it once on your machine:
+    - `git config core.hooksPath .githooks`
+- The hook runs inside the `nuxt` Docker Compose service (so host Node/npm is not required).
+- To bypass hooks (not recommended): `git commit --no-verify`
+
+## Linting and formatting
+
+- ESLint uses the Nuxt preset and enforces 4-space indentation.
+- Lint: `docker compose run --rm nuxt npm run lint`
+- Auto-fix: `docker compose run --rm nuxt npm run lint:fix`
+- Prettier: `docker compose run --rm nuxt npm run format`
+- Prettier check: `docker compose run --rm nuxt npm run format:check`
+
 ## Documentation and changelog
+
 - Update relevant documentation and/or README when introducing new features or changing behavior.
 - For user-facing changes, consider adding an entry to the changelog or release notes.
 
 ## Additional guidelines
+
 - Keep PRs small and focused — they are easier to review.
 - When applicable, include screenshots, curl examples, or sample requests/responses.
 - Use descriptive commit messages and PR descriptions to help reviewers understand the intent.

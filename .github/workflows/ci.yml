@@ -1,45 +1,76 @@
 name: 🚀 CI/CD Pipeline
 
 on:
-  pull_request:
-    branches: [ main, develop ]
-  push:
-    branches: 
-      - main
-      - develop
-      - 'feat/**'
-  workflow_dispatch:
+    pull_request:
+        branches: [main, dev]
+    push:
+        branches:
+            - main
+            - dev
+            - 'feat/**'
+            - 'fix/**'
+            - 'hotfix/**'
+            - 'refactor/**'
+            - 'docs/**'
+            - 'test/**'
+            - 'ci/**'
+            - 'chore/**'
+            - 'perf/**'
+            - 'style/**'
+            - 'build/**'
+            - 'release/**'
+            - 'revert/**'
+    workflow_dispatch:
+
+permissions:
+    contents: read
+    pull-requests: read
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
 
 jobs:
-  lint:
-    name: 🎨 Linting
-    uses: ./.github/workflows/lint.yml
+    gate:
+        name: 🧭 Gate (avoid duplicate push runs)
+        runs-on: ubuntu-latest
+        timeout-minutes: 2
+        outputs:
+            skip_push: ${{ steps.decide.outputs.skip_push }}
+        steps:
+            - id: decide
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const eventName = context.eventName;
+                      if (eventName !== 'push') {
+                        core.setOutput('skip_push', 'false');
+                        return;
+                      }
 
-  build:
-    name: 🔨 Build
-    needs: lint
-    runs-on: ubuntu-latest
+                      const { owner, repo } = context.repo;
+                      const commit_sha = context.sha;
 
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
+                      const prs = await github.paginate(
+                        github.rest.repos.listPullRequestsAssociatedWithCommit,
+                        { owner, repo, commit_sha, per_page: 100 }
+                      );
 
-      - name: 📦 Setup Node.js
-        uses: actions/setup-node@v4
+                      const openPrs = prs.filter((pr) => pr.state === 'open');
+                      core.info(`Open PRs associated with ${commit_sha}: ${openPrs.length}`);
+                      core.setOutput('skip_push', openPrs.length > 0 ? 'true' : 'false');
+
+    lint:
+        name: 🎨 Linting
+        needs: gate
+        if: ${{ !(github.event_name == 'push' && needs.gate.outputs.skip_push == 'true') }}
+        uses: ./.github/workflows/lint.yml
+
+    test-frontend:
+        name: 🧪 Frontend Tests
+        needs: [gate, lint]
+        if: ${{ !(github.event_name == 'push' && needs.gate.outputs.skip_push == 'true') }}
+        uses: ./.github/workflows/tests-frontend.yml
         with:
-          node-version: '20'
-
-      - name: 📥 Install dependencies (with retry)
-        run: |
-          for i in 1 2 3; do
-            npm install && break || {
-              echo "Attempt $i failed, retrying in 10s..."
-              sleep 10
-            }
-          done
-
-      - name: 🔨 Build application
-        run: npm run build
-
-      - name: ✅ Build successful
-        run: echo "✅ Frontend build completed successfully"
+            # Run faster on feature branch pushes; run full (E2E) on PRs and on dev/main.
+            e2e: ${{ github.event_name == 'pull_request' || github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main' }}

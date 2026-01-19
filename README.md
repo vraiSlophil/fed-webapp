@@ -12,10 +12,10 @@ This repository contains the web client used to interact with the FED backend AP
 
 ## Tech Stack
 
-* Language: TypeScript / JavaScript
-* Framework: Nuxt 3 (Vue 3)
-* Database: None (frontend only; uses the backend API)
-* Tooling / CI: Docker Compose, npm, Cypress (E2E), Tailwind CSS, PrimeVue
+- Language: TypeScript / JavaScript
+- Framework: Nuxt 3 (Vue 3)
+- Database: None (frontend only; uses the backend API)
+- Tooling / CI: Docker Compose, npm, Cypress (E2E), Tailwind CSS, PrimeVue
 
 ---
 
@@ -40,11 +40,11 @@ cd fed-webapp
 docker compose run --rm nuxt npm ci
 ```
 
-if there is no `package-lock.json`, run :
+If there is no `package-lock.json`, run:
+
 ```bash
 docker compose run --rm nuxt npm install
 ```
-
 
 ---
 
@@ -92,8 +92,26 @@ docker compose exec nuxt npm run test:e2e:headless
 
 Guidelines:
 
-* Tests are required for behavioral changes
-* All tests must pass before opening a PR
+- Tests are required for behavioral changes
+- All tests must pass before opening a PR
+
+---
+
+## Linting
+
+```bash
+# run ESLint
+docker compose run --rm nuxt npm run lint
+
+# apply auto-fixes
+docker compose run --rm nuxt npm run lint:fix
+
+# format with Prettier
+docker compose run --rm nuxt npm run format
+
+# check formatting only
+docker compose run --rm nuxt npm run format:check
+```
 
 ---
 
@@ -103,10 +121,10 @@ Contributions are welcome.
 
 Please read the **CONTRIBUTING.md** file before opening an issue or pull request. It contains detailed guidelines on:
 
-* Branch naming
-* Commit message conventions
-* Pull request process
-* Review and merge rules
+- Branch naming
+- Commit message conventions
+- Pull request process
+- Review and merge rules
 
 ---
 

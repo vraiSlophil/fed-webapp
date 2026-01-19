@@ -1,4 +1,4 @@
-import {loginAndVisit} from "../../support/loginHelper.js";
+import { loginAndVisit } from '../../support/loginHelper.js';
 
 describe('Authentification - Accès admin', () => {
     // On suppose que baseUrl est configuré dans cypress.config.js
@@ -13,8 +13,8 @@ describe('Authentification - Accès admin', () => {
         loginAndVisit({
             email: 'admin@example.com',
             password: 'password',
-            nextRoute: '/admin'
-        })
+            nextRoute: '/admin',
+        });
 
         // Vérifier la redirection automatique vers /admin
         cy.url().should('include', '/admin');
