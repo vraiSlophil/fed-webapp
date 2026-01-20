@@ -1,19 +1,19 @@
-import { useApiFetch } from '~/composables/useApiFetch'
-import type {Task, TaskFilters, TaskResponse} from "~/types/task";
-import { HttpMethods } from '~/utils/httpMethods'
-import type {Pagination} from "~/types/pagination";
+import { useApiFetch } from '~/composables/useApiFetch';
+import type { Task, TaskFilters, TaskResponse } from '~/types/task';
+import { HttpMethods } from '~/utils/httpMethods';
+import type { Pagination } from '~/types/pagination';
 
 export const useTasks = () => {
-    const tasks = ref<Task[]>([])
+    const tasks = ref<Task[]>([]);
     const pagination = ref<Pagination>({
         total: 0,
         per_page: 15,
         current_page: 1,
         last_page: 1,
         from: null,
-        to: null
-    })
-    const loading = ref(false)
+        to: null,
+    });
+    const loading = ref(false);
 
     // Filtres réactifs
     const filters = reactive<TaskFilters>({
@@ -25,90 +25,94 @@ export const useTasks = () => {
         search: '',
         sort: 'desc',
         page: 1,
-        per_page: 15
-    })
+        per_page: 15,
+    });
 
     // Options de tri
     const sortOptions = [
         { label: 'Plus récent', value: 'desc', icon: 'arrow_downward' },
-        { label: 'Plus ancien', value: 'asc', icon: 'arrow_upward' }
-    ]
+        { label: 'Plus ancien', value: 'asc', icon: 'arrow_upward' },
+    ];
 
     // Options de filtrage par statut
     const statusOptions = [
         { label: 'Tous', value: undefined, icon: 'all_inclusive' },
         { label: 'À faire', value: 'todo', icon: 'radio_button_unchecked' },
         { label: 'En cours', value: 'doing', icon: 'schedule' },
-        { label: 'Terminé', value: 'done', icon: 'check_circle' }
-    ]
+        { label: 'Terminé', value: 'done', icon: 'check_circle' },
+    ];
 
     // Options de filtrage pour les tâches archivées
     const archiveOptions = [
         { label: 'Actives', value: false, icon: 'visibility' },
-        { label: 'Archivées', value: true, icon: 'archive' }
-    ]
+        { label: 'Archivées', value: true, icon: 'archive' },
+    ];
 
     // Construire les paramètres de requête
     const buildQueryParams = (customFilters?: Partial<TaskFilters>) => {
-        const params = new URLSearchParams()
-        const currentFilters = { ...filters, ...customFilters }
+        const params = new URLSearchParams();
+        const currentFilters = { ...filters, ...customFilters };
 
         Object.entries(currentFilters).forEach(([key, value]) => {
             if (value !== undefined && value !== null && value !== '') {
                 if (Array.isArray(value)) {
-                    params.append(key, value.join(','))
+                    params.append(key, value.join(','));
                 } else {
-                    params.append(key, value.toString())
+                    params.append(key, value.toString());
                 }
             }
-        })
+        });
 
-        return params.toString()
-    }
+        return params.toString();
+    };
 
     // Charger les tâches
     const fetchTasks = async (customFilters?: Partial<TaskFilters>) => {
-        loading.value = true
+        loading.value = true;
 
         try {
-            const queryParams = buildQueryParams(customFilters)
-            const url = `/api/tasks${queryParams ? `?${queryParams}` : ''}`
+            const queryParams = buildQueryParams(customFilters);
+            const url = `/api/tasks${queryParams ? `?${queryParams}` : ''}`;
 
-            const response = await useApiFetch(url, {
-                method: HttpMethods.GET
-            }) as { data: TaskResponse }
+            const response = (await useApiFetch(url, {
+                method: HttpMethods.GET,
+            })) as { data: TaskResponse };
 
-            tasks.value = response.data.tasks
-            pagination.value = response.data.pagination
+            tasks.value = response.data.tasks;
+            pagination.value = response.data.pagination;
         } catch (error: any) {
-            console.error(error.value)
+            console.error(error.value);
             throw new Error(error.message || 'Erreur lors du chargement des tâches');
         } finally {
-            loading.value = false
+            loading.value = false;
         }
-    }
+    };
 
     // Créer une tâche
-    const createTask = async (taskData: { theme_id: string; title: string; status?: 'todo' | 'doing' | 'done' }) => {
-        loading.value = true
+    const createTask = async (taskData: {
+        theme_id: string;
+        title: string;
+        status?: 'todo' | 'doing' | 'done';
+    }) => {
+        loading.value = true;
 
         try {
-            const response = await useApiFetch('/api/tasks', {
+            const response = (await useApiFetch('/api/tasks', {
                 method: HttpMethods.POST,
-                body: JSON.stringify(taskData)
-            }) as { data: { task: Task } }
+                body: JSON.stringify(taskData),
+            })) as { data: { task: Task } };
 
             // Ajouter la nouvelle tâche à la liste
-            tasks.value.unshift(response.data.task)
+            tasks.value.unshift(response.data.task);
 
-            return response.data.task
+            return response.data.task;
         } catch (error: any) {
-            console.error(error.value)
+            console.error(error.value);
             throw new Error(error.message || 'Erreur lors de la création de la tâche');
         } finally {
-            loading.value = false
+            loading.value = false;
         }
-    }
+    };
 
     // Réinitialiser les filtres
     const resetFilters = () => {
@@ -121,44 +125,44 @@ export const useTasks = () => {
             search: '',
             sort: 'desc',
             page: 1,
-            per_page: 15
-        })
-    }
+            per_page: 15,
+        });
+    };
 
     // Filtrer par thème
     const setThemeFilter = (themeId: string) => {
-        filters.theme_id = themeId
-        filters.page = 1
-    }
+        filters.theme_id = themeId;
+        filters.page = 1;
+    };
 
     // Changer le tri
     const setSortOrder = (sortOrder: 'asc' | 'desc') => {
-        filters.sort = sortOrder
-        filters.page = 1
-    }
+        filters.sort = sortOrder;
+        filters.page = 1;
+    };
 
     // Changer le statut
     const setStatusFilter = (status?: 'todo' | 'doing' | 'done') => {
-        filters.status = status
-        filters.page = 1
-    }
+        filters.status = status;
+        filters.page = 1;
+    };
 
     // Changer le filtre d'archivage
     const setArchivedFilter = (archived: boolean) => {
-        filters.archived = archived
-        filters.page = 1
-    }
+        filters.archived = archived;
+        filters.page = 1;
+    };
 
     // Rechercher
     const setSearchFilter = (search: string) => {
-        filters.search = search
-        filters.page = 1
-    }
+        filters.search = search;
+        filters.page = 1;
+    };
 
     // Changer la page
     const setPage = (page: number) => {
-        filters.page = page
-    }
+        filters.page = page;
+    };
 
     return {
         // État
@@ -183,6 +187,5 @@ export const useTasks = () => {
         setArchivedFilter,
         setSearchFilter,
         setPage,
-
-    }
-}
+    };
+};

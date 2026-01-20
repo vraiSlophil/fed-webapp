@@ -1,44 +1,43 @@
 export type QueryValue =
-    string
+    | string
     | number
     | boolean
     | null
     | undefined
     | Date
-    | (string | number | boolean | null | undefined | Date)[]
-export type QueryParams = Record<string, QueryValue>
+    | (string | number | boolean | null | undefined | Date)[];
+export type QueryParams = Record<string, QueryValue>;
 
 const encode = (value: unknown): string => {
-    if (value instanceof Date) return encodeURIComponent(value.toISOString())
-    return encodeURIComponent(String(value))
-}
+    if (value instanceof Date) return encodeURIComponent(value.toISOString());
+    return encodeURIComponent(String(value));
+};
 
 export const buildQueryString = (params?: QueryParams | null): string => {
-    if (!params) return ''
+    if (!params) return '';
 
-    const parts: string[] = []
+    const parts: string[] = [];
 
     Object.entries(params).forEach(([key, value]) => {
-        if (value === undefined) return
+        if (value === undefined) return;
 
-        const encodedKey = encodeURIComponent(key)
+        const encodedKey = encodeURIComponent(key);
 
         if (Array.isArray(value)) {
             value.forEach((item) => {
-                if (item === undefined) return
-                if (item === null || item === '') return
-                parts.push(`${encodedKey}[]=${encode(item)}`)
-            })
-            return
+                if (item === undefined) return;
+                if (item === null || item === '') return;
+                parts.push(`${encodedKey}[]=${encode(item)}`);
+            });
+            return;
         }
 
-        if (value === null || value === '') return
+        if (value === null || value === '') return;
 
-        parts.push(`${encodedKey}=${encode(value)}`)
-    })
+        parts.push(`${encodedKey}=${encode(value)}`);
+    });
 
-    if (!parts.length) return ''
+    if (!parts.length) return '';
 
-    return `?${parts.join('&')}`
-}
-
+    return `?${parts.join('&')}`;
+};
