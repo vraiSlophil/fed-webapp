@@ -40,21 +40,22 @@ const handleRegister = async () => {
         <Navbar :left-back-button="true" :right-login-button="false" />
 
         <form
+            data-testid="auth-register-form"
             class="min-h-screen w-full max-w-sm flex items-center justify-center flex-col m-auto space-y-6"
             @submit.prevent="handleRegister"
         >
             <h1 class="text-2xl font-bold text-center mb-4">Inscription</h1>
-            <div class="w-full">
+            <div class="w-full" data-testid="auth-register-username">
                 <InputText
                     v-model="username"
                     placeholder="Nom d'utilisateur"
                     class="w-full !px-4 !rounded-full"
                 />
             </div>
-            <div class="w-full">
+            <div class="w-full" data-testid="auth-register-email">
                 <InputText v-model="email" placeholder="Email" class="w-full !px-4 !rounded-full" />
             </div>
-            <div class="w-full">
+            <div class="w-full" data-testid="auth-register-password">
                 <Password
                     v-model="password"
                     placeholder="Mot de passe"
@@ -63,7 +64,7 @@ const handleRegister = async () => {
                     toggle-mask
                 />
             </div>
-            <div class="w-full">
+            <div class="w-full" data-testid="auth-register-password-confirmation">
                 <Password
                     v-model="password_confirmation"
                     placeholder="Confirmer le mot de passe"
@@ -86,6 +87,7 @@ const handleRegister = async () => {
                 rounded
                 :disabled="!username || !email || !password || !password_confirmation || loading"
                 class="w-full"
+                data-testid="auth-register-submit"
             >
                 <span v-if="!loading" class="material-symbols-rounded">login</span>
                 <span v-else class="material-symbols-rounded animate-spin">progress_activity</span>

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { computed, ref, watch, type PropType } from 'vue';
 import { useDropZoneInteraction } from '~/domains/playground/composables/useDropZoneInteraction';
 
 const props = defineProps({

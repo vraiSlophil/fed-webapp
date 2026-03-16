@@ -253,6 +253,7 @@ const filterSpeedDialItems = computed(() => {
                         v-model="searchQuery"
                         class="w-full h-10 flex items-center justify-between text-sm"
                         placeholder="Rechercher une tâche..."
+                        data-testid="tasks-list-search"
                         @input="handleSearch"
                     />
                     <div class="flex items-center gap-2">
@@ -261,6 +262,7 @@ const filterSpeedDialItems = computed(() => {
                             :options="statusOptions"
                             class="w-36 h-10 flex items-center justify-between"
                             option-label="label"
+                            data-testid="tasks-list-status-filter"
                         >
                             <template #option="slotProps">
                                 <div class="flex items-center gap-2">
@@ -314,6 +316,7 @@ const filterSpeedDialItems = computed(() => {
                                     rounded
                                     severity="secondary"
                                     title="Filtres"
+                                    data-testid="tasks-list-filters-toggle"
                                     @click="toggleCallback"
                                 >
                                     <span class="material-symbols-rounded">tune</span>
@@ -561,6 +564,7 @@ const filterSpeedDialItems = computed(() => {
                 autofocus
                 class="flex-1 h-10 !px-4"
                 placeholder="Ajouter une nouvelle tâche..."
+                data-testid="tasks-list-create-input"
                 @keyup.enter="handleCreateTask"
             />
             <Button
@@ -570,6 +574,7 @@ const filterSpeedDialItems = computed(() => {
                 outlined
                 rounded
                 title="Créer une tâche"
+                data-testid="tasks-list-create-submit"
                 @click="handleCreateTask"
             >
                 <span v-if="!isCreatingTask" class="material-symbols-rounded">add</span>

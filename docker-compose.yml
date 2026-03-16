@@ -1,11 +1,17 @@
 services:
     nuxt:
-        image: node:24-bookworm-slim
+        build:
+            context: .
+            dockerfile: ./docker/Dockerfile
         working_dir: /app
         volumes:
             - ./:/app
+        extra_hosts:
+            - 'host.docker.internal:host-gateway'
+        init: true
+        ipc: host
         ports:
             - '3000:3000'
-        command: sh -c "npm run dev"
+        command: sh -c "npm run dev -- --host 0.0.0.0"
         environment:
             - HOST=0.0.0.0

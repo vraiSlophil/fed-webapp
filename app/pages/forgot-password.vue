@@ -37,11 +37,12 @@ const submit = async () => {
     <div>
         <Navbar :left-back-button="true" :right-login-button="false" />
         <form
+            data-testid="auth-forgot-password-form"
             class="w-full max-w-sm min-h-screen flex items-center justify-center flex-col m-auto space-y-6"
             @submit.prevent="submit"
         >
             <h1 class="text-2xl font-bold text-center mb-4">Mot de passe oublié</h1>
-            <div class="w-full">
+            <div class="w-full" data-testid="auth-forgot-password-email">
                 <InputText
                     v-model="email"
                     type="email"
@@ -49,7 +50,14 @@ const submit = async () => {
                     class="w-full !px-4 !rounded-full"
                 />
             </div>
-            <Button outlined rounded type="submit" :disabled="!email || loading" class="w-full">
+            <Button
+                outlined
+                rounded
+                type="submit"
+                :disabled="!email || loading"
+                class="w-full"
+                data-testid="auth-forgot-password-submit"
+            >
                 <span v-if="!loading" class="material-symbols-rounded">send</span>
                 <span v-else class="material-symbols-rounded animate-spin">progress_activity</span>
                 Envoyer le lien de réinitialisation

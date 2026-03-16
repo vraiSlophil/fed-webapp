@@ -175,7 +175,7 @@ const formatLastLogin = computed(() => {
 <template>
     <div class="flex min-h-screen items-center justify-center flex-col">
         <Navbar :left-back-button="true" :right-login-button="false" />
-        <section v-if="user" class="w-screen max-w-5xl">
+        <section v-if="user" class="w-screen max-w-5xl" data-testid="user-profile-page">
             <h1 class="text-2xl font-bold text-center mb-4">Profil utilisateur</h1>
             <div class="grid grid-cols-2 gap-6">
                 <div>
@@ -210,7 +210,11 @@ const formatLastLogin = computed(() => {
                             @uploader="handleAvatarUpload"
                         />
                     </div>
-                    <form class="space-y-4" @submit.prevent="handleProfileUpdate">
+                    <form
+                        class="space-y-4"
+                        data-testid="user-profile-form"
+                        @submit.prevent="handleProfileUpdate"
+                    >
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block mb-1">Nom d'utilisateur</label>
@@ -242,7 +246,14 @@ const formatLastLogin = computed(() => {
                                 />
                             </div>
                         </div>
-                        <Button outlined rounded type="submit" class="w-full" :loading="loading">
+                        <Button
+                            outlined
+                            rounded
+                            type="submit"
+                            class="w-full"
+                            :loading="loading"
+                            data-testid="user-profile-save"
+                        >
                             <span v-if="!loading" class="material-symbols-rounded">save</span>
                             <span v-else class="material-symbols-rounded animate-spin"
                                 >progress_activity</span
@@ -252,7 +263,11 @@ const formatLastLogin = computed(() => {
                     </form>
                 </div>
                 <div>
-                    <form class="space-y-4" @submit.prevent="handlePasswordUpdate">
+                    <form
+                        class="space-y-4"
+                        data-testid="user-password-form"
+                        @submit.prevent="handlePasswordUpdate"
+                    >
                         <h2 class="text-lg font-semibold">Changer le mot de passe</h2>
                         <div>
                             <label class="block mb-1">Mot de passe actuel</label>
@@ -281,7 +296,14 @@ const formatLastLogin = computed(() => {
                                 toggle-mask
                             />
                         </div>
-                        <Button outlined rounded type="submit" class="w-full" :loading="loading">
+                        <Button
+                            outlined
+                            rounded
+                            type="submit"
+                            class="w-full"
+                            :loading="loading"
+                            data-testid="user-password-save"
+                        >
                             <span v-if="!loading" class="material-symbols-rounded">lock_reset</span>
                             <span v-else class="material-symbols-rounded animate-spin"
                                 >progress_activity</span
@@ -305,6 +327,7 @@ const formatLastLogin = computed(() => {
                             outlined
                             rounded
                             class="m-4"
+                            data-testid="user-logout"
                             @click="handleLogout"
                         >
                             <span class="material-symbols-rounded"> logout </span>

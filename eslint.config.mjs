@@ -4,7 +4,13 @@ export default createConfigForNuxt(
     {},
     {
         name: 'project/ignores',
-        ignores: ['coverage/**', 'cypress/screenshots/**', 'cypress/videos/**'],
+        ignores: [
+            'blob-report/**',
+            'coverage/**',
+            'playwright-report/**',
+            'test-results/**',
+            'tests/.auth/*.json',
+        ],
     },
     {
         name: 'project/relaxed-rules',
@@ -37,24 +43,6 @@ export default createConfigForNuxt(
         rules: {
             'vue/html-indent': 'off',
             'vue/script-indent': ['error', 4, { baseIndent: 0, switchCase: 1 }],
-        },
-    },
-    {
-        name: 'project/cypress-globals',
-        files: ['cypress/**/*.{js,ts,jsx,tsx}'],
-        languageOptions: {
-            globals: {
-                Cypress: 'readonly',
-                cy: 'readonly',
-                describe: 'readonly',
-                context: 'readonly',
-                it: 'readonly',
-                before: 'readonly',
-                after: 'readonly',
-                beforeEach: 'readonly',
-                afterEach: 'readonly',
-                expect: 'readonly',
-            },
         },
     },
 );

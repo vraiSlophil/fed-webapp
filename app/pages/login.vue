@@ -39,11 +39,12 @@ const handleLogin = async () => {
         <Navbar :left-back-button="true" :right-login-button="false" />
 
         <form
+            data-testid="auth-login-form"
             class="min-h-screen w-full max-w-sm flex items-center justify-center flex-col m-auto space-y-6"
             @submit.prevent="handleLogin"
         >
             <h1 class="text-2xl font-bold text-center mb-4">Connexion</h1>
-            <div class="w-full">
+            <div class="w-full" data-testid="auth-login-email">
                 <InputText
                     v-model="email"
                     type="email"
@@ -51,7 +52,7 @@ const handleLogin = async () => {
                     class="w-full !rounded-full !px-4"
                 />
             </div>
-            <div class="w-full">
+            <div class="w-full" data-testid="auth-login-password">
                 <Password
                     v-model="password"
                     placeholder="Mot de passe"
@@ -81,6 +82,7 @@ const handleLogin = async () => {
                 rounded
                 :disabled="!email || !password || loading"
                 class="w-full"
+                data-testid="auth-login-submit"
             >
                 <span v-if="!loading" class="material-symbols-rounded">login</span>
                 <span v-else class="material-symbols-rounded animate-spin">progress_activity</span>

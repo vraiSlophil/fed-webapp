@@ -72,5 +72,5 @@ jobs:
         if: ${{ !(github.event_name == 'push' && needs.gate.outputs.skip_push == 'true') }}
         uses: ./.github/workflows/tests-frontend.yml
         with:
-            # Run faster on feature branch pushes; run full (E2E) on PRs and on dev/main.
+            # Browser suites always run; backend-e2e scaffolding is wired on PRs and on dev/main.
             e2e: ${{ github.event_name == 'pull_request' || github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main' }}

@@ -5,6 +5,9 @@
 .nitro
 .cache
 dist
+blob-report
+playwright-report
+test-results
 
 # Node dependencies
 node_modules
@@ -24,3 +27,4 @@ logs
 !.env.example
 
 issues.json
+tests/.auth/*.json

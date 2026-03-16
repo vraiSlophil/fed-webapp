@@ -12,8 +12,11 @@
         "format:check": "prettier . --check",
         "preview": "nuxt preview",
         "postinstall": "nuxt prepare",
-        "test:e2e": "cypress open",
-        "test:e2e:headless": "cypress run"
+        "test:browser": "npm run test:component && npm run test:integration",
+        "test:component": "playwright test -c playwright-ct.config.ts",
+        "test:e2e": "playwright test --workers=1 --project=e2e-public --project=e2e-user --project=e2e-admin",
+        "test:e2e:ui": "playwright test --workers=1 --project=e2e-public --project=e2e-user --project=e2e-admin --ui",
+        "test:integration": "playwright test --project=integration"
     },
     "dependencies": {
         "@primeuix/themes": "^1.1.2",
@@ -28,10 +31,12 @@
         "vue-router": "^4.5.1"
     },
     "devDependencies": {
-        "@primevue/nuxt-module": "^4.5.1",
         "@nuxt/eslint": "^1.12.1",
-        "cypress": "^15.6.0",
+        "@playwright/experimental-ct-vue": "^1.58.2",
+        "@playwright/test": "^1.58.2",
+        "@primevue/nuxt-module": "^4.5.1",
         "eslint": "^9.39.0",
-        "prettier": "^3.3.3"
+        "prettier": "^3.3.3",
+        "unplugin-auto-import": "^21.0.0"
     }
 }
