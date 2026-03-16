@@ -1,51 +1,133 @@
 # fed-webapp
 
-Front-end d’une application web de gestion de tâches partagées.
+Nuxt 3 frontend for the FED application.
 
-## Prérequis
+---
 
-- Docker
-- Docker Compose
-- Avoir cloné et lancé l’API back-end : [fed-api](https://github.com/vraiSlophil/fed-api) (suivre son README)
+## Overview
+
+This repository contains the web client used to interact with the FED backend API (`fed-api`). The app runs in development mode on port `3000` and expects the backend to be reachable (by default) at `http://localhost:8000`.
+
+---
+
+## Tech Stack
+
+- Language: TypeScript / JavaScript
+- Framework: Nuxt 3 (Vue 3)
+- Database: None (frontend only; uses the backend API)
+- Tooling / CI: Docker Compose, npm, Cypress (E2E), Tailwind CSS, PrimeVue
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (if running without Docker) or Docker + Docker Compose v2
+- The backend API running locally (`fed-api`)
+
+---
+
+## Installation
+
+```bash
+git clone <repository-url>
+cd fed-webapp
+```
+
+```bash
+# install dependencies
+docker compose run --rm nuxt npm ci
+```
+
+If there is no `package-lock.json`, run:
+
+```bash
+docker compose run --rm nuxt npm install
+```
+
+---
 
 ## Configuration
 
-Copiez le fichier `.env.example` en `.env` et adaptez les URLs si besoin :
+Copy the example env file:
 
 ```bash
 cp .env.example .env
 ```
 
-## Démarrage du projet
+Environment variables:
 
-Lancez l’application en mode développement avec :
-
-```bash
-docker-compose up --build
+```env
+NUXT_PUBLIC_BACKEND_URL=http://localhost:8000
+NUXT_PUBLIC_FRONTEND_URL=http://localhost:3000
 ```
 
-L’application sera accessible sur [http://localhost:3000](http://localhost:3000).
+---
 
-## Arrêt du projet
-
-Pour arrêter les conteneurs :
+## Usage
 
 ```bash
-docker-compose down
+# start the dev server (http://localhost:3000)
+docker compose up --build
 ```
 
-## Tests end-to-end (Cypress)
-
-Depuis le conteneur déjà lancé (service `nuxt-app`) :
+Stop containers:
 
 ```bash
-docker exec -it <nom_du_conteneur_nuxt_app> npm run test:e2e
-# ou en headless
-docker exec -it <nom_du_conteneur_nuxt_app> npm run test:e2e:headless
+docker compose down
 ```
 
-Remplacez `<nom_du_conteneur_nuxt_app>` par le nom effectif du conteneur (visible via `docker ps`).
+---
 
-## Conventions
+## Testing
 
-- **Commits** : Utilisez le format [Conventional Commit](https://www.conventionalcommits.org/fr/v1.0.0/).
+```bash
+# open Cypress (interactive)
+docker compose exec nuxt npm run test:e2e
+
+# run Cypress headless
+docker compose exec nuxt npm run test:e2e:headless
+```
+
+Guidelines:
+
+- Tests are required for behavioral changes
+- All tests must pass before opening a PR
+
+---
+
+## Linting
+
+```bash
+# run ESLint
+docker compose run --rm nuxt npm run lint
+
+# apply auto-fixes
+docker compose run --rm nuxt npm run lint:fix
+
+# format with Prettier
+docker compose run --rm nuxt npm run format
+
+# check formatting only
+docker compose run --rm nuxt npm run format:check
+```
+
+---
+
+## Contributing
+
+Contributions are welcome.
+
+Please read the **CONTRIBUTING.md** file before opening an issue or pull request. It contains detailed guidelines on:
+
+- Branch naming
+- Commit message conventions
+- Pull request process
+- Review and merge rules
+
+---
+
+## License
+
+No license has been specified yet.

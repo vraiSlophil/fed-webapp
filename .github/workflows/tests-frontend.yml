@@ -1,0 +1,53 @@
+name: 🧪 Tests Frontend
+
+on:
+    workflow_call:
+        inputs:
+            e2e:
+                description: 'Run Cypress E2E tests'
+                required: false
+                type: boolean
+                default: true
+    workflow_dispatch: # Manual trigger
+        inputs:
+            e2e:
+                description: 'Run Cypress E2E tests'
+                required: false
+                type: boolean
+                default: true
+
+permissions:
+    contents: read
+
+jobs:
+    cypress:
+        name: Cypress E2E
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        if: ${{ inputs.e2e }}
+
+        env:
+            NUXT_PUBLIC_BACKEND_URL: http://localhost:8000
+            NUXT_PUBLIC_FRONTEND_URL: http://localhost:3000
+
+        steps:
+            - name: 📥 Checkout code
+              uses: actions/checkout@v4
+
+            - name: 🟢 Setup Node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '24'
+                  cache: npm
+
+            - name: 📦 Install dependencies
+              run: npm ci
+
+            - name: 🧪 Run Cypress (headless)
+              uses: cypress-io/github-action@v6
+              with:
+                  install: false
+                  start: npm run dev -- --host 0.0.0.0 --port 3000
+                  wait-on: 'http://localhost:3000'
+                  wait-on-timeout: 120
+                  command: npm run test:e2e:headless

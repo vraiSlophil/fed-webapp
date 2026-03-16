@@ -1,15 +1,15 @@
-import tailwindcss from "@tailwindcss/vite";
-import {FedPreset} from "./app/utils/FedPreset";
+import tailwindcss from '@tailwindcss/vite';
+import { FedPreset } from './app/utils/FedPreset';
 
 export default defineNuxtConfig({
     future: { compatibilityVersion: 4 },
     compatibilityDate: '2025-05-15',
-    devtools: {enabled: true},
+    devtools: { enabled: true },
     runtimeConfig: {
         public: {
             BACKEND_URL: '',
             FRONTEND_URL: '',
-        }
+        },
     },
     css: ['~/assets/css/main.css'],
     components: [
@@ -44,9 +44,7 @@ export default defineNuxtConfig({
             pathPrefix: false,
         },
     ],
-    modules: [
-        '@primevue/nuxt-module'
-    ],
+    modules: ['@nuxt/eslint', '@primevue/nuxt-module'],
     // primevue: {
     //     options: {
     //         theme: {
@@ -64,29 +62,27 @@ export default defineNuxtConfig({
                 preset: FedPreset,
                 options: {
                     darkModeSelector: 'system',
-                    cssLayer: false
-                }
-            }
-        }
+                    cssLayer: false,
+                },
+            },
+        },
     },
     vite: {
-        plugins: [
-            tailwindcss(),
-        ],
+        plugins: [tailwindcss()],
     },
     app: {
         pageTransition: { name: 'page', mode: 'out-in' },
         head: {
             title: 'FED',
             htmlAttrs: {
-                lang: 'fr'
+                lang: 'fr',
             },
             link: [
                 {
                     rel: 'stylesheet',
-                    href: 'https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20,700,1,200'
-                }
-            ]
-        }
+                    href: 'https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20,700,1,200',
+                },
+            ],
+        },
     },
-})
+});

@@ -1,189 +1,200 @@
-import {ref} from 'vue'
-import {useApiFetch} from '~/composables/useApiFetch'
-import type {CreatePlaygroundPayload, Playground} from '~/types/playground'
-import type {Theme} from '~/types/theme'
-import {usePlaygroundThemesPagination} from "~/domains/playground/composables/usePlaygroundThemesPagination";
+import { ref } from 'vue';
+import { useApiFetch } from '~/composables/useApiFetch';
+import type { CreatePlaygroundPayload, Playground } from '~/types/playground';
+import type { Theme } from '~/types/theme';
+import { usePlaygroundThemesPagination } from '~/domains/playground/composables/usePlaygroundThemesPagination';
 
-const playgrounds = ref<Playground[]>([])
-const currentPlayground = ref<Playground | null>(null)
-const themesPaginationRef = ref<ReturnType<typeof usePlaygroundThemesPagination> | null>(null)
-const currentPaginationPlaygroundId = ref<string | null>(null)
+const playgrounds = ref<Playground[]>([]);
+const currentPlayground = ref<Playground | null>(null);
+const themesPaginationRef = ref<ReturnType<typeof usePlaygroundThemesPagination> | null>(null);
+const currentPaginationPlaygroundId = ref<string | null>(null);
 
 const playgroundThemes = computed<Theme[]>(() => {
-    return themesPaginationRef.value?.allThemes ?? []
-})
+    return themesPaginationRef.value?.allThemes ?? [];
+});
 
-const themesPagination = computed(() => themesPaginationRef.value)
+const themesPagination = computed(() => themesPaginationRef.value);
 
-const loading = ref(false)
-const error = ref<string | null>(null)
+const loading = ref(false);
+const error = ref<string | null>(null);
 
 const isUuid = (value: string) => {
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-    return uuidRegex.test(value)
-}
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(value);
+};
 
 export const usePlaygrounds = () => {
-
     // Liste tous les playgrounds
     const fetchPlaygrounds = async () => {
-        loading.value = true
-        error.value = null
+        loading.value = true;
+        error.value = null;
         try {
-            const res = await useApiFetch('/api/playgrounds', {method: 'GET'})
-            playgrounds.value = res.data.playgrounds
+            const res = await useApiFetch('/api/playgrounds', {
+                method: 'GET',
+            });
+            playgrounds.value = res.data.playgrounds;
         } catch (e: any) {
-            error.value = e.message || 'Erreur lors du chargement des playgrounds'
+            error.value = e.message || 'Erreur lors du chargement des playgrounds';
         } finally {
-            loading.value = false
+            loading.value = false;
         }
-    }
+    };
 
     const createPlayground = async (payload: CreatePlaygroundPayload) => {
-        loading.value = true
-        error.value = null
+        loading.value = true;
+        error.value = null;
         try {
             const res = await useApiFetch('/api/playgrounds', {
                 method: 'POST',
-                body: JSON.stringify(payload)
-            })
-            return res.data.playground
+                body: JSON.stringify(payload),
+            });
+            return res.data.playground;
         } catch (e: any) {
-            error.value = e.message || 'Erreur lors de la création'
-            throw e
+            error.value = e.message || 'Erreur lors de la création';
+            throw e;
         } finally {
-            loading.value = false
+            loading.value = false;
         }
-    }
+    };
 
     const fetchPlaygroundMetaById = async (playgroundId: string) => {
-        loading.value = true
-        error.value = null
+        loading.value = true;
+        error.value = null;
         try {
-            const res = await useApiFetch(`/api/playgrounds/${playgroundId}`, {method: 'GET'})
-            currentPlayground.value = res.data.playground
-            return currentPlayground.value
+            const res = await useApiFetch(`/api/playgrounds/${playgroundId}`, {
+                method: 'GET',
+            });
+            currentPlayground.value = res.data.playground;
+            return currentPlayground.value;
         } catch (e: any) {
-            error.value = e.message || 'Erreur lors du chargement du playground'
-            throw e
+            error.value = e.message || 'Erreur lors du chargement du playground';
+            throw e;
         } finally {
-            loading.value = false
+            loading.value = false;
         }
-    }
+    };
 
     const fetchPlaygroundMetaBySlug = async (slug: string) => {
-        loading.value = true
-        error.value = null
+        loading.value = true;
+        error.value = null;
         try {
-            const res = await useApiFetch(`/api/playgrounds/by-slug/${slug}`, {method: 'GET'})
-            currentPlayground.value = res.data.playground
-            return currentPlayground.value
+            const res = await useApiFetch(`/api/playgrounds/by-slug/${slug}`, {
+                method: 'GET',
+            });
+            currentPlayground.value = res.data.playground;
+            return currentPlayground.value;
         } catch (e: any) {
-            error.value = e.message || 'Erreur lors du chargement du playground'
-            throw e
+            error.value = e.message || 'Erreur lors du chargement du playground';
+            throw e;
         } finally {
-            loading.value = false
+            loading.value = false;
         }
-    }
+    };
 
     const fetchPlaygroundMetaByIdOrSlug = async (idOrSlug: string) => {
-        const tryIdFirst = isUuid(idOrSlug)
+        const tryIdFirst = isUuid(idOrSlug);
 
         const attempts = tryIdFirst
             ? [() => fetchPlaygroundMetaById(idOrSlug), () => fetchPlaygroundMetaBySlug(idOrSlug)]
-            : [() => fetchPlaygroundMetaBySlug(idOrSlug), () => fetchPlaygroundMetaById(idOrSlug)]
+            : [() => fetchPlaygroundMetaBySlug(idOrSlug), () => fetchPlaygroundMetaById(idOrSlug)];
 
         for (const attempt of attempts) {
             try {
-                return await attempt()
+                return await attempt();
             } catch (e) {
                 // on essaie l’autre option
             }
         }
 
-        throw new Error('Playground introuvable')
-    }
+        throw new Error('Playground introuvable');
+    };
 
     const updatePlayground = async (playgroundId: string, payload: Partial<Playground>) => {
-        loading.value = true
-        error.value = null
+        loading.value = true;
+        error.value = null;
         try {
             const res = await useApiFetch(`/api/playgrounds/${playgroundId}`, {
                 method: HttpMethods.PATCH,
-                body: JSON.stringify(payload)
-            })
+                body: JSON.stringify(payload),
+            });
             if (currentPlayground.value) {
-                currentPlayground.value = res.data.playground
+                currentPlayground.value = res.data.playground;
             }
-            return res.data.playground
+            return res.data.playground;
         } catch (e: any) {
-            error.value = e.message || 'Erreur lors de la mise à jour'
-            throw e
+            error.value = e.message || 'Erreur lors de la mise à jour';
+            throw e;
         } finally {
-            loading.value = false
+            loading.value = false;
         }
-    }
+    };
 
     const deletePlayground = async (playgroundId: string) => {
-        loading.value = true
-        error.value = null
+        loading.value = true;
+        error.value = null;
         try {
-            await useApiFetch(`/api/playgrounds/${playgroundId}`, {method: 'DELETE'})
+            await useApiFetch(`/api/playgrounds/${playgroundId}`, {
+                method: 'DELETE',
+            });
         } catch (e: any) {
-            error.value = e.message || 'Erreur lors de la suppression'
-            throw e
+            error.value = e.message || 'Erreur lors de la suppression';
+            throw e;
         } finally {
-            loading.value = false
+            loading.value = false;
         }
-    }
+    };
 
     const setDefaultPlayground = async (playgroundId: string) => {
-        loading.value = true
-        error.value = null
+        loading.value = true;
+        error.value = null;
         try {
-            const res = await useApiFetch(`/api/playgrounds/${playgroundId}/set-default`, {method: 'POST'})
-            return res.data.playground
+            const res = await useApiFetch(`/api/playgrounds/${playgroundId}/set-default`, {
+                method: 'POST',
+            });
+            return res.data.playground;
         } catch (e: any) {
-            error.value = e.message || 'Erreur lors de la mise par défaut'
-            throw e
+            error.value = e.message || 'Erreur lors de la mise par défaut';
+            throw e;
         } finally {
-            loading.value = false
+            loading.value = false;
         }
-    }
+    };
 
     const fetchPlaygroundStats = async (playgroundId: string) => {
-        loading.value = true
-        error.value = null
+        loading.value = true;
+        error.value = null;
         try {
-            const res = await useApiFetch(`/api/playgrounds/${playgroundId}/stats`, {method: 'GET'})
-            return res.data
+            const res = await useApiFetch(`/api/playgrounds/${playgroundId}/stats`, {
+                method: 'GET',
+            });
+            return res.data;
         } catch (e: any) {
-            error.value = e.message || 'Erreur lors du chargement des stats'
-            throw e
+            error.value = e.message || 'Erreur lors du chargement des stats';
+            throw e;
         } finally {
-            loading.value = false
+            loading.value = false;
         }
-    }
+    };
 
     const fetchPlaygroundThemesPage = async (playgroundId: string, page = 1, perPage = 20) => {
         if (!themesPaginationRef.value || currentPaginationPlaygroundId.value !== playgroundId) {
-            themesPaginationRef.value = usePlaygroundThemesPagination(playgroundId)
-            currentPaginationPlaygroundId.value = playgroundId
+            themesPaginationRef.value = usePlaygroundThemesPagination(playgroundId);
+            currentPaginationPlaygroundId.value = playgroundId;
         }
-        await themesPaginationRef.value!.setPerPage(perPage, false)
-        await themesPaginationRef.value!.loadFirstPage()
-    }
+        await themesPaginationRef.value!.setPerPage(perPage, false);
+        await themesPaginationRef.value!.loadFirstPage();
+    };
 
     const preloadAllThemesInBackground = async () => {
-        if (!themesPaginationRef.value) return
-        await themesPaginationRef.value.preloadAllPages()
-    }
+        if (!themesPaginationRef.value) return;
+        await themesPaginationRef.value.preloadAllPages();
+    };
 
     const reloadCurrentPlayground = async () => {
-        if (!currentPlayground.value || !themesPaginationRef.value) return
-        await themesPaginationRef.value.loadFirstPage()
-        await themesPaginationRef.value.preloadAllPages()
-    }
+        if (!currentPlayground.value || !themesPaginationRef.value) return;
+        await themesPaginationRef.value.loadFirstPage();
+        await themesPaginationRef.value.preloadAllPages();
+    };
 
     return {
         playgrounds,
@@ -203,6 +214,6 @@ export const usePlaygrounds = () => {
         setDefaultPlayground,
         fetchPlaygroundStats,
         preloadAllThemesInBackground,
-        reloadCurrentPlayground
-    }
-}
+        reloadCurrentPlayground,
+    };
+};

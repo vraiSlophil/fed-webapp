@@ -1,72 +1,65 @@
-import {HttpMethods} from "~/utils/httpMethods";
-import type { QueryParams } from "~/utils/queryString";
-import { buildQueryString } from "~/utils/queryString";
+import type { NitroFetchOptions } from 'nitropack';
+import type { QueryParams } from '~/utils/queryString';
+import { buildQueryString } from '~/utils/queryString';
+import { useAuthState } from '~/domains/auth/composables/useAuthState';
+import { HttpMethods } from '~/utils/httpMethods';
 
-const ensureCsrf = async (config: any) => {
-    await fetch(`${config.public.BACKEND_URL}/sanctum/csrf-cookie`, {credentials: 'include'})
-}
+export type ApiFetchOptions = Omit<NitroFetchOptions<string>, 'query' | 'method'> & {
+    method?: HttpMethods;
+    query?: QueryParams;
+    redirectOn401?: string | false;
+};
 
-const getXsrfHeader = () => {
-    const raw = useCookie('XSRF-TOKEN').value || ''
-    return decodeURIComponent(raw)
-}
+export const useApiFetch = async <T>(url: string, options: ApiFetchOptions = {}): Promise<T> => {
+    const config = useRuntimeConfig();
+    const { token, clearAuth, setForbidden } = useAuthState();
 
-export type ApiFetchOptions = RequestInit & {
-    query?: QueryParams
-}
+    const headers = new Headers(options.headers || {});
+    headers.set('Accept', 'application/json');
 
-export const useApiFetch = async (
-    url: string,
-    options: ApiFetchOptions = {}
-) => {
-    const config = useRuntimeConfig()
-    const method = ((options.method || HttpMethods.GET) as HttpMethods).toUpperCase()
-    const authToken = useCookie('auth-token').value
-
-    /* 1.  En-têtes communs */
-    const baseHeaders: any = {
-        Accept: 'application/json',
-        ...(options.headers || {})
+    if (token.value) {
+        headers.set('Authorization', `Bearer ${token.value}`);
     }
 
-    /* 2. Ajouter le token d'authentification s'il existe */
-    if (authToken) {
-        baseHeaders['Authorization'] = `Bearer ${authToken}`
+    const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+    if (options.body && !isFormData && !headers.has('Content-Type')) {
+        headers.set('Content-Type', 'application/json');
     }
 
-    /* 3.  Pour les verbes modifiant l'état, on récupère le cookie CSRF */
-    if ([HttpMethods.POST, HttpMethods.PUT, HttpMethods.PATCH, HttpMethods.DELETE].includes(method as HttpMethods)) {
-        await ensureCsrf(config);
-        const isFormData = options.body instanceof FormData
+    setForbidden(false);
 
-        options.headers = {
-            ...baseHeaders,
-            'X-XSRF-TOKEN': getXsrfHeader(),
-            ...(isFormData ? {} : {'Content-Type': 'application/json'}),
+    const queryString = buildQueryString(options.query);
+    const hasExistingQuery = url.includes('?');
+    const finalUrl =
+        hasExistingQuery && queryString ? `${url}&${queryString.slice(1)}` : `${url}${queryString}`;
+
+    const {
+        query,
+        redirectOn401,
+        headers: _headers,
+        credentials: _credentials,
+        ...fetchOptions
+    } = options;
+
+    try {
+        return await $fetch<T>(`${config.public.BACKEND_URL}${finalUrl}`, {
+            ...fetchOptions,
+            headers,
+            credentials: 'omit',
+        });
+    } catch (error: any) {
+        const status = error?.status || error?.statusCode || error?.response?.status;
+
+        if (status === 401) {
+            clearAuth();
+            const redirectTarget = redirectOn401 === undefined ? '/login' : redirectOn401;
+            if (redirectTarget && import.meta.client) {
+                void navigateTo(redirectTarget);
+            }
+        } else if (status === 403) {
+            setForbidden(true);
         }
-    } else {
-        options.headers = baseHeaders
+
+        throw error;
     }
-
-    /* 4.  On transmet TOUJOURS les cookies (session + XSRF) */
-    options.credentials = 'include'
-
-    const queryString = buildQueryString(options.query)
-    const hasExistingQuery = url.includes('?')
-    const finalUrl = hasExistingQuery && queryString
-        ? `${url}&${queryString.slice(1)}`
-        : `${url}${queryString}`
-
-    const { query, ...fetchOptions } = options
-
-    const response = await fetch(`${config.public.BACKEND_URL}${finalUrl}`, fetchOptions)
-    const data = await response.json().catch(() => ({}))
-
-    if (!response.ok) {
-        const error: any = new Error(data?.message || 'Erreur inconnue')
-        error.data = data
-        throw error
-    }
-
-    return data
-}
+};

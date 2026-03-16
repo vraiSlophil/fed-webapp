@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import PlaygroundPage from '~/domains/playground/components/PlaygroundPage.vue'
+import PlaygroundPage from '~/domains/playground/components/PlaygroundPage.vue';
 </script>
 
 <template>
-  <PlaygroundPage />
+    <PlaygroundPage />
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

@@ -1,0 +1,35 @@
+#!/usr/bin/env sh
+set -eu
+
+SERVICE="nuxt"
+
+if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
+  if docker compose version >/dev/null 2>&1; then
+    COMPOSE="docker compose"
+  elif command -v docker-compose >/dev/null 2>&1; then
+    COMPOSE="docker-compose"
+  else
+    echo "docker compose not found; skipping lint." >&2
+    exit 0
+  fi
+
+  if ${COMPOSE} ps -q "$SERVICE" >/dev/null 2>&1 && [ -n "$(${COMPOSE} ps -q "$SERVICE" 2>/dev/null || true)" ]; then
+    echo "Running Prettier in container (exec: ${SERVICE})..."
+    ${COMPOSE} exec -T "$SERVICE" npm run format
+    git add -A
+    echo "Running ESLint in container (exec: ${SERVICE})..."
+    ${COMPOSE} exec -T "$SERVICE" npm run lint
+    exit 0
+  fi
+
+  echo "Running Prettier in container (run: ${SERVICE})..."
+  ${COMPOSE} run --rm --no-deps --remove-orphans "$SERVICE" npm run format
+  git add -A
+  echo "Running ESLint in container (run: ${SERVICE})..."
+  ${COMPOSE} run --rm --no-deps --remove-orphans "$SERVICE" npm run lint
+  exit 0
+fi
+
+echo "Docker is not available/running; cannot run Prettier/ESLint in container." >&2
+echo "Start Docker, or bypass with: git commit --no-verify" >&2
+exit 1

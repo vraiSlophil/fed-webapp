@@ -1,0 +1,8 @@
+node_modules
+.nuxt
+.output
+dist
+coverage
+cypress/screenshots
+cypress/videos
+package-lock.json
