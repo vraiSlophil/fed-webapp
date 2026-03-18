@@ -1,8 +1,10 @@
 import { computed, ref } from 'vue';
+import type { ApiRawMeta, ApiSuccessEnvelope } from '~/types/api';
 import { type ApiFetchOptions, useApiFetch } from '~/composables/useApiFetch';
 import type { Pagination } from '~/types/pagination';
+import { splitApiMeta } from '~/utils/apiEnvelope';
 
-export type PaginatedFetcherOptions<T, TFilters, TResponse> = {
+export type PaginatedFetcherOptions<T, TFilters, TData> = {
     /** URL de base de la ressource, ex: '/api/tasks' */
     basePath: string;
     /** Filtres initiaux (mémorisés et réutilisés à chaque requête) */
@@ -13,22 +15,16 @@ export type PaginatedFetcherOptions<T, TFilters, TResponse> = {
     initialPerPage?: number;
     /** Options additionnelles pour useApiFetch (headers, etc.) */
     fetchOptions?: Omit<ApiFetchOptions, 'method' | 'query'>;
-    /**
-     * Fonction responsable d'extraire les items et la pagination
-     * depuis la réponse brute renvoyée par l'API.
-     */
-    parseResponse: (response: TResponse) => {
-        items: T[];
-        pagination: Pagination;
-    };
+    /** Fonction responsable d'extraire les items depuis envelope.data */
+    parseItems: (_data: TData) => T[];
 };
 
 export const usePaginatedResource = <
     T,
     TFilters extends Record<string, any> = Record<string, any>,
-    TResponse = any,
+    TData = unknown,
 >(
-    options: PaginatedFetcherOptions<T, TFilters, TResponse>,
+    options: PaginatedFetcherOptions<T, TFilters, TData>,
 ) => {
     const {
         basePath,
@@ -36,11 +32,12 @@ export const usePaginatedResource = <
         initialPage = 1,
         initialPerPage = 20,
         fetchOptions,
-        parseResponse,
+        parseItems,
     } = options;
 
     const items = ref<T[]>([]);
     const pagination = ref<Pagination | null>(null);
+    const metaExtras = ref<ApiRawMeta>({});
     const page = ref(Math.max(1, initialPage));
     const perPage = ref(initialPerPage > 0 ? initialPerPage : 20);
     const filters = ref<TFilters>(
@@ -78,18 +75,23 @@ export const usePaginatedResource = <
                 ...(filters.value as any),
             };
 
-            const response = await useApiFetch(basePath, {
+            const envelope = (await useApiFetch<TData>(basePath, {
                 ...(fetchOptions || {}),
                 method: 'GET',
                 query,
-            } as ApiFetchOptions);
+            } as ApiFetchOptions)) as ApiSuccessEnvelope<TData> | null;
 
-            const { items: newItems, pagination: newPagination } = parseResponse(
-                response as TResponse,
+            if (!envelope) {
+                throw new Error('Paginated resources cannot resolve from a 204 response.');
+            }
+
+            const { pagination: newPagination, metaExtras: newMetaExtras } = splitApiMeta(
+                envelope.meta,
             );
 
-            items.value = newItems;
+            items.value = parseItems(envelope.data);
             pagination.value = newPagination;
+            metaExtras.value = newMetaExtras;
         } catch (e: any) {
             error.value = e;
             throw e;
@@ -128,7 +130,9 @@ export const usePaginatedResource = <
         if (value <= 0) return;
         perPage.value = value;
         page.value = 1;
-        shouldLoadPage ? await loadPage(1) : null;
+        if (shouldLoadPage) {
+            await loadPage(1);
+        }
     };
 
     const setFilters = async (newFilters: TFilters) => {
@@ -146,6 +150,7 @@ export const usePaginatedResource = <
     return {
         items,
         pagination,
+        metaExtras,
         page,
         perPage,
         filters,

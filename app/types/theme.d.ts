@@ -1,5 +1,4 @@
 import type { ThemeMemberPermissions } from '~/types/themeMembers';
-import type { PaginatedResponse } from '~/types/pagination';
 
 export type Theme = {
     theme_id: string;
@@ -51,6 +50,3 @@ export type CreateThemePayload = {
     color: string;
     playground_id: string;
 };
-
-// Réponse paginée spécialisée pour les thèmes (si l API suit ce format)
-export type PaginatedThemesResponse = PaginatedResponse<Theme>;

@@ -18,14 +18,21 @@ export const buildAuthHandlers = (
             method: 'POST',
             pathname: '/api/login',
             handle: (route) => {
-                return route.fulfill(successResponse({ token: mockedAccessToken, user }));
+                return route.fulfill(
+                    successResponse(
+                        { token: mockedAccessToken, user },
+                        { messageCode: 'auth.login.success' },
+                    ),
+                );
             },
         },
         {
             method: 'GET',
             pathname: '/api/user',
             handle: (route) => {
-                return route.fulfill(successResponse({ user }));
+                return route.fulfill(
+                    successResponse({ user }, { messageCode: 'auth.user.fetched' }),
+                );
             },
         },
         {

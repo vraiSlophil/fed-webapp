@@ -5,9 +5,5 @@ export type Pagination = {
     last_page: number;
     from: number | null;
     to: number | null;
-};
-
-export type PaginatedResponse<T> = {
-    data: T[];
-    pagination: Pagination;
+    has_next: boolean;
 };
