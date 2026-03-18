@@ -1,0 +1,12 @@
+.env
+.env.test
+.git
+.github
+.idea
+.nuxt
+coverage
+issues.json
+node_modules
+playwright-report
+test-results
+TODO.md

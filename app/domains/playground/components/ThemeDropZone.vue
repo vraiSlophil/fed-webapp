@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import type { Theme } from '~/types/theme';
 import { useDraggableThemes } from '~/domains/playground/composables/useDraggableTheme';
 import { useDropZoneInteraction } from '~/domains/playground/composables/useDropZoneInteraction';
@@ -150,6 +151,7 @@ watch(isHovering, (newVal) => {
 <template>
     <div
         ref="dropZoneElement"
+        data-testid="playground-theme-drop-zone"
         class="fixed top-0 right-0 h-full backdrop-blur transition-all duration-200 flex items-center justify-center overflow-hidden cursor-pointer z-40"
         :class="[
             isVisible ? 'w-64' : 'w-0',

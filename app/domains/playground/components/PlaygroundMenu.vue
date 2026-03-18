@@ -261,6 +261,7 @@ watch(
         class="playground-button w-10 h-10"
         outlined
         rounded
+        data-testid="playground-menu-toggle"
         @click="dialogVisible = !dialogVisible"
     >
         <span class="material-symbols-rounded"> select_window_2 </span>
@@ -269,6 +270,7 @@ watch(
         v-model:visible="dialogVisible"
         :closable="true"
         :modal="true"
+        data-testid="playground-menu-dialog"
         :pt="{
             content: {
                 style: {
@@ -328,6 +330,7 @@ watch(
                         outlined
                         rounded
                         title="Définir comme Playground par défaut"
+                        :data-testid="`playground-menu-set-default-${playground.playground_id}`"
                         @click="() => handleSetAsDefault(playground.playground_id)"
                     >
                         <span class="material-symbols-rounded">home</span>
@@ -341,6 +344,7 @@ watch(
                         outlined
                         rounded
                         title="Charger le Playground"
+                        :data-testid="`playground-menu-load-${playground.playground_id}`"
                         @click="() => handleLoadPlaygroud(playground.playground_id)"
                     >
                         <span class="material-symbols-rounded">open_in_new</span>
@@ -350,6 +354,7 @@ watch(
                         outlined
                         rounded
                         title="Modifier le Playground"
+                        :data-testid="`playground-menu-edit-${playground.playground_id}`"
                         @click="() => handleOpenEditDialog(playground)"
                     >
                         <span class="material-symbols-rounded">edit</span>
@@ -360,6 +365,7 @@ watch(
                         outlined
                         rounded
                         title="Supprimer le Playground"
+                        :data-testid="`playground-menu-delete-${playground.playground_id}`"
                         @click="
                             () => {
                                 deletePlaygroundDialogVisible = !deletePlaygroundDialogVisible;
@@ -389,6 +395,7 @@ watch(
                 outlined
                 rounded
                 title="Créer un nouveau Playground"
+                data-testid="playground-menu-create-open"
                 @click="newPlaygroundDialogVisible = true"
             >
                 <span class="material-symbols-rounded">add</span>
@@ -399,14 +406,20 @@ watch(
             v-model:visible="newPlaygroundDialogVisible"
             class="w-1/3"
             header="Créer un nouveau Playground"
+            data-testid="playground-create-dialog"
         >
-            <form class="space-y-4" @submit.prevent="handleCreatePlayground">
+            <form
+                class="space-y-4"
+                data-testid="playground-create-form"
+                @submit.prevent="handleCreatePlayground"
+            >
                 <div>
                     <label class="block mb-1">Nom</label>
                     <InputText
                         v-model="newPlaygroundData.name"
                         class="w-full"
                         placeholder="Nom du playground"
+                        data-testid="playground-create-name"
                     />
                 </div>
                 <div>
@@ -415,6 +428,7 @@ watch(
                         v-model="newPlaygroundData.slug"
                         class="w-full"
                         placeholder="Slug du playground"
+                        data-testid="playground-create-slug"
                     />
                 </div>
                 <div>
@@ -450,21 +464,31 @@ watch(
                     label="Annuler"
                     @click="newPlaygroundDialogVisible = false"
                 />
-                <Button label="Créer" @click="handleCreatePlayground" />
+                <Button
+                    label="Créer"
+                    data-testid="playground-create-submit"
+                    @click="handleCreatePlayground"
+                />
             </template>
         </Dialog>
         <Dialog
             v-model:visible="editPlaygroundDialogVisible"
             class="w-1/3"
             header="Modifier le Playground"
+            data-testid="playground-edit-dialog"
         >
-            <form class="space-y-4" @submit.prevent="handleUpdatePlayground">
+            <form
+                class="space-y-4"
+                data-testid="playground-edit-form"
+                @submit.prevent="handleUpdatePlayground"
+            >
                 <div>
                     <label class="block mb-1">Nom</label>
                     <InputText
                         v-model="editPlaygroundData.name"
                         class="w-full"
                         placeholder="Nom du playground"
+                        data-testid="playground-edit-name"
                     />
                 </div>
                 <div>
@@ -473,6 +497,7 @@ watch(
                         v-model="editPlaygroundData.slug"
                         class="w-full"
                         placeholder="Slug du playground"
+                        data-testid="playground-edit-slug"
                     />
                 </div>
                 <div>
@@ -508,7 +533,11 @@ watch(
                     label="Annuler"
                     @click="editPlaygroundDialogVisible = false"
                 />
-                <Button label="Mettre à jour" @click="handleUpdatePlayground" />
+                <Button
+                    label="Mettre à jour"
+                    data-testid="playground-edit-submit"
+                    @click="handleUpdatePlayground"
+                />
             </template>
         </Dialog>
         <Dialog
@@ -516,6 +545,7 @@ watch(
             :closable="true"
             :modal="true"
             header="Confirmer la suppression du playground"
+            data-testid="playground-delete-dialog"
         >
             <div class="confirmation-content flex items-center gap-3 m-4">
                 <span class="material-symbols-rounded text-yellow-500 text-2xl">warning</span>
@@ -537,6 +567,7 @@ watch(
                     outlined
                     rounded
                     severity="danger"
+                    data-testid="playground-delete-confirm"
                     @click="
                         () => {
                             handleDeletePlayground(playgroundToDelete.playground_id);

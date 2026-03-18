@@ -271,7 +271,13 @@ const getDisplayName = (member: ThemeMember) => {
 </script>
 
 <template>
-    <Dialog :visible="visible" class="w-xl" modal @update:visible="emit('update:visible', $event)">
+    <Dialog
+        :visible="visible"
+        class="w-xl"
+        modal
+        data-testid="themes-members-dialog"
+        @update:visible="emit('update:visible', $event)"
+    >
         <template #header>
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-semibold">Membres du thème</h3>
@@ -297,7 +303,10 @@ const getDisplayName = (member: ThemeMember) => {
                     <div v-else>
                         <div v-for="member in members" :key="member.user_id">
                             <Divider v-if="members.indexOf(member) > 0" />
-                            <div class="flex items-center justify-between py-3">
+                            <div
+                                class="flex items-center justify-between py-3"
+                                :data-testid="`themes-members-row-${member.user_id}`"
+                            >
                                 <div class="flex items-center gap-3">
                                     <div>
                                         <Avatar
@@ -353,6 +362,7 @@ const getDisplayName = (member: ThemeMember) => {
                                         rounded
                                         text
                                         title="Modifier les permissions"
+                                        :data-testid="`themes-members-edit-${member.user_id}`"
                                         @click="startEditPermissions(member)"
                                     >
                                         <span class="material-symbols-rounded text-sm">edit</span>
@@ -365,6 +375,7 @@ const getDisplayName = (member: ThemeMember) => {
                                         rounded
                                         text
                                         title="Désactiver"
+                                        :data-testid="`themes-members-deactivate-${member.user_id}`"
                                         @click="confirmDeactivation(member)"
                                     >
                                         <span class="material-symbols-rounded text-sm">block</span>
@@ -378,6 +389,7 @@ const getDisplayName = (member: ThemeMember) => {
                                         rounded
                                         text
                                         title="Réactiver"
+                                        :data-testid="`themes-members-reactivate-${member.user_id}`"
                                         @click="handleReactivate(member)"
                                     >
                                         <span class="material-symbols-rounded text-sm"
@@ -391,6 +403,7 @@ const getDisplayName = (member: ThemeMember) => {
                                         rounded
                                         text
                                         title="Supprimer"
+                                        :data-testid="`themes-members-delete-${member.user_id}`"
                                         @click="confirmDeletion(member)"
                                     >
                                         <span class="material-symbols-rounded text-sm">delete</span>
@@ -414,6 +427,7 @@ const getDisplayName = (member: ThemeMember) => {
                                 :loading="searchLoading"
                                 class="w-full pl-10 !rounded-full"
                                 placeholder="Rechercher un utilisateur..."
+                                data-testid="themes-members-search-input"
                             />
                         </IconField>
 
@@ -428,7 +442,10 @@ const getDisplayName = (member: ThemeMember) => {
                         <div v-if="searchResults.length > 0" class="overflow-y-auto">
                             <div v-for="user in searchResults" :key="user.user_id">
                                 <Divider v-if="searchResults.indexOf(user) > 0" />
-                                <div class="flex items-center justify-between py-3">
+                                <div
+                                    class="flex items-center justify-between py-3"
+                                    :data-testid="`themes-members-search-result-${user.user_id}`"
+                                >
                                     <div class="flex items-center gap-3">
                                         <div>
                                             <Avatar
@@ -461,6 +478,7 @@ const getDisplayName = (member: ThemeMember) => {
                                             class="p-2"
                                             outlined
                                             rounded
+                                            :data-testid="`themes-members-invite-open-${user.user_id}`"
                                             @click="selectUserForInvite(user)"
                                         >
                                             Inviter

@@ -4,14 +4,14 @@ on:
     workflow_call:
         inputs:
             e2e:
-                description: 'Run Cypress E2E tests'
+                description: 'Run Playwright browser and backend-e2e workflows'
                 required: false
                 type: boolean
                 default: true
-    workflow_dispatch: # Manual trigger
+    workflow_dispatch:
         inputs:
             e2e:
-                description: 'Run Cypress E2E tests'
+                description: 'Run Playwright browser and backend-e2e workflows'
                 required: false
                 type: boolean
                 default: true
@@ -20,18 +20,18 @@ permissions:
     contents: read
 
 jobs:
-    cypress:
-        name: Cypress E2E
+    playwright-browser:
+        name: Playwright Browser
         runs-on: ubuntu-latest
         timeout-minutes: 30
-        if: ${{ inputs.e2e }}
 
         env:
-            NUXT_PUBLIC_BACKEND_URL: http://localhost:8000
-            NUXT_PUBLIC_FRONTEND_URL: http://localhost:3000
+            CI: true
+            NUXT_PUBLIC_BACKEND_URL: http://127.0.0.1:8000
+            NUXT_PUBLIC_FRONTEND_URL: http://127.0.0.1:3000
 
         steps:
-            - name: 📥 Checkout code
+            - name: 📥 Checkout frontend
               uses: actions/checkout@v4
 
             - name: 🟢 Setup Node
@@ -43,11 +43,142 @@ jobs:
             - name: 📦 Install dependencies
               run: npm ci
 
-            - name: 🧪 Run Cypress (headless)
-              uses: cypress-io/github-action@v6
+            - name: 🎭 Install Playwright browsers
+              run: npx playwright install --with-deps chromium
+
+            - name: 🧩 Run component tests
+              run: npm run test:component
+
+            - name: 🔗 Run integration tests
+              run: npm run test:integration
+
+    playwright-e2e:
+        name: Playwright E2E
+        runs-on: ubuntu-latest
+        timeout-minutes: 45
+        if: ${{ inputs.e2e }}
+
+        env:
+            CI: true
+            NUXT_PUBLIC_BACKEND_URL: http://127.0.0.1:8000
+            NUXT_PUBLIC_FRONTEND_URL: http://127.0.0.1:3000
+            PLAYWRIGHT_ADMIN_EMAIL: playwright-admin@example.test
+            PLAYWRIGHT_E2E_PASSWORD: password
+            PLAYWRIGHT_ENABLE_REAL_BACKEND_E2E: '0'
+            PLAYWRIGHT_USER_EMAIL: playwright-user@example.test
+
+        steps:
+            - name: 📥 Checkout frontend
+              uses: actions/checkout@v4
+
+            - name: 📥 Checkout backend
+              if: env.PLAYWRIGHT_ENABLE_REAL_BACKEND_E2E == '1'
+              uses: actions/checkout@v4
               with:
-                  install: false
-                  start: npm run dev -- --host 0.0.0.0 --port 3000
-                  wait-on: 'http://localhost:3000'
-                  wait-on-timeout: 120
-                  command: npm run test:e2e:headless
+                  path: fed-api
+                  ref: dev
+                  repository: vraiSlophil/fed-api
+
+            - name: 🟢 Setup Node
+              uses: actions/setup-node@v4
+              with:
+                  cache: npm
+                  node-version: '24'
+
+            - name: 📦 Install frontend dependencies
+              run: npm ci
+
+            - name: 🎭 Install Playwright browsers
+              run: npx playwright install --with-deps chromium
+
+            - name: ⚙️ Prepare backend environment
+              if: env.PLAYWRIGHT_ENABLE_REAL_BACKEND_E2E == '1'
+              working-directory: fed-api
+              run: |
+                  cp .env.example .env
+                  {
+                    echo "APP_FRONTEND_URL=http://127.0.0.1:3000"
+                    echo "HOST_UID=$(id -u)"
+                    echo "HOST_GID=$(id -g)"
+                    echo "MAIL_MAILER=log"
+                    echo "RESEND_API_KEY=dummy-key"
+                  } >> .env
+
+            - name: 📦 Install backend dependencies
+              if: env.PLAYWRIGHT_ENABLE_REAL_BACKEND_E2E == '1'
+              working-directory: fed-api
+              run: docker compose run --rm --no-deps --build laravel composer install
+
+            - name: 🔑 Generate backend app key
+              working-directory: fed-api
+              run: docker compose run --rm --no-deps laravel php artisan key:generate
+
+            - name: 🚀 Start backend services
+              working-directory: fed-api
+              run: docker compose up -d --build
+
+            - name: 👤 Create deterministic Playwright users
+              working-directory: fed-api
+              run: |
+                  TINKER_CODE=$(cat <<'PHP'
+                  use App\Models\Auth\User;
+                  use Illuminate\Support\Facades\Hash;
+                  use Illuminate\Support\Str;
+
+                  $records = [
+                      [
+                          'email' => 'playwright-user@example.test',
+                          'first_name' => 'Playwright',
+                          'last_name' => 'User',
+                          'role_power' => 10,
+                          'username' => 'playwright-user',
+                      ],
+                      [
+                          'email' => 'playwright-admin@example.test',
+                          'first_name' => 'Playwright',
+                          'last_name' => 'Admin',
+                          'role_power' => 100,
+                          'username' => 'playwright-admin',
+                      ],
+                  ];
+
+                  foreach ($records as $record) {
+                      $user = User::query()->firstOrNew(['email' => $record['email']]);
+
+                      if (! $user->exists) {
+                          $user->user_id = (string) Str::uuid();
+                      }
+
+                      $user->forceFill([
+                          'username' => $record['username'],
+                          'email' => $record['email'],
+                          'password' => Hash::make('password'),
+                          'first_name' => $record['first_name'],
+                          'last_name' => $record['last_name'],
+                          'role_power' => $record['role_power'],
+                          'avatar_path' => null,
+                          'blocked_at' => null,
+                          'email_verified_at' => now(),
+                          'last_login_at' => null,
+                          'last_login_ip' => null,
+                          'remember_token' => null,
+                          'settings' => null,
+                      ])->save();
+                  }
+                  PHP
+                  )
+
+                  docker compose exec -T laravel php artisan tinker --execute="$TINKER_CODE"
+
+            - name: ℹ️ Note current backend-e2e status
+              run: |
+                  echo "Playwright real-backend specs are scaffolded in this repo."
+                  echo "They stay skipped until the frontend is aligned with the current fed-api dev contracts."
+
+            - name: 🧪 Run backend-e2e suite
+              run: npm run test:e2e
+
+            - name: 🧹 Stop backend services
+              if: always()
+              working-directory: fed-api
+              run: docker compose down -v

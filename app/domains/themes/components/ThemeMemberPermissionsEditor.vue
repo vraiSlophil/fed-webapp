@@ -104,6 +104,14 @@ const getDisplayName = (person: any) => {
     }
     return person.username || '';
 };
+
+const getPresetTestId = (key: PermissionPreset) => {
+    return `themes-member-permissions-preset-${key}`;
+};
+
+const getPermissionTestId = (key: keyof ThemeMemberPermissions) => {
+    return `themes-member-permissions-toggle-${key}`;
+};
 </script>
 
 <template>
@@ -112,6 +120,7 @@ const getDisplayName = (person: any) => {
         :visible="visible"
         class="w-md"
         modal
+        data-testid="themes-member-permissions-dialog"
         @update:visible="emit('update:visible', $event)"
     >
         <div v-if="displayPerson" class="flex items-center gap-3 mb-4">
@@ -147,6 +156,7 @@ const getDisplayName = (person: any) => {
                     outlined
                     rounded
                     size="small"
+                    :data-testid="getPresetTestId(key as PermissionPreset)"
                     @click="changePreset(key as PermissionPreset)"
                 >
                     <span class="material-symbols-rounded text-sm mr-2">{{ preset.icon }}</span>
@@ -166,6 +176,7 @@ const getDisplayName = (person: any) => {
                         rounded
                         size="small"
                         class="w-full"
+                        :data-testid="getPermissionTestId('can_view')"
                         @click="permissions.can_view = !permissions.can_view"
                     >
                         <span
@@ -186,6 +197,7 @@ const getDisplayName = (person: any) => {
                         rounded
                         size="small"
                         class="w-full text-nowrap"
+                        :data-testid="getPermissionTestId('can_update_theme')"
                         @click="permissions.can_update_theme = !permissions.can_update_theme"
                     >
                         <span
@@ -204,6 +216,7 @@ const getDisplayName = (person: any) => {
                         rounded
                         size="small"
                         class="w-full text-nowrap"
+                        :data-testid="getPermissionTestId('can_add_task')"
                         @click="permissions.can_add_task = !permissions.can_add_task"
                     >
                         <span class="material-symbols-rounded text-sm mr-2">add</span>
@@ -217,6 +230,7 @@ const getDisplayName = (person: any) => {
                         rounded
                         size="small"
                         class="w-full text-nowrap"
+                        :data-testid="getPermissionTestId('can_edit_task')"
                         @click="permissions.can_edit_task = !permissions.can_edit_task"
                     >
                         <span
@@ -235,6 +249,7 @@ const getDisplayName = (person: any) => {
                         rounded
                         size="small"
                         class="w-full text-nowrap"
+                        :data-testid="getPermissionTestId('can_delete_task')"
                         @click="permissions.can_delete_task = !permissions.can_delete_task"
                     >
                         <span class="material-symbols-rounded text-sm mr-2">delete</span>
@@ -248,6 +263,7 @@ const getDisplayName = (person: any) => {
                         rounded
                         size="small"
                         class="w-full text-nowrap"
+                        :data-testid="getPermissionTestId('can_validate_task')"
                         @click="permissions.can_validate_task = !permissions.can_validate_task"
                     >
                         <span
@@ -263,10 +279,23 @@ const getDisplayName = (person: any) => {
         </div>
 
         <div class="flex gap-2 justify-end">
-            <Button :disabled="loading" severity="danger" text rounded @click="cancel">
+            <Button
+                :disabled="loading"
+                severity="danger"
+                text
+                rounded
+                data-testid="themes-member-permissions-cancel"
+                @click="cancel"
+            >
                 Annuler
             </Button>
-            <Button :loading="loading" outlined rounded @click="confirmPermissions">
+            <Button
+                :loading="loading"
+                outlined
+                rounded
+                data-testid="themes-member-permissions-confirm"
+                @click="confirmPermissions"
+            >
                 {{ mode === 'invite' ? 'Inviter' : 'Enregistrer' }}
             </Button>
         </div>

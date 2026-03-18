@@ -533,7 +533,7 @@ const userActions = (user: User) => [
 </script>
 
 <template>
-    <div class="min-h-screen p-6 relative">
+    <div class="min-h-screen p-6 relative" data-testid="admin-page">
         <!--		&lt;!&ndash; Debug &ndash;&gt;-->
         <!--		<div-->
         <!--			class="top-2 right-2 absolute z-50 bg-black/80 text-white text-xs p-2 rounded-lg"-->
@@ -618,6 +618,7 @@ const userActions = (user: User) => [
                                     v-model="searchQuery"
                                     class="w-full h-11.5 pl-10 pr-4 py-2 text-sm flex items-center justify-between"
                                     placeholder="Rechercher par nom, email..."
+                                    data-testid="admin-users-search"
                                     @input="debounceSearch"
                                     @keyup.enter="handleSearch"
                                 />
@@ -630,6 +631,7 @@ const userActions = (user: User) => [
                                 option-value="power"
                                 placeholder="Filtrer par rôle"
                                 show-clear
+                                data-testid="admin-users-role-filter"
                                 @update:model-value="handleRoleFilter"
                             />
                             <Select
@@ -648,11 +650,13 @@ const userActions = (user: User) => [
                                 option-value="value"
                                 placeholder="Filtrer par statut"
                                 show-clear
+                                data-testid="admin-users-status-filter"
                                 @update:model-value="handleStatusFilter"
                             />
                             <Button
                                 class="flex-1 h-11.5"
                                 severity="primary"
+                                data-testid="admin-users-create-open"
                                 @click="showCreateDialog = true"
                             >
                                 <span class="material-symbols-rounded mr-2">add</span>
@@ -674,6 +678,7 @@ const userActions = (user: User) => [
                             :total-records="totalUsers"
                             :value="displayUsers"
                             class="p-datatable-sm"
+                            data-testid="admin-users-table"
                             paginator
                             responsive-layout="scroll"
                             sort-mode="single"
@@ -806,6 +811,7 @@ const userActions = (user: User) => [
                                             class="w-10 h-10 p-0"
                                             outlined
                                             size="small"
+                                            :data-testid="`admin-users-action-${action.name}-${data.user_id}`"
                                             @click="action.action(data)"
                                         >
                                             <span class="material-symbols-rounded text-sm">{{

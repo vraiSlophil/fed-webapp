@@ -239,6 +239,19 @@ const textColor = computed(() => {
     return getTextColor(editedColor.value);
 });
 
+const getActionTestId = (icon: string) => {
+    const actionIds: Record<string, string> = {
+        admin_panel_settings: 'themes-theme-action-full',
+        chip_extraction: 'themes-theme-action-leave',
+        delete: 'themes-theme-action-delete',
+        drive_file_move: 'themes-theme-action-move',
+        edit: 'themes-theme-action-edit',
+        person_add: 'themes-theme-action-share',
+    };
+
+    return actionIds[icon] ?? `themes-theme-action-${icon}`;
+};
+
 watch(
     () => editedColor.value,
     (newVal) => {
@@ -252,6 +265,7 @@ watch(
 <template>
     <div>
         <div
+            :data-testid="`themes-theme-card-${theme.theme_id}`"
             :class="[
                 isStoredVariant ? 'px-6 py-4 min-w-48 max-w-72' : 'w-full min-w-120 min-h-18 p-4',
                 isThemeOpen ? 'rounded-b-none' : 'rounded-b-[2.25rem]',
@@ -270,6 +284,7 @@ watch(
                     rounded
                     severity="secondary"
                     title="Ouvrir"
+                    :data-testid="`themes-theme-open-${theme.theme_id}`"
                     @click="openTheme"
                 >
                     <span v-if="isThemeOpen" class="material-symbols-rounded"
@@ -336,6 +351,7 @@ watch(
                                     rounded
                                     severity="secondary"
                                     title="Actions"
+                                    :data-testid="`themes-theme-actions-${theme.theme_id}`"
                                     @click="toggleCallback"
                                 >
                                     <span class="material-symbols-rounded">more_vert</span>
@@ -353,6 +369,7 @@ watch(
                                     outlined
                                     rounded
                                     severity="secondary"
+                                    :data-testid="`${getActionTestId(item.icon)}-${theme.theme_id}`"
                                     @click="item.command"
                                 >
                                     <span class="material-symbols-rounded">{{ item.icon }}</span>

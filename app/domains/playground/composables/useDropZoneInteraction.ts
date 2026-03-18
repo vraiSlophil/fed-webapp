@@ -1,3 +1,4 @@
+import { readonly, ref } from 'vue';
 import type { Theme } from '~/types/theme';
 
 // Variables globales partagées (singleton)

@@ -200,6 +200,7 @@ const cancelDelete = () => {
     <div
         :class="{ 'opacity-60': isArchived }"
         class="p-4 hover:bg-white/20 dark:hover:bg-black/20 transition-colors border-b border-neutral-300 dark:border-neutral-700 last:border-b-0"
+        :data-testid="`tasks-list-item-${task.task_id}`"
     >
         <!-- Contenu principal de la tâche -->
         <div class="flex items-center justify-between">
@@ -215,6 +216,7 @@ const cancelDelete = () => {
                     :disabled="!canEdit || loading"
                     :title="isCompleted ? 'Marquer comme non terminé' : 'Marquer comme terminé'"
                     class="flex items-center justify-center w-6.5 h-6.5 rounded-full border-2 transition-colors flex-shrink-0 cursor-pointer"
+                    :data-testid="`tasks-list-toggle-complete-${task.task_id}`"
                     @click="handleToggleCompletion"
                 >
                     <span v-if="loading" class="animate-spin flex items-center justify-center">
@@ -232,7 +234,8 @@ const cancelDelete = () => {
                         <h3
                             :class="isCompleted ? 'line-through text-neutral-500' : ''"
                             :title="canEdit ? 'Double-cliquez pour modifier' : ''"
-                            class="font-medium max-w-58 px-3 py-1 mr-8truncate cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                            class="font-medium max-w-58 px-3 py-1 mr-8 truncate cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                            :data-testid="`tasks-list-title-${task.task_id}`"
                             @dblclick="canEdit ? startTitleEdit() : null"
                         >
                             {{ task.title }}
@@ -257,6 +260,7 @@ const cancelDelete = () => {
                             }"
                             autofocus
                             class="w-full font-medium"
+                            :data-testid="`tasks-list-edit-input-${task.task_id}`"
                             @keyup.enter="confirmTitleEdit"
                             @keyup.esc="cancelTitleEdit"
                         />
@@ -270,6 +274,7 @@ const cancelDelete = () => {
                             :class="{ 'cursor-pointer': canEdit }"
                             :severity="getStatusSeverity(task.status)"
                             :value="getStatusLabel(task.status)"
+                            :data-testid="`tasks-list-status-${task.task_id}`"
                             @click="canEdit ? handleStatusChange() : null"
                         />
 
@@ -304,6 +309,7 @@ const cancelDelete = () => {
                         rounded
                         severity="secondary"
                         title="Modifier le titre"
+                        :data-testid="`tasks-list-edit-${task.task_id}`"
                         @click="startTitleEdit"
                     >
                         <span class="material-symbols-rounded text-sm">edit</span>
@@ -316,6 +322,7 @@ const cancelDelete = () => {
                         rounded
                         severity="secondary"
                         title="Confirmer la modification"
+                        :data-testid="`tasks-list-edit-confirm-${task.task_id}`"
                         @click="confirmTitleEdit"
                     >
                         <span class="material-symbols-rounded text-sm">check</span>
@@ -332,6 +339,7 @@ const cancelDelete = () => {
                         outlined
                         rounded
                         severity="secondary"
+                        :data-testid="`tasks-list-toggle-archive-${task.task_id}`"
                         @click="handleToggleArchive"
                     >
                         <span class="material-symbols-rounded text-sm">
@@ -347,6 +355,7 @@ const cancelDelete = () => {
                         rounded
                         severity="secondary"
                         title="Annuler la modification"
+                        :data-testid="`tasks-list-edit-cancel-${task.task_id}`"
                         @click="cancelTitleEdit"
                     >
                         <span class="material-symbols-rounded text-sm">close</span>
@@ -362,6 +371,7 @@ const cancelDelete = () => {
                     rounded
                     severity="secondary"
                     title="Supprimer"
+                    :data-testid="`tasks-list-delete-${task.task_id}`"
                     @click="confirmDelete"
                 >
                     <span class="material-symbols-rounded text-sm">delete</span>
@@ -374,6 +384,7 @@ const cancelDelete = () => {
             :header="'Confirmer la suppression'"
             :modal="true"
             :style="{ width: '450px' }"
+            :data-testid="`tasks-list-delete-dialog-${task.task_id}`"
         >
             <div class="flex items-center gap-2 m-2">
                 <span class="material-symbols-rounded text-yellow-500">warning</span>
@@ -385,6 +396,7 @@ const cancelDelete = () => {
                     :loading="loading"
                     class="p-button-danger"
                     label="Oui"
+                    :data-testid="`tasks-list-delete-confirm-${task.task_id}`"
                     @click="handleConfirmDelete"
                 />
             </template>
