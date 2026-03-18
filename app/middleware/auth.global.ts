@@ -9,7 +9,7 @@ interface AuthState {
 }
 
 // Déplacer idéalement ces routes dans un fichier de configuration
-const PUBLIC_ROUTES = ['/login', '/register', '/', '/forgot-password', '/password-reset'];
+const PUBLIC_ROUTES = ['/login', '/register', '/', '/forgot-password', '/password-reset', '/tests'];
 
 /**
  * Vérifie si une route est publique
@@ -22,7 +22,7 @@ function isPublicRoute(path: string): boolean {
     return PUBLIC_ROUTES.some((route) => path === route || path.startsWith(`${route}/`));
 }
 
-export default defineNuxtRouteMiddleware(async (to, from) => {
+export default defineNuxtRouteMiddleware(async (to, _from) => {
     const { initAuth, isAuthenticated, user } = useAuth() as AuthState;
     const toast = useToast();
 

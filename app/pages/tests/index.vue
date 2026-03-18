@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Playground from '~/pages/playground.vue';
+import { useAuth } from '~/domains/auth/composables/useAuth';
 
 const { isAuthenticated, logout } = useAuth();
 const toast = useToast();

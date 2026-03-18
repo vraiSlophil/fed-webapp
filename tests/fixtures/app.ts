@@ -125,6 +125,7 @@ export const taskPagination = {
     last_page: 1,
     from: 1,
     to: 2,
+    has_next: false,
 };
 
 export const activeTask = {
@@ -229,6 +230,7 @@ export const adminUserListResponse = {
         last_page: 1,
         from: 1,
         to: 2,
+        has_next: false,
     },
     sorting: {
         sort_by: 'created_at',
