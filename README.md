@@ -46,10 +46,12 @@ cd fed-webapp
 docker compose build nuxt
 ```
 
-The Docker image already contains the Playwright browser runtime needed by the test suites. Rebuild it whenever `package.json`, `package-lock.json`, or the Playwright version changes.
+The Docker image already contains the Playwright browser runtime and npm dependencies needed by the test suites. Rebuild it whenever `package.json`, `package-lock.json`, or the Playwright version changes, or when you need to pick up other dependency-level changes.
+
+For normal day-to-day development (changing only application source code), you typically do **not** need to rebuild the image or rerun `npm ci` / `npm install`; Nuxt will hot-reload your changes. If you intentionally modify dependencies from inside the running container (for example, when debugging), run `npm ci` or `npm install` inside that container instead of rebuilding immediately:
 
 ```bash
-docker compose build nuxt
+docker compose run --rm nuxt npm ci
 ```
 
 ---
