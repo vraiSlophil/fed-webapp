@@ -177,6 +177,13 @@ Please read the **CONTRIBUTING.md** file before opening an issue or pull request
 
 ---
 
+## Internal Docs
+
+- [`docs/AUTH_STATELESS.md`](./docs/AUTH_STATELESS.md)
+- [`docs/API_FOUNDATION.md`](./docs/API_FOUNDATION.md)
+
+---
+
 ## License
 
 No license has been specified yet.

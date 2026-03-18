@@ -2,6 +2,12 @@
 
 #23 Refactor the frontend API client to consume the standard envelope and meta pagination
 
+#36 Define a layered API error-handling and notification architecture
+
+#35 Define frontend state-management boundaries between composables and Pinia
+
+#29 Migrate the frontend platform from Nuxt 3 to Nuxt 4
+
 #19 Align frontend auth/session with /api/auth/\*, refresh rotation, and /api/users/me
 
 #11 Implement /verify-email and resend-verification flows with the JSON API
@@ -20,10 +26,8 @@
 
 #20 Add an in-app invitation center on /api/invitations
 
-#21 Introduce Nuxt BFF auth after stateless contract alignment
-
 #28 Map backend API message_code values to localized frontend messages
 
-#29 Migrate the frontend platform from Nuxt 3 to Nuxt 4
+#34 Create a frontend documentation site with Nuxt Content
 
-#27 Migrate frontend browser tests from Cypress to Playwright
+#21 Introduce Nuxt BFF auth after stateless contract alignment
