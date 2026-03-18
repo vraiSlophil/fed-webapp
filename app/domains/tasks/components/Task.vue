@@ -234,7 +234,7 @@ const cancelDelete = () => {
                         <h3
                             :class="isCompleted ? 'line-through text-neutral-500' : ''"
                             :title="canEdit ? 'Double-cliquez pour modifier' : ''"
-                            class="font-medium max-w-58 px-3 py-1 mr-8truncate cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                            class="font-medium max-w-58 px-3 py-1 mr-8 truncate cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                             :data-testid="`tasks-list-title-${task.task_id}`"
                             @dblclick="canEdit ? startTitleEdit() : null"
                         >
