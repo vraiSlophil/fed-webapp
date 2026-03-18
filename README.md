@@ -26,10 +26,10 @@ This repository contains the web client used to interact with the FED backend AP
 - Node.js (if running without Docker) or Docker + Docker Compose v2
 - The backend API running locally (`fed-api`)
 
-Local workspace paths used by the team:
+Example local workspace layout (adjust to your own environment):
 
-- Frontend: `/home/nathan/WebstormProjects/fed-webapp`
-- Backend: `/home/nathan/PhpstormProjects/fed-api`
+- Frontend: `~/projects/fed-webapp` (example)
+- Backend: `~/projects/fed-api` (example)
 
 ---
 
