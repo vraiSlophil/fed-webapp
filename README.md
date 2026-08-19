@@ -168,7 +168,7 @@ docker compose run --rm nuxt npm run format:check
 
 ## Contributing
 
-Contributions are welcome.
+Contributions require the copyright holder's prior express written permission.
 
 Please read the **CONTRIBUTING.md** file before opening an issue or pull request. It contains detailed guidelines on:
 
@@ -188,4 +188,7 @@ Please read the **CONTRIBUTING.md** file before opening an issue or pull request
 
 ## License
 
-No license has been specified yet.
+Copyright (c) 2026 Nathan OUDER EI. All rights reserved.
+
+This project is proprietary. No permission is granted to use, copy, modify,
+distribute, or otherwise exploit it. See [LICENSE](LICENSE) for the full terms.
